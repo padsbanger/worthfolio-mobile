@@ -2,7 +2,7 @@
 
 Native, personal, read-only Worthfolio companion built with Expo SDK 57, React Native 0.86, and TypeScript. Android is the first validation target; iOS device validation is deferred.
 
-The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and direct Authentik login using a public mobile client with PKCE. M2 authentication is complete: hosted login, authenticated bootstrap, and logout pass on the emulator, with physical-phone testing confirmed by the user. M3 portfolio/watchlists are complete, including coordinated quote refresh and failure recovery. M4 adds cancellable search, focused chart refresh, touch/accessibility inspection, and range selection; automated/emulator checks pass and the user confirmed physical-phone feature acceptance. M5 release validation remains.
+The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and direct Authentik login using a public mobile client with PKCE. M2 authentication is complete: hosted login, authenticated bootstrap, and logout pass on the emulator, with physical-phone testing confirmed by the user. M3 portfolio/watchlists are complete, including coordinated quote refresh and failure recovery. M4 adds cancellable search, focused chart refresh, touch/accessibility inspection, and range selection; automated/emulator checks pass and the user confirmed physical-phone feature acceptance. M5 is complete: the standalone APK was built and verified locally, and the user confirmed release acceptance after the physical-phone checklist. See [RELEASE.md](RELEASE.md) for the APK identity, evidence, and documented limitations.
 
 ## Run locally
 
@@ -71,13 +71,13 @@ In a second terminal, connect the installed development client:
 "%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" -s emulator-5554 shell am start -W -a android.intent.action.VIEW -d "exp+worthfolio-mobile://expo-development-client/?url=http://127.0.0.1:8082" com.worthfolio.mobile
 ```
 
-For local standalone testing after backend mobile authentication is implemented:
+For local standalone testing, first configure the release signing key as described in [RELEASE.md](RELEASE.md):
 
 ```bat
 npx expo run:android --variant release --device Pixel_10
 ```
 
-The release variant bundles JavaScript and disables sample access. Verify signing and retain the chosen signing key before personal distribution; a local build and the existing EAS build may use different keys. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, replacing the installed app requires matching its key or uninstalling it first (which clears its local data). Local Expo commands use local environment configuration, not the `eas.json` profile's environment.
+The release variant bundles JavaScript and disables sample access. Local releases now use the downloaded EAS signing key; missing release credentials fail the build instead of silently using the debug key. Normal debug builds retain their own key. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, replacing the installed app requires matching its key or uninstalling it first (which clears its local data). Local Expo commands use local environment configuration, not the `eas.json` profile's environment.
 
 When explicitly requested, the alternative cloud command is:
 
@@ -145,3 +145,4 @@ At the foundation checkpoint, npm reports 13 moderate advisories in Expo's trans
 - [Agent instructions](AGENTS.md)
 - [Architecture and product design](design.md)
 - [Milestones and remaining acceptance checks](milestones.md)
+- [Local release, signing, installation, and troubleshooting](RELEASE.md)

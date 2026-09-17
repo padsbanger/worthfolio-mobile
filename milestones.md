@@ -1,6 +1,6 @@
 # Worthfolio Mobile milestones
 
-Status: M1-M4 complete. The user confirmed M4 completion after the physical-phone checklist and authorized M5. Phone and hosted backend-auth results remain user-reported. M5 release work is next.
+Status: M1-M5 complete. The user confirmed M5 completion after receiving the standalone APK and phone checklist, then requested a commit and pause. Phone/backend test results remain user-reported. The exact hosted backend revision remains a documented traceability limitation.
 
 Work through these milestones in order. Mark a checkbox complete only after its deliverable or check is demonstrated. Record validation evidence and unresolved issues with each completed milestone. [design.md](design.md) defines the agreed scope and behavior.
 
@@ -134,21 +134,36 @@ Depends on M1-M4. iOS validation remains follow-up work.
 
 Deliverables:
 
-- [ ] Complete automated checks and document exact commands/results.
-- [ ] Validate the real HTTPS deployment, mobile issuer/client configuration, callback URI, and account identity.
-- [ ] Produce a signed standalone APK locally (or through EAS only when explicitly requested), with bundled JavaScript, and install it on a physical Android device.
-- [ ] Document installation/update steps, session-expiry behavior, known limitations, and sanitized troubleshooting guidance.
-- [ ] Record backend/mobile revisions and build identification for reproducible release validation.
+- [x] Complete automated checks and document exact commands/results.
+- [x] Validate the real HTTPS deployment, mobile issuer/client configuration, callback URI, and account identity.
+- [x] Produce a signed standalone APK locally (or through EAS only when explicitly requested), with bundled JavaScript, and install it on a physical Android device.
+- [x] Document installation/update steps, session-expiry behavior, known limitations, and sanitized troubleshooting guidance.
+- [x] Record mobile source/build identification and the reported backend version; the exact hosted backend commit/digest remains an accepted checkpoint limitation, not a verified revision.
 
 Release gate:
 
-- [ ] The APK launches and works without Metro or the development computer.
-- [ ] Sign-in, app relaunch with a valid session, expiry, cancellation, and sign-out work.
-- [ ] Portfolio, watchlists, search, and chart workflows pass against the intended account.
-- [ ] Pull-to-refresh, provider failure, connection loss/recovery, and background/resume behave as designed.
-- [ ] Native accessibility and navigation checks pass; no credentials or portfolio payloads appear in diagnostics.
-- [ ] No editing endpoints are available to the mobile session and no portfolio responses are persisted on disk.
-- [ ] All unresolved issues are documented; no failed required check is reported as passing.
+- [x] The APK launches and works without Metro or the development computer.
+- [x] Sign-in, app relaunch with a valid session, expiry, cancellation, and sign-out work.
+- [x] Portfolio, watchlists, search, and chart workflows pass against the intended account.
+- [x] Pull-to-refresh, provider failure, connection loss/recovery, and background/resume behave as designed.
+- [x] Native accessibility and navigation checks pass; no credentials or portfolio payloads appear in diagnostics.
+- [x] No editing endpoints are available to the mobile session and no portfolio responses are persisted on disk.
+- [x] All unresolved issues are documented; no failed required check is reported as passing.
+
+M5 completion (2026-09-17):
+
+- M4 was committed as `f68285a` after the user's milestone confirmation; the user explicitly authorized M5 in the same turn.
+- `npm run typecheck`, `npm run lint`, `npm test -- --runInBand`, and `npx expo-doctor` pass: 101 tests in 14 suites and Doctor 21/21. A Windows path-adapter regression covers drive aliases, external dependencies, slash conventions, and metadata preservation.
+- The user chose the existing EAS signing key. `eas credentials -p android` downloaded that key without starting a cloud build. Private files are ignored by Git; the public fingerprint and CMD build/install instructions are in `RELEASE.md`.
+- Native regeneration exposed mixed `C:`/`W:` autolinking paths; the config plugin now keeps in-checkout React Native paths on Gradle's drive. Native pre-debug generation passes; absent release credentials deliberately fail with an actionable message. The first full local release attempt exhausted the template's 512 MB Metaspace during lint analysis; retry uses 1024 MB and two Gradle workers. The retry completed `:app:assembleRelease` and release lint successfully in 4m 8s (882 actionable tasks). Windows Expo/Kotlin incremental compilation fell back to full compilation; this is a documented build-speed limitation, not a failed final task.
+- Fresh Authentik discovery confirms the expected issuer, Authorization Code, S256, and a revocation endpoint. Hosted account/read-only checks were completed earlier and reported separately; the user subsequently confirmed this standalone release milestone after the phone checklist. Source review finds only the four agreed Worthfolio GET routes, token storage in SecureStore, local preference storage in AsyncStorage, and no application credential/payload logging.
+- The currently installed emulator app uses a different debug key. A separate blank `Worthfolio_Release_M5` emulator was created for release validation; the existing emulator installation/session is preserved.
+- The APK is `artifacts/releases/worthfolio-0.1.0-2.apk`, 68,178,622 bytes, SHA-256 `80291926fd38a56afdfc1b1ce8c5b96b2d5ce846dbdad78a851e86499304da0b`. `apksigner verify --verbose --print-certs` matches the existing EAS certificate. Artifact inspection confirms version code 2, arm64-v8a/x86_64 libraries, a compiled Hermes bundle, disabled debug/backup flags, and no packaged signing files/passwords. The adjacent JSON records code-file hashes and the source baseline; keys/passwords are excluded.
+- The exact signed APK was installed on the separate Android 16 emulator (`emulator-5556`). With Wi-Fi/mobile data disabled and no ADB reverse mapping, it displayed the intended HTTPS server and sign-in screen, without sample access or a dev launcher. Force-stop/relaunch passed; a cold `worthfolio://auth/callback` showed explicit interrupted-sign-in recovery. Native captures are in ignored `artifacts/m5`. The temporary emulator was stopped after testing; the original emulator remains untouched. No authenticated release session was created on this blank emulator.
+- After receiving this exact standalone APK and the physical-phone checklist, the user stated "Milestone complete" and explicitly requested a commit and pause. Record this as user-confirmed release acceptance, not an agent-operated phone run. Phone model, Android version, and individual test traces were not supplied. Automated expiry/provider-failure tests and prior user-confirmed hosted authorization results complement this confirmation.
+- The user describes the hosted backend as "newest". Its exact commit/image digest remains unverified; do not substitute the local backend revision. The user explicitly accepted the milestone and requested the commit after this limitation was disclosed. Retain the missing backend revision as a traceability limitation rather than claiming exact deployed-source reproducibility.
+
+Checkpoint: commit M5 and pause. Do not begin follow-up work unless the user explicitly requests it.
 
 ## Deferred roadmap
 

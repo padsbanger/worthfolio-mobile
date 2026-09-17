@@ -15,5 +15,6 @@ expo-env.d.ts
 *.p12
 *.mobileprovision
 credentials.json
+credentials/
 npm-debug.*
 .DS_Store

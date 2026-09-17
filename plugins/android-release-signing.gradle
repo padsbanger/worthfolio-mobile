@@ -1,0 +1,37 @@
+// EAS injects its own signing configuration after prebuild. Local Expo/Gradle
+// builds load the same credentials.json format, outside the JavaScript bundle.
+if (System.getenv('EAS_BUILD') != 'true') {
+    def credentialsPath = System.getenv('WORTHFOLIO_CREDENTIALS_FILE')
+    def credentialsFile = credentialsPath ? file(credentialsPath) : rootProject.file('../credentials.json')
+    def keystore = null
+    if (credentialsFile.isFile()) {
+        try {
+            keystore = new groovy.json.JsonSlurper().parse(credentialsFile).android?.keystore
+            if (!(keystore instanceof Map) || !['keystorePath', 'keystorePassword', 'keyAlias', 'keyPassword'].every {
+                keystore[it] instanceof String && !keystore[it].isEmpty()
+            }) keystore = null
+        } catch (Exception ignored) {
+            // A parser error can echo secrets from the offending JSON line.
+            keystore = null
+        }
+    }
+    android.signingConfigs {
+        worthfolioRelease {
+            if (keystore != null) {
+                def keyFile = new File(keystore.keystorePath)
+                storeFile keyFile.isAbsolute() ? keyFile : new File(credentialsFile.parentFile, keystore.keystorePath)
+                storePassword keystore.keystorePassword
+                keyAlias keystore.keyAlias
+                keyPassword keystore.keyPassword
+            }
+        }
+    }
+    // Never silently distribute a release signed by the template debug key.
+    android.buildTypes.release.signingConfig = keystore == null ? null : android.signingConfigs.worthfolioRelease
+    tasks.matching { it.name == 'preReleaseBuild' }.configureEach {
+        doFirst {
+            if (keystore == null) throw new GradleException('Release signing is missing or invalid. Set WORTHFOLIO_CREDENTIALS_FILE to a private credentials.json; see RELEASE.md. Debug builds do not require it.')
+            if (keystore.keyAlias == 'androiddebugkey') throw new GradleException('Use a personal release key, not androiddebugkey; see RELEASE.md.')
+        }
+    }
+}
