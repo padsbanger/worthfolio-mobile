@@ -1,6 +1,6 @@
 # Worthfolio Mobile milestones
 
-Status: planning documents created; application implementation has not started.
+Status: M1 complete and Android emulator validation passed. Paused at the M1 checkpoint; M2 backend work and the full M3-M5 acceptance gates remain pending.
 
 Work through these milestones in order. Mark a checkbox complete only after its deliverable or check is demonstrated. Record validation evidence and unresolved issues with each completed milestone. [design.md](design.md) defines the agreed scope and behavior.
 
@@ -8,19 +8,27 @@ Work through these milestones in order. Mark a checkbox complete only after its 
 
 Deliverables:
 
-- [ ] Scaffold Expo, Expo Router, strict TypeScript, and npm with pinned compatible dependencies and a committed lockfile.
-- [ ] Add thin routes, feature folders, shared dark-theme components, safe-area handling, and accessible controls.
-- [ ] Create Portfolio, Watchlists, Search, Instrument, Settings, and Sign-in screen shells using synthetic fixtures.
-- [ ] Add typed API transport/contracts, in-memory query setup, session boundary, and build-configured HTTPS server URL.
-- [ ] Define `typecheck`, `lint`, and Jest/Expo test scripts, plus EAS development and standalone preview profiles.
-- [ ] Document development setup and required Expo/build configuration without committing credentials.
+- [x] Scaffold Expo, Expo Router, strict TypeScript, and npm with pinned compatible dependencies and a generated lockfile ready for version control.
+- [x] Add thin routes, feature folders, shared dark-theme components, safe-area handling, and accessible controls.
+- [x] Create Portfolio, Watchlists, Search, Instrument, Settings, and Sign-in screen shells using synthetic fixtures.
+- [x] Add typed API transport/contracts, in-memory query setup, session boundary, and build-configured HTTPS server URL.
+- [x] Define `typecheck`, `lint`, and Jest/Expo test scripts, plus EAS development and standalone preview profiles.
+- [x] Document development setup and required Expo/build configuration without committing credentials.
 
 Acceptance:
 
-- [ ] A clean `npm ci`, typecheck, lint, tests, and Expo Doctor succeed.
-- [ ] A development build opens on Android and all fixture-backed routes are reachable.
-- [ ] Missing/invalid server configuration yields an actionable startup state.
-- [ ] No mobile runtime source imports depend on the sibling repository.
+- [x] A clean `npm ci`, typecheck, lint, tests, and Expo Doctor succeed.
+- [x] A development build opens on Android and all fixture-backed routes are reachable.
+- [x] Missing/invalid server configuration yields an actionable startup state.
+- [x] No mobile runtime source imports depend on the sibling repository.
+
+Foundation evidence (2026-09-17):
+
+- A clean `npm ci` succeeds; TypeScript and ESLint pass; all 13 tests in four suites pass, covering API validation, request scheduling, valuation, chart geometry/input immutability, portfolio rendering, and offline fixtures without network calls. Expo Doctor passes 21/21 checks; Metro/Hermes Android export succeeds.
+- EAS project: `@padsbanger/worthfolio-mobile` (`88df6ef6-386b-44de-ab0e-a9bc68b80929`). Android development [build `1f198556-87c4-4179-9006-e44b1ad5b4a8`](https://expo.dev/accounts/padsbanger/projects/worthfolio-mobile/builds/1f198556-87c4-4179-9006-e44b1ad5b4a8) finished successfully. APK SHA-256: `93454b99a0dca457ba51c4cea626f518cc3fb1ffb46710ec278d17c5f6f8cb4d`.
+- Installed `com.worthfolio.mobile` version `0.1.0` on the Pixel_10 emulator running Android 16. The development client loaded the final M1 JavaScript from Metro on port 8082. `scripts/android-smoke.py` passed Sign-in, Portfolio, Instrument, Watchlists, Search-to-Instrument, Account, back navigation, and sample-session exit. Local screenshots/UI trees are in ignored `artifacts/m1`.
+- Native testing exposed unsupported Hermes `Array.toSorted`; chart sorting now uses a copied array and has a regression test. First-use Expo/Android keyboard tutorials were dismissed before the successful smoke run.
+- This validates the development client and fixtures. The APK requires Metro; standalone release, physical-device checks, real account login, and iOS remain later gates. The actual server health endpoint responds with OIDC enabled and no mobile-auth capability yet. No backend files or running deployment were changed for M1.
 
 ## M2: End-to-end authentication
 

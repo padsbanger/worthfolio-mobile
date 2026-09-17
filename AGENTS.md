@@ -8,7 +8,7 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 - This repository contains the mobile client. The existing web/backend repository is `../worthfolio`; its Python package is `../worthfolio/worthfolio`.
 - The agreed v1 includes portfolio summaries and holdings, browsing existing watchlists, search, simple instrument charts, and account settings.
 - Do not expand v1 into editing, advanced analytics, notifications, persistent offline portfolio storage, or store publication without a user request.
-- These documents describe the target implementation. At creation time, this repository has no application scaffold or runnable checks.
+- M1 is complete: the Expo foundation, local checks, cloud development APK, and Android emulator navigation checks passed. See `milestones.md` for remaining backend, refresh, standalone build, and physical-device validation work; do not assume the live backend supports mobile login yet.
 
 ## Implementation conventions
 
@@ -40,7 +40,7 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 
 ## Verification and delivery
 
-After scaffolding, provide and use these scripts:
+Use these scripts (on Windows PowerShell, use `npm.cmd` / `npx.cmd` if script execution is restricted):
 
 | Command | Purpose |
 | --- | --- |
@@ -52,9 +52,10 @@ After scaffolding, provide and use these scripts:
 | `npx expo start --dev-client` | Run the development client workflow |
 | `npx eas-cli build --platform android --profile preview` | Build a standalone installable APK |
 
-- Treat the commands above as planned until the scaffold actually defines them. Do not claim checks ran when the toolchain or credentials are unavailable.
+- Do not claim checks ran when the toolchain or credentials are unavailable. An Android JavaScript export is not a native APK build or a device test.
 - Test meaningful behavior: authentication boundaries, quote preservation/concurrency, valuation presentation, navigation, and failure recovery. Avoid tests that only restate implementation details.
 - Run the checks appropriate to a completed code change. Validate browser redirects, background/resume, back navigation, and chart interaction on a real Android device before declaring v1 complete.
 - Backend changes belong in the sibling repository and must follow its `AGENTS.md`. Its current rules require rebuilding/restarting the completed backend change and verifying `/api/health`, while preserving persisted volumes.
 - Documentation-only changes do not require an application rebuild or restart.
 - Update milestone status only with supporting evidence. Report unresolved failures and limitations explicitly.
+- At each completed milestone, commit the milestone's changes and pause. Do not start the next milestone until the user resumes work. If a required acceptance check is blocked, report the blocker and leave the milestone incomplete.

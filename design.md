@@ -1,6 +1,6 @@
 # Worthfolio Mobile design
 
-Status: agreed v1 design; implementation has not started.
+Status: agreed v1 design; M1 native foundation built and validated on an Android emulator. Backend mobile authentication, physical-device validation, and the remaining release gates are pending. See `milestones.md` for evidence and remaining work.
 
 ## Goal and scope
 
@@ -72,6 +72,8 @@ On background/offline transitions, stop scheduling requests and cancel unnecessa
 ## Mobile authentication bridge
 
 Keep the current OIDC client and provider callback so the mobile user resolves to the same existing subject and portfolio. Do not embed a provider secret, reuse browser cookies as mobile credentials, or use an embedded WebView for login.
+
+The actual backend origin is `https://worthfolio.pripyat.cloud`. Its provider is Authentik with discovery at `https://auth.pripyat.cloud/application/o/watchfolio/.well-known/openid-configuration` and issuer `https://auth.pripyat.cloud/application/o/watchfolio/`. Public discovery was verified to support authorization code, S256, RS256, `client_secret_basic`, and backchannel logout. Reuse this provider and its existing subject mapping. Register only the backend OIDC callback with Authentik; the final `worthfolio://auth/callback` redirect belongs in Worthfolio's mobile allowlist. Authentik's configured backchannel destination still needs verification during M2.
 
 ### Flow and interfaces
 
