@@ -6,8 +6,8 @@ export function chartGeometry(observations: Observation[], width: number, height
     // filter creates a new array; sort preserves the cached input and works in Hermes.
     .sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
   if (!sorted.length) return { points: [] as ChartPoint[], path: '', low: 0, high: 0 };
-  const low = Math.min(...sorted.map(p => p.close));
-  const high = Math.max(...sorted.map(p => p.close));
+  const low = sorted.reduce((value, p) => Math.min(value, p.close), Infinity);
+  const high = sorted.reduce((value, p) => Math.max(value, p.close), -Infinity);
   const margin = high === low ? Math.max(high * 0.01, 0.01) : (high - low) * 0.08;
   const start = Date.parse(sorted[0]!.time);
   const duration = Date.parse(sorted.at(-1)!.time) - start;

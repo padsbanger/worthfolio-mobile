@@ -1,6 +1,6 @@
 # Worthfolio Mobile milestones
 
-Status: M1-M3 complete. M3 combines automated refresh/data-integrity checks and live emulator portfolio/watchlist checks. Pause after committing M3; M4 has not started. M2 physical-phone and backend-auth results remain user-reported.
+Status: M1-M4 complete. The user confirmed M4 completion after the physical-phone checklist and authorized M5. Phone and hosted backend-auth results remain user-reported. M5 release work is next.
 
 Work through these milestones in order. Mark a checkbox complete only after its deliverable or check is demonstrated. Record validation evidence and unresolved issues with each completed milestone. [design.md](design.md) defines the agreed scope and behavior.
 
@@ -104,19 +104,29 @@ Depends on M3.
 
 Deliverables:
 
-- [ ] Add debounced search with cancellation, empty/error states, and result navigation.
-- [ ] Show instrument price, daily change when available, and the current holding when present.
-- [ ] Build the native SVG close-price chart and the agreed range selector, defaulting to `1M`.
-- [ ] Add nearest-point touch inspection and accessible price/time text.
-- [ ] Implement focused-instrument refresh using the backend cadence and shared market-request limit.
+- [x] Add debounced search with cancellation, empty/error states, and result navigation.
+- [x] Show instrument price, daily change when available, and the current holding when present.
+- [x] Build the native SVG close-price chart and the agreed range selector, defaulting to `1M`.
+- [x] Add nearest-point touch inspection and accessible price/time text.
+- [x] Implement focused-instrument refresh using the backend cadence and shared market-request limit.
 
 Acceptance:
 
-- [ ] Rapid search/range changes cannot render superseded responses.
-- [ ] Chart tests cover empty, single-point, flat, sparse, and real multi-point series.
-- [ ] Demo data is never plotted as real history; absent real history has an unavailable state.
-- [ ] Touch inspection identifies the expected observation; selected refresh stops on blur/background/offline.
-- [ ] Android back navigation, safe areas, long instrument names, text scaling, and gesture interaction work on a real device.
+- [x] Rapid search/range changes cannot render superseded responses.
+- [x] Chart tests cover empty, single-point, flat, sparse, and real multi-point series.
+- [x] Demo data is never plotted as real history; absent real history has an unavailable state.
+- [x] Touch inspection identifies the expected observation; selected refresh stops on blur/background/offline.
+- [x] Android back navigation, safe areas, long instrument names, text scaling, and gesture interaction work on a real device (user-confirmed after the M4 checklist).
+
+M4 evidence (2026-09-17):
+
+- TypeScript, ESLint, all 100 tests across 13 suites, and the Metro/Hermes Android export pass. Search integration tests cover the 300 ms/two-character threshold, immediate cancellation while replacement input is debouncing, late responses, offline/empty/error states, retry recovery, and navigation. Instrument tests cover backend cadence, non-overlapping slow requests, range cancellation, default/reset to `1M`, daily change/holding presentation, and rejection of synthetic history.
+- Selected charts use the existing query cache and three-request market queue. Blur removes the screen's subscription without cancelling another owner of the same query; background/offline also cancel network work. Backend cadence defaults to five seconds when absent/invalid, with a one-second minimum. No polling runs in the explicitly labeled development sample session.
+- Chart tests cover empty, single, flat, sparse/multi-point series, touch and accessibility actions, and retaining an inspected observation through live updates. Sparse dates retain temporal spacing. Inspection includes the year; `ALL` explains that provider history may be bounded. Missing/synthetic history is not replaced with generated data in real sessions.
+- The installed Pixel_10 development client completed hosted sign-in and live search-to-instrument navigation. A real provider chart loaded; `ALL` showed the bounded-history explanation, touch/drag changed the inspected observation, vertical scrolling starting over the chart worked, and Android Back returned to search. A further emulator check at 150% system text displayed a 56-character instrument name, range controls, chart labels, and safe-area spacing without clipping; the original font scale was restored. Native captures are in ignored `artifacts/m4`. No new APK, cloud build, dependency, backend change, or server-setting write was needed.
+- The user confirmed milestone completion after the physical-phone checklist covering search, chart gestures/ranges, Android Back, long names, and enlarged text. Accept this as user-reported M4 device validation, distinct from the agent-operated emulator checks; no phone model or raw traces were supplied.
+
+Checkpoint: commit M4. The user explicitly requested the next milestone, authorizing M5 in the same turn.
 
 ## M5: Personal Android release
 

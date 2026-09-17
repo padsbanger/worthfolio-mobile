@@ -14,9 +14,9 @@ export function money(value: number | null | undefined, currency = 'USD', signed
 
 export function number(value: number) { return new Intl.NumberFormat('en', { maximumFractionDigits: 6 }).format(value); }
 export function percent(value: number | null) { return value == null ? 'Unavailable' : `${value > 0 ? '+' : ''}${value.toFixed(2)}%`; }
-export function timestamp(value: string | null | undefined) {
+export function timestamp(value: string | null | undefined, includeYear = false) {
   if (!value || !Number.isFinite(Date.parse(value))) return 'Time unavailable';
-  return new Date(value).toLocaleString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(value).toLocaleString('en', { ...(includeYear ? { year: 'numeric' } as const : {}), month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 export function ticker(symbol: string) { return symbol.split(':').at(-1) || symbol; }
 

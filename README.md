@@ -2,7 +2,7 @@
 
 Native, personal, read-only Worthfolio companion built with Expo SDK 57, React Native 0.86, and TypeScript. Android is the first validation target; iOS device validation is deferred.
 
-The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and direct Authentik login using a public mobile client with PKCE. M2 authentication is complete: hosted login, authenticated bootstrap, and logout pass on the emulator, with physical-phone testing confirmed by the user. M3 portfolio/watchlists are complete, including coordinated quote refresh and failure recovery. M4 search/chart work and M5 release validation remain.
+The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and direct Authentik login using a public mobile client with PKCE. M2 authentication is complete: hosted login, authenticated bootstrap, and logout pass on the emulator, with physical-phone testing confirmed by the user. M3 portfolio/watchlists are complete, including coordinated quote refresh and failure recovery. M4 adds cancellable search, focused chart refresh, touch/accessibility inspection, and range selection; automated/emulator checks pass and the user confirmed physical-phone feature acceptance. M5 release validation remains.
 
 ## Run locally
 

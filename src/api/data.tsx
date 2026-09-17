@@ -87,17 +87,26 @@ export function useWatchlists() {
     ...(demo ? { queryFn: () => Promise.resolve(sampleBootstrap) } : {}),
   });
 }
-export function useMarket(symbol: string, range: ChartRange = '1M') {
+export function selectedRefreshMs(seconds?: number) {
+  return Number.isFinite(seconds) && seconds! > 0 ? Math.max(1_000, seconds! * 1_000) : 5_000;
+}
+
+export function useMarket(symbol: string, range: ChartRange = '1M', refreshSeconds?: number | null) {
   const { queries, demo, online, active } = useData();
   const focused = useIsFocused();
-  return useQuery({ ...queries.market(symbol, range), enabled: !!symbol && (demo || (online && active && focused)), networkMode: demo ? 'always' : 'online',
+  const enabled = !!symbol && focused && (demo || (online && active));
+  return useQuery({ ...queries.market(symbol, range), enabled, subscribed: focused, networkMode: demo ? 'always' : 'online',
+    // Query's interval reuses an in-flight fetch. All ranges share the same queue.
+    refetchInterval: enabled && !demo && refreshSeconds !== undefined ? selectedRefreshMs(refreshSeconds ?? undefined) : false,
+    ...(refreshSeconds !== undefined ? { staleTime: selectedRefreshMs(refreshSeconds ?? undefined) } : {}),
     ...(demo ? { queryFn: () => Promise.resolve(sampleMarket(symbol, range)) } : {}),
   });
 }
-export function useSearch(query: string) {
+export function useSearch(query: string, settled = true) {
   const { client, demo, online, active } = useData();
   const focused = useIsFocused();
-  return useQuery({ queryKey: ['search', query], enabled: query.length >= 2 && (demo || (online && active && focused)), networkMode: demo ? 'always' : 'online',
+  return useQuery({ queryKey: ['search', query], subscribed: focused && settled,
+    enabled: settled && focused && query.length >= 2 && (demo || (online && active)), networkMode: demo ? 'always' : 'online',
     queryFn: ({ signal }) => demo ? Promise.resolve(sampleSearch(query))
       : client.request(`/api/search?${new URLSearchParams({ q: query })}`, searchSchema, { signal }),
   });
