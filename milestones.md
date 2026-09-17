@@ -104,7 +104,7 @@ Deliverables:
 
 - [ ] Complete automated checks and document exact commands/results.
 - [ ] Validate the real HTTPS deployment, capability flag, callback URI, and account identity.
-- [ ] Produce a signed EAS preview APK with bundled JavaScript and install it on a physical Android device.
+- [ ] Produce a signed standalone APK locally (or through EAS only when explicitly requested), with bundled JavaScript, and install it on a physical Android device.
 - [ ] Document installation/update steps, session-expiry behavior, known limitations, and sanitized troubleshooting guidance.
 - [ ] Record backend/mobile revisions and build identification for reproducible release validation.
 

@@ -40,6 +40,9 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 
 ## Verification and delivery
 
+- Preserve the user's limited Expo cloud-build quota. Reuse the installed development client with Metro for JavaScript/TypeScript changes; use local Android compilation when native changes require a new APK. Do not start an EAS cloud build unless the user explicitly requests that build. Earlier cloud-build authorization does not authorize future builds.
+- A milestone checkpoint does not itself require a new cloud build. A locally built APK can satisfy native acceptance gates; release gates still require appropriate signing, bundled JavaScript, and physical-device validation.
+
 Use these scripts (on Windows PowerShell, use `npm.cmd` / `npx.cmd` if script execution is restricted):
 
 | Command | Purpose |
@@ -50,7 +53,9 @@ Use these scripts (on Windows PowerShell, use `npm.cmd` / `npx.cmd` if script ex
 | `npm test -- --runInBand` | Run Jest/Expo unit and component tests |
 | `npx expo-doctor` | Check Expo dependency/configuration compatibility |
 | `npx expo start --dev-client` | Run the development client workflow |
-| `npx eas-cli build --platform android --profile preview` | Build a standalone installable APK |
+| `npx expo run:android --device` | Build locally and install on an Android device/emulator |
+| `npx expo run:android --variant release --device` | Build and install a local release variant; verify signing before distribution |
+| `npx eas-cli build --platform android --profile preview` | Optional cloud APK build; requires an explicit user request |
 
 - Do not claim checks ran when the toolchain or credentials are unavailable. An Android JavaScript export is not a native APK build or a device test.
 - Test meaningful behavior: authentication boundaries, quote preservation/concurrency, valuation presentation, navigation, and failure recovery. Avoid tests that only restate implementation details.

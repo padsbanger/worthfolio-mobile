@@ -4,7 +4,7 @@ Status: agreed v1 design; M1 native foundation built and validated on an Android
 
 ## Goal and scope
 
-Create a native, personal, read-only companion for an existing Worthfolio HTTPS deployment protected by OpenID Connect. Deliver an Android APK through Expo Application Services (EAS). Keep code compatible with iOS, but defer iOS device validation and release until after Android v1.
+Create a native, personal, read-only companion for an existing Worthfolio HTTPS deployment protected by OpenID Connect. Deliver an Android APK using local builds by default; Expo Application Services (EAS) is an optional cloud build service. Keep code compatible with iOS, but defer iOS device validation and release until after Android v1.
 
 V1 supports portfolio summaries and open holdings, existing watchlists, market search, instrument details with simple line charts, and account settings. It excludes editing, transaction-history screens, advanced analytics, chart indicators/overlays, notifications, persistent offline portfolio storage, app-store publication, and OTA updates.
 
@@ -97,6 +97,8 @@ Enable the bridge only when OIDC and an explicit mobile redirect allowlist are c
 - On expiry/401, stop requests, erase credentials and account data, and show sign-in. Namespace caches by server/account and guard completions with the active session generation to reject late responses.
 
 ## Build, rollout, and verification
+
+Preserve the user's limited EAS cloud-build quota. Reuse the installed development client and Metro for JavaScript/TypeScript iteration, and compile Android locally when native changes require it. Start a cloud build only when the user explicitly requests that build. Milestone completion does not require consuming cloud quota. A locally built and appropriately signed standalone APK can satisfy the Android release gate.
 
 Define an EAS `development` profile for the development client and a `preview` profile producing a standalone signed Android APK with its JavaScript bundled. The preview APK must launch without Metro. Supply the actual server URL, Expo project/account configuration, and signing credentials during setup; do not commit secrets.
 
