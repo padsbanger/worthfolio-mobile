@@ -1,6 +1,6 @@
 # Worthfolio Mobile design
 
-Status: agreed v1 design; M1 native foundation built and validated on an Android emulator. Backend mobile authentication, physical-device validation, and the remaining release gates are pending. See `milestones.md` for evidence and remaining work.
+Status: agreed v1 design; M1 foundation and M2 authentication are complete. Hosted login/bootstrap/logout were verified on the emulator; the user confirmed physical-phone testing and hosted authorization tests. M3-M5 features and release gates remain pending. See `milestones.md` for evidence and remaining work.
 
 ## Goal and scope
 
@@ -16,7 +16,7 @@ The sibling `../worthfolio` repository contains a Flask backend, SQLite persiste
 
 The web UI contains a substantial browser-specific controller and canvas chart. Rebuild the presentation natively. Reuse existing HTTP APIs, backend calculations, response semantics, and suitable framework-independent quote-queue behavior.
 
-Existing browser authentication uses opaque cookies and CSRF tokens. Sessions live in process memory. The mobile authentication bridge described below is new work; it is not already supported by the backend.
+Existing browser authentication uses opaque cookies and CSRF tokens. Sessions live in process memory. The user selected a separate public Authentik client for mobile. Hosted acceptance of its access tokens is an external prerequisite and has not been verified.
 
 ## Screens and navigation
 
@@ -24,7 +24,7 @@ Use three bottom tabs: Portfolio, Watchlists, and Search. Instrument details and
 
 | Screen | V1 behavior |
 | --- | --- |
-| Sign in | Check server health/capability, launch browser sign-in, and handle cancellation, failure, and retry |
+| Sign in | Discover Authentik, launch browser sign-in with PKCE, verify Worthfolio API access, and handle cancellation, failure, and retry |
 | Portfolio | Holdings-only value, invested amount, open P&L, coverage/freshness information, and a virtualized holdings list |
 | Watchlists | Select an existing named list locally; show symbols, prices, daily changes, and quote status |
 | Search | Debounced backend search; open a result's instrument details without adding it to a watchlist |
@@ -42,7 +42,7 @@ Use Worthfolio's dark palette, native screen transitions, safe areas, scalable t
 - Expo development builds, Expo Router, strict TypeScript, npm, and a pinned lockfile. Use stable SDK-compatible dependencies selected during scaffolding.
 - Suggested source layout: `src/app` for routes, `src/features` for screens and feature logic, `src/api` for transport/contracts, `src/auth` for sessions, and `src/components`, `src/theme`, and `src/lib` for shared code.
 - TanStack Query owns in-memory server state. React state/context owns session lifecycle and local UI state; no additional global state library is required for v1.
-- Use `expo-web-browser` for the backend-mediated browser session, `expo-crypto` for state/PKCE material, SecureStore for the mobile credential, AsyncStorage for non-sensitive preferences, and NetInfo plus React Native AppState for network/focus handling.
+- Use `expo-web-browser` for direct Authentik browser login, `expo-crypto` for state/PKCE material, SecureStore for the mobile credential, AsyncStorage for non-sensitive preferences, and NetInfo plus React Native AppState for network/focus handling.
 - Render the simple line chart using `react-native-svg` and React Native touch handling, with pure coordinate/nearest-point helpers.
 - Keep TypeScript API contracts separate from display models. Validate essential response fields at the transport boundary and preserve unknown optional fields for forward compatibility.
 - Configure the server through `EXPO_PUBLIC_API_URL`. Require HTTPS in distributable builds. Default app identifier: `com.worthfolio.mobile`; callback URI: `worthfolio://auth/callback`.
@@ -51,7 +51,7 @@ Use Worthfolio's dark palette, native screen transitions, safe areas, scalable t
 
 | Existing endpoint | Use |
 | --- | --- |
-| `GET /api/health` | Connectivity and authentication capability check; public |
+| `GET /api/health` | Optional connectivity check; public, not proof of mobile token support |
 | `GET /api/bootstrap` | Account, positions, authoritative portfolio summary, watchlists, refresh settings, and authenticated identity |
 | `GET /api/watchlists` | Reload existing named lists without changing server selection |
 | `GET /api/search?q=...` | Account-scoped instrument search |
@@ -69,32 +69,42 @@ Bootstrap remains authoritative for aggregate valuation. Display-only position c
 
 On background/offline transitions, stop scheduling requests and cancel unnecessary pending work. Retain in-memory data with stale/offline labels. On reconnect/resume, refresh stale visible data through the normal deduplicated queue. A fresh offline launch requires reconnection; no portfolio data is restored from disk.
 
-## Mobile authentication bridge
+## Mobile authentication with a public OIDC client
 
-Keep the current OIDC client and provider callback so the mobile user resolves to the same existing subject and portfolio. Do not embed a provider secret, reuse browser cookies as mobile credentials, or use an embedded WebView for login.
+Decision updated 2026-09-17: the user created a separate public Authentik mobile client. This replaces the earlier proposed `/auth/mobile/*` backend handoff. Use only the hosted `https://worthfolio.pripyat.cloud` service; do not implement or deploy the sibling backend.
 
-The actual backend origin is `https://worthfolio.pripyat.cloud`. Its provider is Authentik with discovery at `https://auth.pripyat.cloud/application/o/watchfolio/.well-known/openid-configuration` and issuer `https://auth.pripyat.cloud/application/o/watchfolio/`. Public discovery was verified to support authorization code, S256, RS256, `client_secret_basic`, and backchannel logout. Reuse this provider and its existing subject mapping. Register only the backend OIDC callback with Authentik; the final `worthfolio://auth/callback` redirect belongs in Worthfolio's mobile allowlist. Authentik's configured backchannel destination still needs verification during M2.
+### Configuration
 
-### Flow and interfaces
+- Issuer: `https://auth.pripyat.cloud/application/o/worthfolio-mobile/`
+- Discovery: issuer plus `.well-known/openid-configuration`.
+- Public client ID: `9k33r6Ly7z3MYeKYP8JWqjAQKUbxWFoti107Q7Yx`.
+- Authentik redirect URI: exactly `worthfolio://auth/callback`, using Strict matching.
+- Authorization Code flow with S256 PKCE; scopes `openid profile email`. No client secret, implicit flow, password grant, or `offline_access` in the app.
+- Optional public build overrides: `EXPO_PUBLIC_OIDC_ISSUER` and `EXPO_PUBLIC_OIDC_CLIENT_ID`. The configured API origin remains Worthfolio, not Authentik.
 
-1. The app generates fresh state and a PKCE verifier/challenge, then opens `GET /auth/mobile/login` in the system browser with `state`, `code_challenge`, and the configured `redirect_uri`. Only S256 is supported.
-2. The backend validates the exact registered mobile redirect, stores a bounded pending mobile login record, and starts its existing provider authorization-code flow. The provider state, nonce, PKCE verifier, and browser binding remain separate from the mobile handoff state/challenge.
-3. The existing `/auth/callback` verifies the provider response and subject. For a mobile login, create a separate mobile session and a 60-second single-use handoff code bound to the session, mobile challenge, and redirect. Return only the handoff code and original mobile state to the app URI.
-4. The app verifies state and calls `POST /auth/mobile/token` with `code`, `code_verifier`, and `redirect_uri`. Verify and consume the handoff atomically; return `accessToken`, `tokenType: "Bearer"`, and `expiresAt`. Never return provider credentials. Remove abandoned sessions after their handoff expires.
-5. Store the mobile credential and expiry in SecureStore. Use `Authorization: Bearer ...` for supported API reads. Keep the verifier/state only for the pending flow and clear them after success or cancellation; if the app process dies, restart sign-in.
-6. `POST /auth/mobile/logout` requires the mobile bearer credential and revokes only that mobile session. Clear the local credential, account cache, and navigation state even if logout cannot reach the server. An unreachable session remains valid remotely until expiry or revocation.
+Live discovery was retrieved on 2026-09-17 and advertises the expected issuer, authorization code, S256, RS256, token and revocation endpoints. The user subsequently registered the native redirect, and a Pixel_10 emulator login completed a real public-client token exchange. Worthfolio initially denied the bearer-authenticated bootstrap request. After the hosted fix, fresh emulator login/bootstrap/logout pass; the user confirms matching account identity and passing backend read-only/isolation/expiry/revocation/web-login tests. The user subsequently confirmed physical-phone testing, closing M2. Broader feature/lifecycle and standalone release validation remain M3-M5 work.
 
-Enable the bridge only when OIDC and an explicit mobile redirect allowlist are configured. Add a boolean `mobileAuth` capability to `/api/health`; absence or false produces a mobile-auth-not-supported message in the app. Authentication failures return bounded JSON errors for app-facing endpoints; browser-flow errors provide a recoverable sign-in result without credential details.
+### Client flow
 
-### Session and authorization rules
+1. Fetch discovery over HTTPS, validate its issuer exactly, require code/S256 support, and restrict authorization/token/revocation endpoints to the configured provider origin. Fail closed on unexpected metadata.
+2. Generate fresh random state and a PKCE verifier/challenge. Open Authentik's authorization endpoint in the system browser with the public client ID and exact redirect URI.
+3. The callback screen waits visibly while authentication finishes; it opens the protected portfolio only after session activation, routes failures to sign-in, and offers restart for cold/stale callbacks. Require the exact app callback, matching single state and single code, and no fragment. Handle cancellation and provider failure without exchanging a failed response. Abandon the flow if the app process dies.
+4. Exchange the code directly at Authentik's token endpoint using a form-encoded public-client request with `grant_type=authorization_code`, `client_id`, `redirect_uri`, and `code_verifier`. Do not send a client secret or browser cookies. Ignore returned ID and refresh tokens; this client uses the access token for API authorization and does not derive identity from an unverified ID token.
+5. Read Worthfolio's `/api/bootstrap` with `Authorization: Bearer <access_token>` and no cookies. Validate the response before activating the session. Explain 401/403 as API access denial after successful provider login; do not assume a Cloudflare response proves a specific backend implementation. Best-effort revoke an issued token if login cannot finish.
+6. Persist only the access token, expiry, API origin, issuer, and client ID in SecureStore. Restore only a matching unexpired credential. Portfolio responses and user profiles remain in memory. Legacy backend-handoff credentials are discarded.
+7. On expiry/401, clear account state and require sign-in again. V1 does not refresh access tokens. On logout, cancel pending work, erase the credential and account cache, then best-effort revoke the access token at Authentik with the public client ID. Local sign-out succeeds offline; the remote token may remain valid until expiry. Browser SSO stays signed in, so a later login may not prompt for a password.
 
-- Tag browser and mobile session records distinctly. Browser cookie authentication must not accept mobile session tokens, and bearer authentication must not accept browser session IDs.
-- A supplied invalid bearer token fails authentication; it must not fall back to a browser cookie or unauthenticated account.
-- Mobile sessions allow only GET/HEAD access to bootstrap, watchlists, search, and market endpoints, plus POST mobile logout. Health and handoff initiation/exchange have their own public validation rules. Reject all other mobile-authenticated operations.
-- Preserve existing browser CSRF requirements. Exempt only the explicitly designed mobile handoff exchange and bearer-authenticated logout from cookie-CSRF handling.
-- Continue resolving account ownership from the verified OIDC subject. Existing backchannel logout must revoke matching mobile sessions and prevent pending handoffs from restoring them.
-- Use the existing `OIDC_SESSION_TTL`, currently 12 hours by default. Sessions remain in memory and are invalidated by server restarts. V1 adds no refresh tokens or database migration.
-- On expiry/401, stop requests, erase credentials and account data, and show sign-in. Namespace caches by server/account and guard completions with the active session generation to reject late responses.
+The old `mobileAuth` health flag and `/auth/mobile/login`, `/auth/mobile/token`, and `/auth/mobile/logout` routes are not required by this design.
+
+### Hosted API prerequisites and authorization
+
+These requirements belong to the hosted backend. Bearer-authenticated bootstrap is verified on the emulator; read-only access, isolation, expiry/revocation, and existing web login are user-reported as tested. Preserve the requirements below and collect evidence for remaining acceptance cases:
+
+- Accept access tokens issued for the public mobile client. Validate signature with the configured trusted issuer's keys, exact issuer, the appropriate audience/client binding, expiry, token purpose, and revocation. Never accept an ID token as an API access token or trust decoded claims without verification. An introspection design is also possible with server-side credentials; do not put those credentials in the app.
+- Map the verified mobile identity to the existing portfolio owner. The mobile provider's issuer differs from the existing web provider. Preserve or explicitly map the verified subject identity; do not merge accounts by email or blindly assume both providers return the same subject.
+- Restrict mobile tokens to GET/HEAD on `/api/bootstrap`, `/api/watchlists`, `/api/search`, and `/api/market`. Reject all writes and other protected routes. Keep existing browser cookie and CSRF behavior. Invalid bearer tokens must never fall back to cookies or an anonymous/default account.
+- Enforce revocation and provider logout in the API. Local JWT signature checks alone do not observe token revocation immediately; use validated introspection or an explicit server revocation strategy and test it. Do not claim that provider revocation or backend restart invalidates a signed token without evidence.
+- Confirm the expected account bootstrap, denial of other users' data, denial of writes, expiry, revocation, and web-login compatibility on the hosted service before declaring M2 complete.
 
 ## Build, rollout, and verification
 
@@ -102,7 +112,7 @@ Preserve the user's limited EAS cloud-build quota. Reuse the installed developme
 
 Define an EAS `development` profile for the development client and a `preview` profile producing a standalone signed Android APK with its JavaScript bundled. The preview APK must launch without Metro. Supply the actual server URL, Expo project/account configuration, and signing credentials during setup; do not commit secrets.
 
-Deploy the additive backend bridge before distributing the app. Keep web endpoints and browser behavior compatible. Follow the backend repo's rebuild/restart and health-check instructions after completed backend code changes, preserving volumes. Disable mobile-auth capability or remove the redirect allowlist to stop new mobile sign-ins if rollback is needed; restart also revokes existing in-memory sessions.
+Enable and validate hosted API access-token support before distributing the app. Keep web endpoints and browser behavior compatible. Backend deployment is outside this mobile task; the user or deployment owner must perform it. Removing the mobile client or redirect can stop new logins, but existing access tokens require expiry or an enforced revocation strategy.
 
 Use backend HTTP tests for the auth boundary, Jest with the Expo preset and React Native Testing Library for mobile behavior, and real Android checks for browser redirects and native lifecycle/gestures. Use isolated backend databases and mocked providers for automated tests; never run test schedulers against live portfolio data.
 

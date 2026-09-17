@@ -48,9 +48,6 @@ export const searchSchema = z.object({ results: z.array(z.object({
   symbol: z.string(), name: z.string(), exchange: z.string(), assetType: z.string(),
 }).passthrough()) }).passthrough();
 
-export const healthSchema = z.object({
-  status: z.string(), authentication: z.string(), mobileAuth: z.boolean().optional(),
-});
 export const credentialSchema = z.object({
   accessToken: z.string().min(1), tokenType: z.literal('Bearer'), expiresAt: finite.positive(),
 });

@@ -8,7 +8,8 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 - This repository contains the mobile client. The existing web/backend repository is `../worthfolio`; its Python package is `../worthfolio/worthfolio`.
 - The agreed v1 includes portfolio summaries and holdings, browsing existing watchlists, search, simple instrument charts, and account settings.
 - Do not expand v1 into editing, advanced analytics, notifications, persistent offline portfolio storage, or store publication without a user request.
-- M1 is complete: the Expo foundation, local checks, cloud development APK, and Android emulator navigation checks passed. See `milestones.md` for remaining backend, refresh, standalone build, and physical-device validation work; do not assume the live backend supports mobile login yet.
+- M1 and M2 are complete. Hosted mobile login/bootstrap/logout pass on the emulator; the user confirmed physical-phone testing and hosted backend authorization tests. Distinguish user-reported results from locally executed checks. See `milestones.md` for evidence and remaining M3-M5 work. Pause after the M2 commit until the user requests M3.
+- For M2, use only the hosted backend at `https://worthfolio.pripyat.cloud`. The user explicitly requested no local backend implementation or local backend deployment. The user created a separate public Authentik mobile client; use direct Authorization Code + S256 PKCE. Hosted bearer-token validation and read-only authorization were confirmed for M2; preserve that contract and do not substitute browser cookies.
 
 ## Implementation conventions
 
@@ -23,12 +24,12 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 ## Authentication and data boundaries
 
 - Production connects to one build-configured HTTPS server. An `EXPO_PUBLIC_*` value is public app configuration, never a secret.
-- Use the system browser for OIDC. The provider client secret remains on the backend; the app stores only its mobile session credential in Expo SecureStore.
-- Mobile access must be read-only at the backend, not merely hidden in the UI. Only the agreed read endpoints and mobile logout accept mobile session tokens.
-- Preserve verified OIDC subject ownership, browser CSRF protection, session expiry, and backchannel revocation.
+- Use the system browser with the public mobile OIDC client and S256 PKCE. No client secret belongs in the app. Store only the access token, expiry, and server/issuer/client binding in Expo SecureStore; do not consume ID tokens or request/store refresh tokens in v1.
+- Mobile access must be read-only at the backend, not merely hidden in the UI. Only the agreed Worthfolio read endpoints accept mobile access tokens; revoke tokens through Authentik on logout. Native sign-in must successfully read authenticated bootstrap before saving a session.
+- Preserve verified OIDC subject ownership and browser CSRF protection. Hosted API validation must enforce access-token expiry and revocation; a separate issuer must map to the existing account without trusting email or an unverified subject. Backchannel logout/revocation requires backend validation, not just deleting credentials on the phone.
 - Keep portfolio responses in memory. AsyncStorage is for non-sensitive preferences only; do not persist query data, holdings, quotes, or user profiles there.
 - Cancel in-flight work and clear account data on logout, expiry, or account change. Prevent late responses from repopulating another session's cache.
-- Do not log tokens, authorization headers, handoff codes, PKCE verifiers, or complete authentication callback URLs.
+- Do not log tokens, authorization headers, authorization codes, PKCE verifiers, or complete authentication callback URLs.
 
 ## Data correctness and mobile behavior
 

@@ -13,3 +13,9 @@ export function parseServerUrl(value: string | undefined): { url: string; error:
 export const server = parseServerUrl(process.env.EXPO_PUBLIC_API_URL);
 export const demoEnabled = __DEV__ && process.env.EXPO_PUBLIC_DEMO_MODE === 'true';
 export const callbackUri = 'worthfolio://auth/callback';
+
+// Public native client configuration; never add a client secret here.
+export const oidc = {
+  issuer: process.env.EXPO_PUBLIC_OIDC_ISSUER || 'https://auth.pripyat.cloud/application/o/worthfolio-mobile/',
+  clientId: process.env.EXPO_PUBLIC_OIDC_CLIENT_ID || '9k33r6Ly7z3MYeKYP8JWqjAQKUbxWFoti107Q7Yx',
+};

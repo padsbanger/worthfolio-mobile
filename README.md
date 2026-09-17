@@ -2,7 +2,7 @@
 
 Native, personal, read-only Worthfolio companion built with Expo SDK 57, React Native 0.86, and TypeScript. Android is the first validation target; iOS device validation is deferred.
 
-The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and a client for the planned mobile authentication bridge. The live backend does **not** yet support that bridge. Automatic quote polling and the remaining M2-M5 work are not complete.
+The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and direct Authentik login using a public mobile client with PKCE. M2 authentication is complete: hosted login, authenticated bootstrap, and logout pass on the emulator, with physical-phone testing confirmed by the user. Automatic quote polling and the remaining M3-M5 work are not complete.
 
 ## Run locally
 
@@ -89,14 +89,22 @@ The preview profile bundles JavaScript into an installable APK and does not requ
 
 ## Authentication
 
-The configured identity provider is Authentik:
+The app uses the separate **public** Authentik mobile client:
 
-- Discovery: `https://auth.pripyat.cloud/application/o/watchfolio/.well-known/openid-configuration`
-- Issuer: `https://auth.pripyat.cloud/application/o/watchfolio/`
+- Issuer: `https://auth.pripyat.cloud/application/o/worthfolio-mobile/`
+- Discovery: `https://auth.pripyat.cloud/application/o/worthfolio-mobile/.well-known/openid-configuration`
+- Client ID: `9k33r6Ly7z3MYeKYP8JWqjAQKUbxWFoti107Q7Yx`
+- In the Authentik provider, register **Strict** redirect URI `worthfolio://auth/callback` and enable the `openid`, `profile`, and `email` scope mappings.
 
-The app's API origin is the **Worthfolio server**, not either Authentik URL. The planned backend bridge reuses the existing confidential OIDC client and `<OIDC_PUBLIC_URL>/auth/callback`. The backend, not Authentik, will allowlist `worthfolio://auth/callback` for the final app handoff. Client secrets stay on the backend. Keep existing subject mapping and verify Authentik backchannel logout reaches `<OIDC_PUBLIC_URL>/auth/backchannel-logout`.
+No client secret is required or stored. Keep the existing web client unchanged. These public defaults are in `src/lib/config.ts`; `.env.example` documents optional `EXPO_PUBLIC_OIDC_ISSUER` and `EXPO_PUBLIC_OIDC_CLIENT_ID` overrides. The API origin remains `https://worthfolio.pripyat.cloud`.
 
-The client checks `/api/health` for `mobileAuth: true` before starting login. The current deployment only advertises `authentication: "oidc"`, so **Sign in with Authentik** currently explains that the backend update is required. It does not attempt to repurpose browser cookies. SecureStore is reserved for mobile credentials; portfolio responses and user profiles stay in memory.
+Sign-in opens the system browser with Authorization Code + S256 PKCE, exchanges the returned code at Authentik, then reads Worthfolio bootstrap using the access token. The app saves a session only after that read succeeds. There is no `/auth/mobile/*` dependency or `mobileAuth` health gate in this flow. A 401/403 after Authentik login means API access was denied: the backend needs mobile-token validation, or server access rules may be blocking the request.
+
+The hosted backend must validate the mobile issuer and access-token audience/client binding, preserve the existing portfolio identity, enforce read-only access, and honor expiry/revocation. Creating an Authentik client alone does not implement those API checks. See [the hosted API requirements](design.md#hosted-api-prerequisites-and-authorization).
+
+SecureStore holds only the access token, expiry, and API/issuer/client binding. No refresh tokens are requested and ID tokens are not consumed. Token expiry requires signing in again. Logout clears local data and attempts Authentik token revocation; it does not sign out the browser's SSO session. Offline logout cannot guarantee immediate remote revocation.
+
+M2 is complete. Live emulator sign-in/sign-out pass; the user confirms matching web/mobile accounts, physical-phone testing, and passing hosted read-only/account-isolation/expiry/revocation/web-login tests. The local suite passes 51 tests, including authentication routing and cache isolation. These evidence sources are recorded separately in `milestones.md`. No local backend changes or deployment are authorized. The client code uses the already installed native dependencies, so reload the development client with Metro; no new cloud build is needed.
 
 ## Checks
 
@@ -118,7 +126,7 @@ python scripts/android-smoke.py --adb "%LOCALAPPDATA%\Android\Sdk\platform-tools
 
 The smoke check opens every sample-data screen, verifies key labels, and leaves the sample session. Screenshots and UI trees are written to the Git-ignored `artifacts/m1` directory. It does not log into a real account or clear app storage. Use the serial shown by `adb devices` if yours differs.
 
-M1 validation passed: clean installation, TypeScript, ESLint, 13 Jest tests, Expo Doctor (21/21), Android bundle export, cloud development APK build, and the native navigation smoke check. Physical-device authentication and release checks remain pending in [milestones.md](milestones.md).
+M1 validation passed: clean installation, TypeScript, ESLint, 13 Jest tests, Expo Doctor (21/21), Android bundle export, cloud development APK build, and the native navigation smoke check. M2 adds user-confirmed physical-device authentication; standalone release and the remaining feature checks are tracked in [milestones.md](milestones.md).
 
 Local Windows follow-up (2026-09-17): reproduced the Worklets/Screens CMake failures with JDK 25, then passed both tasks with Microsoft JDK 17.0.20.1. After configuring user-level Java/SDK settings, the standard `npx expo run:android --device Pixel_10 --no-bundler` command built successfully in 23 seconds from `W:\worthfolio-mobile`, installed the APK, and opened it on Pixel 10. `--no-bundler` reused the existing Metro setup for this check. The resulting `android/app/build/outputs/apk/debug/app-debug.apk` targets the x86_64 emulator and requires Metro. The custom CMD launcher has been removed.
 

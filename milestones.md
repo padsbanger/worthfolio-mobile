@@ -1,6 +1,6 @@
 # Worthfolio Mobile milestones
 
-Status: M1 complete and Android emulator validation passed. Paused at the M1 checkpoint; M2 backend work and the full M3-M5 acceptance gates remain pending.
+Status: M1 and M2 complete. M2 combines automated client checks, observed hosted authentication on the Android emulator, and user-confirmed physical-phone and backend tests. Pause at this milestone checkpoint; M3 has not started.
 
 Work through these milestones in order. Mark a checkbox complete only after its deliverable or check is demonstrated. Record validation evidence and unresolved issues with each completed milestone. [design.md](design.md) defines the agreed scope and behavior.
 
@@ -32,26 +32,38 @@ Foundation evidence (2026-09-17):
 
 ## M2: End-to-end authentication
 
-Depends on M1. Backend work occurs in the sibling Worthfolio repository.
+Depends on M1. Use only `https://worthfolio.pripyat.cloud`; do not implement or deploy the sibling backend. On 2026-09-17 the user created a separate public Authentik mobile client. Direct Authorization Code + S256 PKCE replaces the earlier backend handoff proposal. Cloudflare blocked previous automated Worthfolio probes (403 / Error 1010). The user-supplied health response confirms OIDC only; it does not establish bearer-token support.
 
 Deliverables:
 
-- [ ] Add the mobile login, one-time token exchange, logout, configured redirect allowlist, and health capability flag.
-- [ ] Extend existing OIDC callback handling and in-memory sessions for separately tagged read-only mobile sessions.
-- [ ] Enforce the read endpoint allowlist, subject ownership, credential-type separation, and existing backchannel revocation.
-- [ ] Implement system-browser login, state verification, PKCE handoff exchange, SecureStore persistence, and expiry handling.
-- [ ] Clear account data and cancel obsolete requests on logout, account change, and expired/revoked sessions.
+- [x] Configure the public mobile issuer/client ID; retrieve and validate provider discovery.
+- [x] Implement system-browser login, state/callback checks, S256 PKCE, public-client token exchange, and authenticated bootstrap verification before saving a session (mocked tests and live emulator login/bootstrap pass).
+- [x] Bind SecureStore credentials to API origin/issuer/client, enforce expiry, and perform best-effort provider token revocation on logout.
+- [x] Confirm the native redirect and requested scopes through a real login (user registered the exact URI; public-client exchange and hosted bootstrap succeed on the emulator).
+- [x] Hosted backend: accept mobile access tokens and preserve the existing account identity (live emulator bootstrap succeeds; user confirms the account matches the web app).
+- [x] Hosted backend: enforce read-only access, account isolation, expiry/revocation, and existing web-login compatibility (user reports all these backend tests passed; no backend tests were run locally by the mobile agent).
+- [x] Validate account cache clearing and cancellation across sessions: live emulator logout removes authenticated navigation; DataProvider tests verify cleared caches, aborted requests, and isolation from late data/401 responses. The user subsequently confirmed the requested physical-phone testing.
 
 Acceptance:
 
-- [ ] A real Android device completes sign-in, reads the correct account's bootstrap, and signs out.
-- [ ] Cancellation and provider failure allow a clean retry; unsupported backend capability is explained.
-- [ ] Tests reject invalid state/verifier, expired/replayed codes, unregistered redirects, invalid bearer fallback, and cookie/token interchange.
-- [ ] Mobile credentials cannot create/delete trades, mutate/select watchlists, save chart state, or access endpoints outside their allowlist.
-- [ ] Cross-account tests prove no other user's portfolio is returned.
-- [ ] Session expiry, backend restart, and provider backchannel logout require reauthentication; revoked handoffs cannot restore access.
-- [ ] Existing browser login and CSRF regression tests pass.
-- [ ] Backend rebuild/restart completes under its repository instructions and `/api/health` is verified without changing persisted volumes.
+- [x] A physical Android phone completes the requested authentication checks, per user confirmation after the phone-test checklist; matching web/mobile account data was previously confirmed.
+- [x] Cancellation/provider-failure recovery is covered by client tests and the user-confirmed phone-test checklist; API rejection after provider login was observed on the emulator and is explained visibly.
+- [x] Authentication boundaries are covered by local PKCE/state/callback/token-response tests and the user-confirmed hosted auth suite. Code/verifier validation and code replay protection belong to Authentik in the public-client design; no backend mobile-handoff code exists. Individual provider negative-case traces were not collected by the mobile agent.
+- [x] Mobile read-only authorization tests pass, per the user's hosted-backend test confirmation (not independently probed with production writes).
+- [x] Account-isolation tests pass and the web/mobile account matches, per user confirmation; client cache isolation is covered locally.
+- [x] Client expiry/401 handling and provider revocation requests pass local tests; hosted expiry/revocation tests passed per user confirmation. Signed access tokens are not assumed to be invalidated by a backend restart; enforcement remains the hosted validator's responsibility.
+- [x] Existing web-login tests pass, per user confirmation. Retain backend evidence for the exact CSRF/credential-misuse cases; the mobile agent did not run the hosted backend suite.
+- [x] The user confirms the hosted mobile-auth fix; fresh emulator login and authenticated bootstrap verify service availability. The mobile agent made no backend deployment or portfolio writes.
+
+Client evidence (2026-09-17): live mobile discovery was retrieved successfully and advertises the expected issuer, authorization code, S256, and token/revocation endpoints. TypeScript, ESLint, and the Metro/Hermes Android export pass. The local client suite passes 51 tests across seven suites, including PKCE/state binding, exact callbacks, safe discovery, token response validation, bootstrap rejection, saved credential binding, offline logout, revocation, and cancellation while browser/API work is pending. A subsequent Pixel_10 emulator retry completed the real public-client exchange but Worthfolio denied the authenticated bootstrap request (401/403 error path). Hosted API acceptance and account identity were unverified at that stage; the later successful hosted follow-up is recorded below.
+
+Callback fix (2026-09-17): the user registered `worthfolio://auth/callback` and reported a blank screen after login. The callback had unconditionally redirected into the protected portfolio before session completion. It now displays progress, enters the portfolio only with an active session, returns API/provider errors to sign-in, and offers recovery for stale/cold callbacks. Three Expo Router integration tests cover these paths with the actual root layout. After reloading the installed development client, an emulator sign-in displayed progress and then the explicit Worthfolio API denial. No APK/cloud build was used.
+
+Hosted authentication follow-up (2026-09-17): after the user deployed the mobile-auth fix, the emulator displayed real holdings. A fresh sign-out/sign-in cycle passed: account settings contained no fixture banner, sign-out returned to sign-in, Android back did not restore account screens, and fresh Authentik login loaded live bootstrap/holdings. The user confirmed matching web/mobile account data and passing hosted read-only, account-isolation, expiry/revocation, and web-login tests. These backend results are user-reported, not locally executed. Three added DataProvider integration tests verify cache clearing, new-account separation, request cancellation, and rejection of late old-account data/401 responses.
+
+M2 completion (2026-09-17): after being given the remaining physical-phone checklist (sign-in, matching account, sign-out, cancellation/retry, and saved-session restart), the user confirmed testing on a physical phone. Accept this as user-reported device validation together with their earlier backend-test confirmation; do not describe it as an agent-operated phone run. Device model, raw backend test output, and individual provider negative-case traces were not supplied. The earlier automated emulator restart assertion remained inconclusive and is not reported as a passing agent check. Local TypeScript, lint, and all 51 tests pass; the Android Metro/Hermes export also passed during M2. No local backend implementation/deployment, portfolio writes, or new cloud build was performed. No `/auth/mobile/*` routes or `mobileAuth` flag are required.
+
+Checkpoint: commit M2 and pause. Do not begin M3 until the user resumes work. Standalone APK, broader feature/lifecycle validation, and iOS remain later milestones.
 
 ## M3: Portfolio and watchlists
 
@@ -103,7 +115,7 @@ Depends on M1-M4. iOS validation remains follow-up work.
 Deliverables:
 
 - [ ] Complete automated checks and document exact commands/results.
-- [ ] Validate the real HTTPS deployment, capability flag, callback URI, and account identity.
+- [ ] Validate the real HTTPS deployment, mobile issuer/client configuration, callback URI, and account identity.
 - [ ] Produce a signed standalone APK locally (or through EAS only when explicitly requested), with bundled JavaScript, and install it on a physical Android device.
 - [ ] Document installation/update steps, session-expiry behavior, known limitations, and sanitized troubleshooting guidance.
 - [ ] Record backend/mobile revisions and build identification for reproducible release validation.

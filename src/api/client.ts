@@ -50,7 +50,8 @@ export class ApiClient {
         throw new ApiError('Your session expired. Please sign in again.', 401);
       }
       if (!response.ok) throw new ApiError(
-        response.status === 403 ? 'This action is not allowed for your mobile session.' :
+        response.status === 403 ? (this.token ? 'This action is not allowed for your mobile session.' :
+          'Worthfolio denied the connection. Check the server access settings and try again.') :
           response.status >= 500 ? 'Worthfolio is temporarily unavailable. Try again.' : 'The request could not be completed.',
         response.status,
       );
