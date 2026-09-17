@@ -26,10 +26,10 @@ Use the installed development client with Metro for ordinary JavaScript/TypeScri
 $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
 $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 $env:Path = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:Path"
-npx.cmd expo run:android --device emulator-5554 --port 8082
+npx.cmd expo run:android --device Pixel_10 --port 8082
 ```
 
-Adjust the SDK/JDK paths and device serial for your machine. Expo generates the ignored `android` directory, builds the APK, and installs it. The debug APK is under `android/app/build/outputs/apk/debug/`. Local Android compilation does not use EAS cloud-build quota.
+Adjust the SDK/JDK paths and device name for your machine. Expo's `--device` takes the name (`Pixel_10`); pass `--device` without a value to choose interactively. ADB's `-s` instead takes the serial (`emulator-5554`). Expo generates the ignored `android` directory, builds the APK, and installs it. The debug APK is under `android/app/build/outputs/apk/debug/`. Local Android compilation does not use EAS cloud-build quota.
 
 EAS cloud builds are optional and must only be started at the user's explicit request to preserve the monthly allowance. If intentionally using the cloud, sign into your own Expo account locally; never paste passwords or tokens into chat or repository files.
 
@@ -61,7 +61,7 @@ In a second terminal, connect the installed development client:
 For local standalone testing after backend mobile authentication is implemented:
 
 ```powershell
-npx.cmd expo run:android --variant release --device emulator-5554
+npx.cmd expo run:android --variant release --device Pixel_10
 ```
 
 The release variant bundles JavaScript and disables sample access. Verify signing and retain the chosen signing key before personal distribution; a local build and the existing EAS build may use different keys. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, replacing the installed app requires matching its key or uninstalling it first (which clears its local data). Local Expo commands use local environment configuration, not the `eas.json` profile's environment.
