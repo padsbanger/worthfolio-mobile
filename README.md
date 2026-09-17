@@ -20,6 +20,17 @@ The app requires an installed Expo **development build**, not Expo Go. Metro alo
 
 ## Android development build
 
+On this Windows workspace, use **Command Prompt (CMD)** and the launcher, which selects JDK 17, configures the Android SDK/PATH, and builds through the short drive alias in the same process:
+
+```bat
+cd /d C:\Users\konta\Projects\worth\worthfolio-mobile
+scripts\android-local.cmd
+```
+
+The launcher builds locally, installs on `Pixel_10`, and connects to Metro on port 8082. To only create the x86_64 emulator APK without installing or launching it, run `scripts\android-local.cmd build`. It does not uninstall an app on signing conflicts or use EAS. On another machine, set `WORTHFOLIO_JAVA_HOME` to a JDK 17 installation; `ANDROID_HOME` can override the default SDK path. The launcher fails if `W:` belongs to a different location.
+
+Environment variables set in a CMD window do not carry over to other terminals. Use this launcher each time instead of running bare `npx expo run:android` from a new terminal.
+
 Use the installed development client with Metro for ordinary JavaScript/TypeScript changes. These changes do not require another APK build or consume EAS build quota. When native dependencies or native configuration change, build locally with the Android SDK and **JDK 17**. React Native [recommends JDK 17](https://reactnative.dev/docs/set-up-your-environment); Android Studio's bundled JDK 25 fails this project's Prefab/CMake configuration with `WARNING: A restricted method in java.lang.System has been called`.
 
 The Windows setup below uses the standalone Microsoft JDK 17 installed for this workspace. On another machine, [download JDK 17](https://learn.microsoft.com/en-us/java/openjdk/download) and set `JAVA_HOME` to its extracted/installed directory. These environment settings apply only to the current PowerShell session:
