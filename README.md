@@ -6,12 +6,12 @@ The native foundation is implemented: Portfolio, Watchlists, Search, Instrument,
 
 ## Run locally
 
-Use Node 24 and npm. On Windows PowerShell, `npm.cmd` and `npx.cmd` work without changing execution policy.
+Use Node 24 and npm. The examples below use Command Prompt (CMD).
 
-```powershell
-npm.cmd ci
-Copy-Item .env.example .env.local
-npm.cmd start
+```bat
+npm ci
+if not exist .env.local copy .env.example .env.local
+npm start
 ```
 
 The example API origin is `https://worthfolio.pripyat.cloud`. Set `EXPO_PUBLIC_DEMO_MODE=true` in `.env.local` to enable **Explore sample portfolio** in development builds. All sample screens carry a visible label, use only synthetic fixture data, and do not call the backend. The preview release profile disables sample access, and the app additionally requires `__DEV__` before allowing it.
@@ -20,74 +20,69 @@ The app requires an installed Expo **development build**, not Expo Go. Metro alo
 
 ## Android development build
 
-On this Windows workspace, use **Command Prompt (CMD)** and the launcher, which selects JDK 17, configures the Android SDK/PATH, and builds through the short drive alias in the same process:
+Use the standard Expo CLI in **Command Prompt (CMD)**. This Windows account has persistent `JAVA_HOME` (Microsoft JDK 17), `ANDROID_HOME`, and Java/ADB PATH entries configured. Restart your terminal application after environment changes; terminals already open keep their old environment.
 
 ```bat
-cd /d C:\Users\konta\Projects\worth\worthfolio-mobile
-scripts\android-local.cmd
+if not exist W:\ subst W: C:\Users\konta\Projects\worth
+cd /d W:\worthfolio-mobile
+npx expo run:android
 ```
 
-The launcher builds locally, installs on `Pixel_10`, and connects to Metro on port 8082. To only create the x86_64 emulator APK without installing or launching it, run `scripts\android-local.cmd build`. It does not uninstall an app on signing conflicts or use EAS. On another machine, set `WORTHFOLIO_JAVA_HOME` to a JDK 17 installation; `ANDROID_HOME` can override the default SDK path. The launcher fails if `W:` belongs to a different location.
+Expo selects the connected emulator, builds locally, installs the APK, and starts Metro. If you want to explicitly select the emulator or reuse port 8082, use `npx expo run:android --device Pixel_10 --port 8082`. No custom launcher is required, and local compilation does not use EAS quota. The debug APK is under `android/app/build/outputs/apk/debug/`.
 
-Environment variables set in a CMD window do not carry over to other terminals. Use this launcher each time instead of running bare `npx expo run:android` from a new terminal.
+For an existing CMD window that still has old settings, refresh them before running Expo:
 
-Use the installed development client with Metro for ordinary JavaScript/TypeScript changes. These changes do not require another APK build or consume EAS build quota. When native dependencies or native configuration change, build locally with the Android SDK and **JDK 17**. React Native [recommends JDK 17](https://reactnative.dev/docs/set-up-your-environment); Android Studio's bundled JDK 25 fails this project's Prefab/CMake configuration with `WARNING: A restricted method in java.lang.System has been called`.
-
-The Windows setup below uses the standalone Microsoft JDK 17 installed for this workspace. On another machine, [download JDK 17](https://learn.microsoft.com/en-us/java/openjdk/download) and set `JAVA_HOME` to its extracted/installed directory. These environment settings apply only to the current PowerShell session:
-
-```powershell
-$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-$env:JAVA_HOME = "$env:LOCALAPPDATA\Worthfolio\jdk17\jdk-17.0.20.1+1"
-$env:Path = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:Path"
-Set-Location W:\worthfolio-mobile
-npx.cmd expo run:android --device Pixel_10 --port 8082
+```bat
+set "JAVA_HOME=%LOCALAPPDATA%\Worthfolio\jdk17\jdk-17.0.20.1+1"
+set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
+set "PATH=%JAVA_HOME%\bin;%ANDROID_HOME%\platform-tools;%PATH%"
 ```
 
-This workspace also needs a shorter build path for Ninja's Windows path limit. `W:` is a drive alias for `C:\Users\konta\Projects\worth`; no project files were moved. If that alias is absent after signing out/restarting Windows, recreate it with `subst.exe W: C:\Users\konta\Projects\worth` before running the commands above. Choose another unused drive letter if `W:` is already assigned elsewhere. Keep the project in a subdirectory of the alias (`W:\worthfolio-mobile`), since Expo autolinking does not discover `package.json` at a drive root. See the native libraries' [Windows build guidance](https://docs.swmansion.com/react-native-reanimated/docs/guides/building-on-windows/).
+Use **JDK 17**: Android Studio's bundled JDK 25 fails this project's Prefab/CMake configuration. On another machine, [install JDK 17](https://learn.microsoft.com/en-us/java/openjdk/download) and adjust the paths. React Native [recommends JDK 17](https://reactnative.dev/docs/set-up-your-environment).
 
-Adjust the SDK/JDK paths and device name for your machine. Expo's `--device` takes the name (`Pixel_10`); pass `--device` without a value to choose interactively. ADB's `-s` instead takes the serial (`emulator-5554`). Expo generates the ignored `android` directory, builds the APK, and installs it. The debug APK is under `android/app/build/outputs/apk/debug/`. Local Android compilation does not use EAS cloud-build quota.
+`W:` is a short drive alias for the parent workspace, avoiding Ninja's Windows path limit without moving files. It may need recreating after signing out/restarting Windows. Choose another unused letter if `W:` is assigned elsewhere. Keep the project in a subdirectory (`W:\worthfolio-mobile`), since Expo autolinking does not discover `package.json` at a drive root. See the native libraries' [Windows build guidance](https://docs.swmansion.com/react-native-reanimated/docs/guides/building-on-windows/).
 
-If Gradle reports `SDK location not found`, set `ANDROID_HOME` in the same terminal before building. For an already generated Android project, the ignored `android/local.properties` can also hold `sdk.dir=C:/Users/konta/AppData/Local/Android/Sdk` (adjust for your account). Do not commit machine-specific paths or downloaded JDK binaries.
+Use the installed development client with Metro for ordinary JavaScript/TypeScript changes; no new APK is needed. Expo's `--device` takes the name (`Pixel_10`); ADB's `-s` takes the serial (`emulator-5554`). The ignored `android/local.properties` also records this machine's SDK location. Do not commit machine-specific configuration or downloaded JDK binaries.
 
 EAS cloud builds are optional and must only be started at the user's explicit request to preserve the monthly allowance. If intentionally using the cloud, sign into your own Expo account locally; never paste passwords or tokens into chat or repository files.
 
-```powershell
-npx.cmd eas-cli login
-npx.cmd eas-cli whoami
-npx.cmd eas-cli build --platform android --profile development
+```bat
+npx eas-cli login
+npx eas-cli whoami
+npx eas-cli build --platform android --profile development
 ```
 
 The repository is linked to [@padsbanger/worthfolio-mobile](https://expo.dev/accounts/padsbanger/projects/worthfolio-mobile), project ID `88df6ef6-386b-44de-ab0e-a9bc68b80929`. The dynamic app config accepts optional `EXPO_OWNER` and `EAS_PROJECT_ID` overrides for an intentional project change; ordinary development needs neither override. Project IDs and owner names are public configuration, not credentials. Android signing material is managed by EAS and is not stored in Git.
 
-Install the generated APK on the Android device, run `npm.cmd start`, and connect the development client to Metro. The development profile enables sample access. Devices must be able to reach Metro on your local network; use Expo's tunnel option if necessary.
+Install the generated APK on the Android device, run `npm start`, and connect the development client to Metro. The development profile enables sample access. Devices must be able to reach Metro on your local network; use Expo's tunnel option if necessary.
 
 M1's [successful Android development build](https://expo.dev/accounts/padsbanger/projects/worthfolio-mobile/builds/1f198556-87c4-4179-9006-e44b1ad5b4a8) was installed and checked on the Pixel_10 Android 16 emulator. This APK loads JavaScript from Metro, including changes made after the native build; it is not a standalone release.
 
 For a local Windows Android emulator, this setup avoids IPv6 localhost binding problems. Start Metro in one terminal (port 8082 was used for M1 because 8081 was occupied):
 
-```powershell
+```bat
 node --dns-result-order=ipv4first node_modules/expo/bin/cli start --dev-client --localhost --port 8082
 ```
 
 In a second terminal, connect the installed development client:
 
-```powershell
-& "$env:LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe" -s emulator-5554 reverse tcp:8082 tcp:8082
-& "$env:LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe" -s emulator-5554 shell am start -W -a android.intent.action.VIEW -d 'exp+worthfolio-mobile://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8082' com.worthfolio.mobile
+```bat
+"%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" -s emulator-5554 reverse tcp:8082 tcp:8082
+"%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" -s emulator-5554 shell am start -W -a android.intent.action.VIEW -d "exp+worthfolio-mobile://expo-development-client/?url=http://127.0.0.1:8082" com.worthfolio.mobile
 ```
 
 For local standalone testing after backend mobile authentication is implemented:
 
-```powershell
-npx.cmd expo run:android --variant release --device Pixel_10
+```bat
+npx expo run:android --variant release --device Pixel_10
 ```
 
 The release variant bundles JavaScript and disables sample access. Verify signing and retain the chosen signing key before personal distribution; a local build and the existing EAS build may use different keys. If Android reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, replacing the installed app requires matching its key or uninstalling it first (which clears its local data). Local Expo commands use local environment configuration, not the `eas.json` profile's environment.
 
 When explicitly requested, the alternative cloud command is:
 
-```powershell
-npx.cmd eas-cli build --platform android --profile preview
+```bat
+npx eas-cli build --platform android --profile preview
 ```
 
 The preview profile bundles JavaScript into an installable APK and does not require Metro. It uses the configured HTTPS API origin and disables sample access. No app-store submission or OTA update workflow is configured.
@@ -105,27 +100,27 @@ The client checks `/api/health` for `mobileAuth: true` before starting login. Th
 
 ## Checks
 
-```powershell
-npm.cmd run typecheck
-npm.cmd run lint
-npm.cmd test -- --runInBand
-npx.cmd expo-doctor
-npm.cmd run export:android
+```bat
+npm run typecheck
+npm run lint
+npm test -- --runInBand
+npx expo-doctor
+npm run export:android
 ```
 
 The Android export checks Metro/Hermes bundling; it is **not** an APK build or a substitute for device validation. Tests use synthetic fixtures and mocked transport, not a live portfolio.
 
 To repeat the native M1 navigation check, open a development build at its sign-in screen with sample mode enabled. Dismiss first-use Expo and Android keyboard/stylus tutorials, and drag the floating Expo tools button away from the top-right Account button. Then run against the intended connected Android device:
 
-```powershell
-python scripts/android-smoke.py --adb "$env:LOCALAPPDATA/Android/Sdk/platform-tools/adb.exe" --serial emulator-5554
+```bat
+python scripts/android-smoke.py --adb "%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" --serial emulator-5554
 ```
 
 The smoke check opens every sample-data screen, verifies key labels, and leaves the sample session. Screenshots and UI trees are written to the Git-ignored `artifacts/m1` directory. It does not log into a real account or clear app storage. Use the serial shown by `adb devices` if yours differs.
 
 M1 validation passed: clean installation, TypeScript, ESLint, 13 Jest tests, Expo Doctor (21/21), Android bundle export, cloud development APK build, and the native navigation smoke check. Physical-device authentication and release checks remain pending in [milestones.md](milestones.md).
 
-Local Windows follow-up (2026-09-17): reproduced the Worklets/Screens CMake failures with JDK 25, then passed both tasks with Microsoft JDK 17.0.20.1. The full emulator APK build passed from `W:\worthfolio-mobile\android` using `gradlew.bat app:assembleDebug -x lint -x test --build-cache -PreactNativeArchitectures=x86_64 -PreactNativeDevServerPort=8082`. The resulting `android/app/build/outputs/apk/debug/app-debug.apk` targets the x86_64 emulator and requires Metro. Updating the installed EAS APK was rejected due to different signing keys; the existing app was retained.
+Local Windows follow-up (2026-09-17): reproduced the Worklets/Screens CMake failures with JDK 25, then passed both tasks with Microsoft JDK 17.0.20.1. After configuring user-level Java/SDK settings, the standard `npx expo run:android --device Pixel_10 --no-bundler` command built successfully in 23 seconds from `W:\worthfolio-mobile`, installed the APK, and opened it on Pixel 10. `--no-bundler` reused the existing Metro setup for this check. The resulting `android/app/build/outputs/apk/debug/app-debug.apk` targets the x86_64 emulator and requires Metro. The custom CMD launcher has been removed.
 
 At the foundation checkpoint, npm reports 13 moderate advisories in Expo's transitive tooling/router dependencies. The audit's suggested forced fixes include downgrading Expo across major versions; these were not applied. Review compatible upstream fixes during dependency maintenance rather than using `npm audit fix --force`.
 
