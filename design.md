@@ -1,6 +1,6 @@
 # Worthfolio Mobile design
 
-Status: agreed v1 design; M1 foundation and M2 authentication are complete. Hosted login/bootstrap/logout were verified on the emulator; the user confirmed physical-phone testing and hosted authorization tests. M3-M5 features and release gates remain pending. See `milestones.md` for evidence and remaining work.
+Status: agreed v1 design; M1 foundation, M2 authentication, and M3 portfolio/watchlists are complete. Hosted login/bootstrap/logout were verified on the emulator; the user confirmed physical-phone testing and hosted authorization tests. M4 search/chart work and M5 release gates remain pending. See `milestones.md` for evidence and remaining work.
 
 ## Goal and scope
 
@@ -16,7 +16,7 @@ The sibling `../worthfolio` repository contains a Flask backend, SQLite persiste
 
 The web UI contains a substantial browser-specific controller and canvas chart. Rebuild the presentation natively. Reuse existing HTTP APIs, backend calculations, response semantics, and suitable framework-independent quote-queue behavior.
 
-Existing browser authentication uses opaque cookies and CSRF tokens. Sessions live in process memory. The user selected a separate public Authentik client for mobile. Hosted acceptance of its access tokens is an external prerequisite and has not been verified.
+Existing browser authentication uses opaque cookies and CSRF tokens. Sessions live in process memory. The user selected a separate public Authentik client for mobile. Hosted acceptance of its access tokens was verified during M2; backend authorization tests and physical-phone authentication were confirmed by the user.
 
 ## Screens and navigation
 
@@ -59,13 +59,13 @@ Use Worthfolio's dark palette, native screen transitions, safe areas, scalable t
 
 Use a typed fetch wrapper with cancellation and a 30-second timeout. Encode symbols and queries as query parameters. Debounce search by 300 ms, require two trimmed characters, and cancel superseded searches. Do not retry authentication failures; allow at most one automatic retry for transient read failures, followed by an explicit retry state.
 
-Refresh held symbols and the locally displayed watchlist every 90 seconds while the app is active and online. Use `1D` market requests for daily quote information. Deduplicate identical requests across manual, scheduled, and selected-instrument work; cap all market requests at three in flight. A focused chart uses its requested range and the backend's `selectedRefreshSeconds`, defaulting to five seconds if omitted. Selected-instrument work stops on screen blur; no interval may launch overlapping work for the same query.
+Refresh held symbols and the locally displayed watchlist every 90 seconds while the app is active and online. A session-owned coordinator merges manual and scheduled work; screen changes and resume reuse fresh cached quotes, while explicit and scheduled refreshes request updated quotes. Independent queue subscribers cancel separately, and an active holdings refresh retains its query subscription if a watchlist row unmounts. Use `1D` market requests for daily quote information. Deduplicate identical requests across manual, scheduled, and selected-instrument work; cap all market requests at three in flight. A focused chart uses its requested range and the backend's `selectedRefreshSeconds`, defaulting to five seconds if omitted. Selected-instrument work stops on screen blur; no interval may launch overlapping work for the same query.
 
 Load bootstrap first so cached valuations appear immediately. After each holding-quote refresh round, reload bootstrap to obtain updated authoritative totals. Reload watchlists on Watchlists focus and pull-to-refresh. Keep the locally selected watchlist if it still exists; otherwise use the server's active list, then the first available list, then an empty state. Never call server selection/chart-state write endpoints.
 
 Preserve quote source, timestamps, and cached/delayed/stale/unavailable distinctions. Retain last-known real values when a response is stale, invalid, synthetic, or failed. Do not plot a synthetic fallback as real history; show an unavailable state when no real series exists. Do not request corporate events or extended-hours data in v1.
 
-Bootstrap remains authoritative for aggregate valuation. Display-only position calculations follow the backend's quantity, average price, `baseRate`, and GBX scaling rules. Missing conversion rates produce unavailable/partial values, not invented conversions. A summary refresh may briefly lag independently refreshed quote labels; retain its own timestamp and do not imply one simultaneous quote snapshot.
+Bootstrap remains authoritative for aggregate valuation. Reject synthetic/invalid/regressed holding quotes as a complete snapshot so new totals are never mixed with old position prices; show a refresh warning while retaining the prior snapshot. A first partial snapshot with genuinely unavailable prices remains valid. If bootstrap regresses temporarily, known holdings can still refresh their quotes and recover a valid server snapshot; authentication failures stop that recovery immediately. Display-only position calculations follow the backend's quantity, average price, `baseRate`, and GBX scaling rules. Missing conversion rates produce unavailable/partial values, not invented conversions. Only use an implicit rate of one when the normalized quote currency equals the account base currency; apply GBX scaling separately. A summary refresh may briefly lag independently refreshed quote labels; retain its own timestamp and do not imply one simultaneous quote snapshot.
 
 On background/offline transitions, stop scheduling requests and cancel unnecessary pending work. Retain in-memory data with stale/offline labels. On reconnect/resume, refresh stale visible data through the normal deduplicated queue. A fresh offline launch requires reconnection; no portfolio data is restored from disk.
 

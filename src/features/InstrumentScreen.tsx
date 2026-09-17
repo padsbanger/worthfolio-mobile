@@ -17,7 +17,7 @@ export function InstrumentScreen() {
   const data = result.data;
   const position = bootstrap.data?.positions.find(p => p.symbol === symbol);
   const change = data?.lastPrice != null && data.previousClose != null && data.previousClose > 0 ? (data.lastPrice / data.previousClose - 1) * 100 : null;
-  const values = position ? positionValues(position, data?.lastPrice ?? position.lastPrice) : null;
+  const values = position ? positionValues(position, data?.lastPrice ?? position.lastPrice, bootstrap.data?.account.baseCurrency) : null;
   return <View style={styles.screen}><Stack.Screen options={{ title: ticker(symbol) }} /><DataNotice />
     <ScrollView contentContainerStyle={styles.content}>
       <Label>{symbol}</Label><Heading>{data?.name || ticker(symbol)}</Heading>

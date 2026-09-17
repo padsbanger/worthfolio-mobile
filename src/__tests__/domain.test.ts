@@ -29,6 +29,16 @@ test('position displays preserve short signs, GBX scaling, and missing conversio
   expect(money(0)).toBe('$0.00');
 });
 
+test('missing FX is only one-to-one when the normalized quote currency matches the account currency', () => {
+  const usd = { symbol: 'X', quantity: 10, lastPrice: 50, avgPrice: 40, currency: 'USD' };
+  expect(positionValues(usd, 50, 'EUR')).toEqual({ value: null, pnl: null });
+  expect(positionValues({ ...usd, currency: 'EUR' }, 50, 'EUR')).toEqual({ value: 500, pnl: 100 });
+  expect(positionValues({ ...usd, currency: 'GBX' }, 50, 'GBP')).toEqual({ value: 5, pnl: 1 });
+  expect(positionValues({ ...usd, baseRate: 0 }, 50)).toEqual({ value: null, pnl: null });
+  expect(positionValues({ ...usd, avgPrice: null }, 50)).toEqual({ value: 500, pnl: null });
+  expect(money(1250, 'GBX')).toBe('£12.50');
+});
+
 test('chart handles empty, flat, single-point, unsorted, and invalid observations', () => {
   expect(chartGeometry([], 300, 200).points).toEqual([]);
   const single = chartGeometry([{ time: '2026-01-01', close: 10 }], 300, 200);

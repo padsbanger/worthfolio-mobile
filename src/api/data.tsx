@@ -1,43 +1,66 @@
 import NetInfo from '@react-native-community/netinfo';
-import { QueryClient, QueryClientProvider, focusManager, onlineManager, useQuery } from '@tanstack/react-query';
-import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import { QueryClient, QueryClientProvider, QueryObserver, focusManager, onlineManager, useQuery } from '@tanstack/react-query';
+import { createContext, useContext, useEffect, useState, useSyncExternalStore, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
 import { useIsFocused } from 'expo-router';
 import { useSession } from '../auth/session';
 import { server } from '../lib/config';
 import { sampleBootstrap, sampleMarket, sampleSearch } from '../fixtures/portfolio';
-import { ApiClient, ApiError, retryRead } from './client';
+import { ApiClient, retryRead } from './client';
 import { MarketQueue } from './market-queue';
-import { bootstrapSchema, marketSchema, searchSchema, watchlistsSchema, type ChartRange } from './contracts';
+import { searchSchema, type Bootstrap, type ChartRange } from './contracts';
+import { createDataQueries } from './queries';
+import { PortfolioRefresh } from './portfolio-refresh';
 
-const DataContext = createContext<{ client: ApiClient; marketQueue: MarketQueue; demo: boolean; online: boolean; active: boolean } | null>(null);
+const DataContext = createContext<{ client: ApiClient; demo: boolean; online: boolean; active: boolean;
+  queries: ReturnType<typeof createDataQueries>; refresh: PortfolioRefresh; queryClient: QueryClient;
+} | null>(null);
 
 export function DataProvider({ children }: PropsWithChildren) {
   const { session, expire } = useSession();
-  const [marketQueue] = useState(() => new MarketQueue());
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: {
-    retry: retryRead, staleTime: 30_000, gcTime: 5 * 60_000,
+    retry: retryRead, staleTime: 30_000, gcTime: 5 * 60_000, refetchOnWindowFocus: false, refetchOnReconnect: false,
   } } }));
   // The signed-in layout keys this entire provider by session ID. Replayed
   // development effects cancel requests without permanently closing its client.
   const [client] = useState(() => new ApiClient(server.url, session?.credential?.accessToken, expire));
+  const [queries] = useState(() => createDataQueries(client, new MarketQueue(), queryClient));
+  const [refresh] = useState(() => new PortfolioRefresh({
+    cachedBootstrap: () => queryClient.getQueryData<Bootstrap>(['bootstrap']),
+    bootstrap: force => queryClient.fetchQuery({ ...queries.bootstrap, staleTime: force ? 0 : 30_000 }),
+    market: async (symbol, force) => {
+      const options = { ...queries.market(symbol, '1D'), staleTime: force ? 0 : 30_000 };
+      // A list row may unmount while a holdings round still needs the same query.
+      // Keep that round subscribed so Query cancels only when all owners leave.
+      const observer = new QueryObserver(queryClient, { ...options, enabled: false });
+      const unsubscribe = observer.subscribe(() => {});
+      try { return await queryClient.fetchQuery(options); } finally { unsubscribe(); }
+    },
+    cancel: () => { client.cancelAll(); void queryClient.cancelQueries(); },
+  }));
+  const demo = session?.demo ?? false;
   const [online, setOnline] = useState(false);
   const [active, setActive] = useState(AppState.currentState === 'active');
   useEffect(() => {
-    focusManager.setFocused(AppState.currentState === 'active');
+    let foreground = AppState.currentState === 'active';
+    let connected = false;
+    const sync = () => refresh.setEnabled(foreground && connected && !demo);
+    focusManager.setFocused(foreground);
     const app = AppState.addEventListener('change', state => {
-      const focused = state === 'active';
-      setActive(focused); focusManager.setFocused(focused);
-      if (!focused) void queryClient.cancelQueries();
+      foreground = state === 'active';
+      sync();
+      setActive(foreground); focusManager.setFocused(foreground);
+      if (!foreground) { client.cancelAll(); void queryClient.cancelQueries(); }
     });
     const net = NetInfo.addEventListener(state => {
-      const connected = state.isConnected === true && state.isInternetReachable !== false;
-      setOnline(connected); onlineManager.setOnline(connected);
-      if (!connected) void queryClient.cancelQueries();
+      connected = state.isConnected === true && state.isInternetReachable !== false;
+      onlineManager.setOnline(connected);
+      sync(); setOnline(connected);
+      if (!connected) { client.cancelAll(); void queryClient.cancelQueries(); }
     });
-    return () => { app.remove(); net(); client.cancelAll(); void queryClient.cancelQueries(); queryClient.clear(); };
-  }, [client, queryClient]);
-  return <DataContext.Provider value={{ client, marketQueue, demo: session?.demo ?? false, online, active }}>
+    return () => { app.remove(); net(); refresh.setEnabled(false); client.cancelAll(); void queryClient.cancelQueries(); queryClient.clear(); };
+  }, [client, queryClient, refresh, demo]);
+  return <DataContext.Provider value={{ client, demo, online, active, queries, queryClient, refresh }}>
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   </DataContext.Provider>;
 }
@@ -49,32 +72,26 @@ export function useData() {
 }
 
 export function useBootstrap() {
-  const { client, demo, online, active } = useData();
-  return useQuery({ queryKey: ['bootstrap'], enabled: demo || (online && active), networkMode: demo ? 'always' : 'online',
-    queryFn: ({ signal }) => demo ? Promise.resolve(sampleBootstrap) : client.request('/api/bootstrap', bootstrapSchema, { signal }),
+  const { queries, demo, online, active } = useData();
+  return useQuery({ ...queries.bootstrap, enabled: demo || (online && active), networkMode: demo ? 'always' : 'online',
+    ...(demo ? { queryFn: () => Promise.resolve(sampleBootstrap) } : {}),
   });
 }
 export function useWatchlists() {
-  const { client, demo, online, active } = useData();
+  const { queries, queryClient, demo, online, active } = useData();
   const focused = useIsFocused();
-  return useQuery({ queryKey: ['watchlists'], enabled: demo || (online && active && focused), networkMode: demo ? 'always' : 'online',
-    queryFn: ({ signal }) => demo ? Promise.resolve(sampleBootstrap) : client.request('/api/watchlists', watchlistsSchema, { signal }),
+  useEffect(() => {
+    if (focused && online && active && !demo) void queryClient.fetchQuery({ ...queries.watchlists, staleTime: 0 }).catch(() => {});
+  }, [queries, queryClient, focused, online, active, demo]);
+  return useQuery({ ...queries.watchlists, enabled: demo || (online && active && focused), networkMode: demo ? 'always' : 'online',
+    ...(demo ? { queryFn: () => Promise.resolve(sampleBootstrap) } : {}),
   });
 }
 export function useMarket(symbol: string, range: ChartRange = '1M') {
-  const { client, marketQueue, demo, online, active } = useData();
+  const { queries, demo, online, active } = useData();
   const focused = useIsFocused();
-  return useQuery({ queryKey: ['market', symbol, range], enabled: !!symbol && (demo || (online && active && focused)), networkMode: demo ? 'always' : 'online',
-    queryFn: async ({ signal }) => {
-      if (demo) return sampleMarket(symbol, range);
-      const query = new URLSearchParams({ symbol, range });
-      const market = await marketQueue.request(`${symbol}:${range}`, signal,
-        () => client.request(`/api/market?${query}`, marketSchema, { signal }));
-      if (market.source === 'Offline demo series' || market.lastPrice == null || market.lastPrice <= 0 || market.stale) {
-        throw new ApiError('Current market data is unavailable. Keeping the last real observation, if available.', 422);
-      }
-      return market;
-    },
+  return useQuery({ ...queries.market(symbol, range), enabled: !!symbol && (demo || (online && active && focused)), networkMode: demo ? 'always' : 'online',
+    ...(demo ? { queryFn: () => Promise.resolve(sampleMarket(symbol, range)) } : {}),
   });
 }
 export function useSearch(query: string) {
@@ -84,4 +101,20 @@ export function useSearch(query: string) {
     queryFn: ({ signal }) => demo ? Promise.resolve(sampleSearch(query))
       : client.request(`/api/search?${new URLSearchParams({ q: query })}`, searchSchema, { signal }),
   });
+}
+
+export function usePortfolioRefresh() {
+  const { refresh } = useData();
+  const state = useSyncExternalStore(refresh.subscribe, refresh.getSnapshot, refresh.getSnapshot);
+  return { ...state, refresh: refresh.refresh };
+}
+
+export function useVisibleWatchlist(symbols: string[]) {
+  const { refresh } = useData();
+  const focused = useIsFocused();
+  const key = JSON.stringify(symbols);
+  useEffect(() => {
+    refresh.setWatchSymbols(focused ? JSON.parse(key) as string[] : []);
+    return () => refresh.setWatchSymbols([]);
+  }, [refresh, key, focused]);
 }

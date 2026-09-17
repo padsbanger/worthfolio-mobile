@@ -1,13 +1,13 @@
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { useBootstrap, useData } from '../api/data';
+import { useBootstrap, useData, usePortfolioRefresh } from '../api/data';
 import type { Position } from '../api/contracts';
 import { Card, DataNotice, Heading, Label, Status, styles } from '../components/ui';
 import { money, number, positionValues, ticker, timestamp } from '../lib/format';
 import { colors } from '../theme/theme';
 
 export function HoldingRow({ position, currency }: { position: Position; currency: string }) {
-  const values = positionValues(position);
+  const values = positionValues(position, position.lastPrice, currency);
   return <Pressable accessibilityRole="button" accessibilityLabel={`Open ${position.name || position.symbol}`}
     onPress={() => router.push({ pathname: '/instrument', params: { symbol: position.symbol } })}
     style={({ pressed }) => [local.holding, pressed && { backgroundColor: colors.surface }]}>
@@ -21,7 +21,8 @@ export function HoldingRow({ position, currency }: { position: Position; currenc
       <Text style={{ color: values.pnl == null ? colors.muted : values.pnl >= 0 ? colors.positive : colors.negative }}>
         {money(values.pnl, currency, true)}
       </Text>
-      <Text style={styles.small}>{position.quoteSource ? 'Cached quote' : 'Last known price'}</Text>
+      <Text style={styles.small}>{position.quoteSource || 'Last known price'}</Text>
+      <Text style={styles.small}>{timestamp(position.quoteRefreshedAt)}</Text>
     </View>
   </Pressable>;
 }
@@ -29,13 +30,14 @@ export function HoldingRow({ position, currency }: { position: Position; currenc
 export function PortfolioScreen() {
   const result = useBootstrap();
   const { online, demo } = useData();
+  const refresh = usePortfolioRefresh();
   const data = result.data;
   const summary = data?.portfolioSummary;
   return <View style={styles.screen}><DataNotice />
     {!data ? <Status title={!online && !demo ? 'Connect to load your portfolio' : result.isError ? 'Portfolio unavailable' : 'Loading your portfolio'}
-      message={result.error?.message} loading={result.isPending && (online || demo)} retry={result.isError ? () => void result.refetch() : undefined} />
+      message={result.error?.message} loading={result.isPending && (online || demo)} retry={result.isError && (online || demo) ? () => void refresh.refresh() : undefined} />
       : <FlatList data={data.positions} keyExtractor={p => p.symbol} contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={result.isRefetching} onRefresh={() => void result.refetch()} tintColor={colors.accent} />}
+        refreshControl={<RefreshControl refreshing={refresh.refreshing} enabled={online || demo} onRefresh={() => void refresh.refresh()} tintColor={colors.accent} />}
         ListHeaderComponent={<View style={local.header}>
           <Label>{data.account.name}</Label>
           <Card>
@@ -53,7 +55,8 @@ export function PortfolioScreen() {
             Quote time: {timestamp(summary!.asOf)}
           </Text>
           {summary!.coverage < 100 && <Text style={{ color: colors.warning }}>Partial valuation: some prices or currency conversions are unavailable.</Text>}
-          {result.isError && <Status title="Refresh unavailable" message={result.error.message} retry={() => void result.refetch()} />}
+          {(result.isError || refresh.error) && <Status title="Refresh unavailable" message={refresh.error || result.error?.message}
+            retry={online || demo ? () => void refresh.refresh() : undefined} />}
           <Heading>Your holdings</Heading>
           <Label>Value and open P&L in {data.account.baseCurrency}</Label>
         </View>}

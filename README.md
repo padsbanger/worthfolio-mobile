@@ -2,7 +2,7 @@
 
 Native, personal, read-only Worthfolio companion built with Expo SDK 57, React Native 0.86, and TypeScript. Android is the first validation target; iOS device validation is deferred.
 
-The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and direct Authentik login using a public mobile client with PKCE. M2 authentication is complete: hosted login, authenticated bootstrap, and logout pass on the emulator, with physical-phone testing confirmed by the user. Automatic quote polling and the remaining M3-M5 work are not complete.
+The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and direct Authentik login using a public mobile client with PKCE. M2 authentication is complete: hosted login, authenticated bootstrap, and logout pass on the emulator, with physical-phone testing confirmed by the user. M3 portfolio/watchlists are complete, including coordinated quote refresh and failure recovery. M4 search/chart work and M5 release validation remain.
 
 ## Run locally
 
@@ -105,6 +105,14 @@ The hosted backend must validate the mobile issuer and access-token audience/cli
 SecureStore holds only the access token, expiry, and API/issuer/client binding. No refresh tokens are requested and ID tokens are not consumed. Token expiry requires signing in again. Logout clears local data and attempts Authentik token revocation; it does not sign out the browser's SSO session. Offline logout cannot guarantee immediate remote revocation.
 
 M2 is complete. Live emulator sign-in/sign-out pass; the user confirms matching web/mobile accounts, physical-phone testing, and passing hosted read-only/account-isolation/expiry/revocation/web-login tests. The local suite passes 51 tests, including authentication routing and cache isolation. These evidence sources are recorded separately in `milestones.md`. No local backend changes or deployment are authorized. The client code uses the already installed native dependencies, so reload the development client with Metro; no new cloud build is needed.
+
+## Portfolio and watchlist refresh
+
+M3 uses one session-owned refresh coordinator. While online and foregrounded, it refreshes held symbols plus the currently open watchlist every 90 seconds, with at most three market requests in flight. Pull-to-refresh updates quotes as well as list/portfolio data; duplicate requests share work. Each holding refresh ends by reloading the backend's authoritative summary rather than calculating a second portfolio total in the app.
+
+Backgrounding, disconnecting, or signing out cancels obsolete requests. A running offline app retains its in-memory snapshot with an offline notice; a fresh offline launch requires reconnection. Invalid, stale, synthetic, or failed quote responses preserve previous real data with a warning. Provider source, timestamps, delayed/cached status, partial coverage, and missing FX are shown without inventing prices or exchange rates.
+
+Watchlist selection is local to the server/account. Only the selected list ID is stored in AsyncStorage; holdings, quotes, and account responses are not persisted. Deleted lists fall back to the server's active list, then its first list. Browsing and refresh use GET endpoints and never write server watchlist selection or chart settings.
 
 ## Checks
 

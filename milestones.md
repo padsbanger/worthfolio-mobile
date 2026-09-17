@@ -1,6 +1,6 @@
 # Worthfolio Mobile milestones
 
-Status: M1 and M2 complete. M2 combines automated client checks, observed hosted authentication on the Android emulator, and user-confirmed physical-phone and backend tests. Pause at this milestone checkpoint; M3 has not started.
+Status: M1-M3 complete. M3 combines automated refresh/data-integrity checks and live emulator portfolio/watchlist checks. Pause after committing M3; M4 has not started. M2 physical-phone and backend-auth results remain user-reported.
 
 Work through these milestones in order. Mark a checkbox complete only after its deliverable or check is demonstrated. Record validation evidence and unresolved issues with each completed milestone. [design.md](design.md) defines the agreed scope and behavior.
 
@@ -71,22 +71,32 @@ Depends on M2.
 
 Deliverables:
 
-- [ ] Replace fixtures with bootstrap summaries and native holdings rows.
-- [ ] Browse named watchlists with local-only selection and instrument navigation.
-- [ ] Implement the shared quote queue, concurrency limit, deduplication, 90-second refresh, and pull-to-refresh.
-- [ ] Reload bootstrap after holding-quote refresh rounds to obtain authoritative updated totals.
-- [ ] Add coverage/freshness indicators and loading, empty, unavailable, retry, and offline states.
-- [ ] Pause background/offline refresh and safely resume visible stale queries.
+- [x] Replace fixtures with bootstrap summaries and native holdings rows.
+- [x] Browse named watchlists with local-only selection and instrument navigation.
+- [x] Implement the shared quote queue, concurrency limit, deduplication, 90-second refresh, and pull-to-refresh.
+- [x] Reload bootstrap after holding-quote refresh rounds to obtain authoritative updated totals.
+- [x] Add coverage/freshness indicators and loading, empty, unavailable, retry, and offline states.
+- [x] Pause background/offline refresh and safely resume visible stale queries.
 
 Acceptance:
 
-- [ ] Header totals match backend responses for the same quote snapshot; portfolio value excludes account cash.
-- [ ] Tests cover empty portfolios, multiple/deleted watchlists, signed shorts, GBX scaling, missing FX/prices, and partial coverage.
-- [ ] Invalid, stale, failed, and synthetic demo responses preserve last-known real prices.
-- [ ] Market concurrency never exceeds three and overlapping refresh triggers do not duplicate identical requests.
-- [ ] Background/offline transitions stop polling; late responses cannot repopulate a cleared session.
-- [ ] A fresh offline launch asks for reconnection, while a running app retains loaded data with clear stale/offline labels.
-- [ ] Browsing leaves server watchlists, selected watchlist, ledger, and chart state unchanged.
+- [x] Header totals match backend responses for the same quote snapshot; portfolio value excludes account cash.
+- [x] Tests cover empty portfolios, multiple/deleted watchlists, signed shorts, GBX scaling, missing FX/prices, and partial coverage.
+- [x] Invalid, stale, failed, and synthetic demo responses preserve last-known real prices.
+- [x] Market concurrency never exceeds three and overlapping refresh triggers do not duplicate identical requests.
+- [x] Background/offline transitions stop polling; late responses cannot repopulate a cleared session.
+- [x] A fresh offline launch asks for reconnection, while a running app retains loaded data with clear stale/offline labels.
+- [x] Browsing leaves server watchlists, selected watchlist, ledger, and chart state unchanged.
+
+M3 evidence (2026-09-17):
+
+- TypeScript, ESLint, Jest, and Metro/Hermes Android export pass. The suite contains 91 tests across 11 suites. Added cases cover 90-second cadence, shared manual/scheduled rounds, three-request concurrency across ranges, independent subscriber cancellation, retained slots for abort-ignoring transports, and watchlist-row unmount during a holdings refresh.
+- Lifecycle integration tests exercise real DataProvider/QueryClient wiring with mocked network/AppState: a fresh offline launch sends no requests; offline/background transitions cancel work and polling; stale foreground/reconnect resumes refresh; late responses cannot repopulate a previous session.
+- Quote/portfolio tests retain complete last-known snapshots after invalid, stale, synthetic, regressed-timestamp, network, and provider failures. Partial initial portfolios remain valid. Header tests use intentionally different server totals and cash to prove the app does not recompute or add cash. Domain tests cover short positions, GBX, non-USD base currencies, unavailable FX/prices, and partial coverage.
+- Watchlist tests cover local selection, empty/deleted lists, account-scoped preferences, delayed preference reads, quote provenance, pull-to-refresh of both list metadata and quotes, and navigation to instruments. Read-only transport tests use GET requests; no server selection/trade/chart-setting writes were added.
+- On the installed Pixel_10 development client, fresh hosted sign-in loaded real holdings. Portfolio and Watchlists pull-to-refresh remained usable, live named lists loaded, and background/resume retained the watchlist before returning to Portfolio. A further native check switched the locally selected list, restored the original selection, and opened an instrument from the list. Deletion/failure cases use controlled fixtures in tests, not changes to the user's live lists. No new APK, dependency, cloud build, or backend change was needed.
+
+Checkpoint: commit M3 and pause. Selected-instrument polling, remaining search/chart behavior, and physical-device feature/release checks remain in M4-M5.
 
 ## M4: Search and instrument chart
 

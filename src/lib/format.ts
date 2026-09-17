@@ -21,9 +21,10 @@ export function timestamp(value: string | null | undefined) {
 export function ticker(symbol: string) { return symbol.split(':').at(-1) || symbol; }
 
 // Display-only calculations follow worthfolio/domain/portfolio.py. Totals stay server-owned.
-export function positionValues(position: Position, latest = position.lastPrice) {
-  const rate = position.baseRate ?? (['USD', 'USDT'].includes(position.currency) ? 1 : null);
-  if (latest == null || !Number.isFinite(latest) || latest <= 0 || rate == null || rate <= 0) {
+export function positionValues(position: Position, latest = position.lastPrice, baseCurrency = 'USD') {
+  const quoteCurrency = position.currency === 'GBX' ? 'GBP' : position.currency === 'USDT' ? 'USD' : position.currency;
+  const rate = position.baseRate ?? (quoteCurrency === baseCurrency ? 1 : null);
+  if (latest == null || !Number.isFinite(latest) || latest <= 0 || rate == null || !Number.isFinite(rate) || rate <= 0) {
     return { value: null, pnl: null };
   }
   const scale = rate / (position.currency === 'GBX' ? 100 : 1);

@@ -34,7 +34,7 @@ function session(id: number) {
 }
 
 function response(name: string) {
-  return { ok: true, status: 200, json: async () => ({ ...sampleBootstrap, account: { ...sampleBootstrap.account, name } }) };
+  return { ok: true, status: 200, json: async () => ({ ...sampleBootstrap, positions: [], account: { ...sampleBootstrap.account, name } }) };
 }
 
 beforeEach(() => {

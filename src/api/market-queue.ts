@@ -1,43 +1,59 @@
-/** A session-owned market queue: bounded work, duplicate coalescing, and cancellation. */
+type Subscriber = { resolve(value: unknown): void; reject(reason: Error): void; detach(): void };
+type Job = { key: string; controller: AbortController;
+  run(signal: AbortSignal): Promise<unknown>; subscribers: Set<Subscriber> };
+
+/** One transport per key; callers cancel independently and share three slots. */
 export class MarketQueue {
   private running = 0;
-  private pending: (() => void)[] = [];
-  private jobs = new Map<string, Promise<unknown>>();
+  private pending: Job[] = [];
+  private jobs = new Map<string, Job>();
 
-  request<T>(key: string, signal: AbortSignal, run: () => Promise<T>): Promise<T> {
+  request<T>(key: string, signal: AbortSignal, run: (signal: AbortSignal) => Promise<T>): Promise<T> {
     if (signal.aborted) return Promise.reject(new Error('Request cancelled.'));
-    const existing = this.jobs.get(key);
-    if (existing) return existing as Promise<T>;
-    const job = new Promise<T>((resolve, reject) => {
-      let started = false;
+    let job = this.jobs.get(key);
+    if (!job) {
+      job = { key, controller: new AbortController(), run, subscribers: new Set() };
+      this.jobs.set(key, job);
+      this.pending.push(job);
+    }
+    const shared = job;
+    const promise = new Promise<T>((resolve, reject) => {
       const abort = () => {
-        if (!started) {
-          this.pending = this.pending.filter(item => item !== start);
-          reject(new Error('Request cancelled.'));
+        subscriber.detach(); shared.subscribers.delete(subscriber);
+        reject(new Error('Request cancelled.'));
+        if (!shared.subscribers.size) {
+          shared.controller.abort();
+          this.pending = this.pending.filter(item => item !== shared);
+          if (this.jobs.get(key) === shared) this.jobs.delete(key);
         }
       };
-      const start = () => {
-        signal.removeEventListener('abort', abort);
-        if (signal.aborted) { reject(new Error('Request cancelled.')); return; }
-        started = true;
-        this.running++;
-        Promise.resolve().then(run).then(resolve, reject).finally(() => {
-          this.running--;
-          this.drain();
-        });
-      };
+      const subscriber: Subscriber = { resolve: value => resolve(value as T), reject,
+        detach: () => signal.removeEventListener('abort', abort) };
+      shared.subscribers.add(subscriber);
       signal.addEventListener('abort', abort, { once: true });
-      this.pending.push(start);
     });
-    this.jobs.set(key, job);
-    // Attach both handlers so cleanup never creates an unhandled rejection.
-    const cleanup = () => { if (this.jobs.get(key) === job) this.jobs.delete(key); };
-    void job.then(cleanup, cleanup);
     this.drain();
-    return job;
+    return promise;
   }
 
   private drain() {
-    while (this.running < 3 && this.pending.length) this.pending.shift()!();
+    while (this.running < 3 && this.pending.length) {
+      const job = this.pending.shift()!;
+      if (job.controller.signal.aborted) continue;
+      this.running++;
+      const finish = (value: unknown, error?: Error) => {
+        for (const subscriber of job.subscribers) {
+          subscriber.detach();
+          if (error) subscriber.reject(error); else subscriber.resolve(value);
+        }
+        job.subscribers.clear();
+        if (this.jobs.get(job.key) === job) this.jobs.delete(job.key);
+      };
+      void Promise.resolve().then(() => {
+        if (job.controller.signal.aborted) throw new Error('Request cancelled.');
+        return job.run(job.controller.signal);
+      }).then(value => finish(value), error => finish(undefined, error instanceof Error ? error : new Error('Request failed.')))
+        .finally(() => { this.running--; this.drain(); });
+    }
   }
 }

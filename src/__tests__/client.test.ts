@@ -63,7 +63,6 @@ test('market queue bounds concurrency, merges duplicates, and cancels waiting wo
   const control = new AbortController();
   const a = queue.request('a', control.signal, run);
   const duplicate = queue.request('a', control.signal, run);
-  expect(duplicate).toBe(a);
   const b = queue.request('b', control.signal, run);
   const c = queue.request('c', control.signal, run);
   const cancel = new AbortController();
@@ -72,6 +71,48 @@ test('market queue bounds concurrency, merges duplicates, and cancels waiting wo
   await expect(d).rejects.toThrow('cancelled');
   expect(run).toHaveBeenCalledTimes(3);
   release.forEach(finish => finish());
-  await expect(Promise.all([a, b, c])).resolves.toEqual([1, 1, 1]);
+  await expect(Promise.all([a, duplicate, b, c])).resolves.toEqual([1, 1, 1, 1]);
   expect(peak).toBe(3);
+});
+
+test('one subscriber cancelling cannot abort another subscriber of the same quote', async () => {
+  const queue = new MarketQueue();
+  const first = new AbortController();
+  const second = new AbortController();
+  let finish!: (value: number) => void;
+  let transportSignal!: AbortSignal;
+  const run = jest.fn((signal: AbortSignal) => {
+    transportSignal = signal;
+    return new Promise<number>(resolve => { finish = resolve; });
+  });
+  const a = queue.request('shared', first.signal, run);
+  const b = queue.request('shared', second.signal, run);
+  await Promise.resolve();
+  const cancelled = expect(a).rejects.toThrow('cancelled');
+  first.abort();
+  await cancelled;
+  expect(transportSignal.aborted).toBe(false);
+  finish(42);
+  await expect(b).resolves.toBe(42);
+  expect(run).toHaveBeenCalledTimes(1);
+});
+
+test('cancelled transports keep their concurrency slots until they actually settle', async () => {
+  const queue = new MarketQueue();
+  const old = new AbortController();
+  const fresh = new AbortController();
+  const complete: (() => void)[] = [];
+  const run = jest.fn(() => new Promise<void>(resolve => { complete.push(resolve); }));
+  const pending = ['a', 'b', 'c'].map(key => queue.request(key, old.signal, run));
+  const settled = Promise.allSettled(pending);
+  await Promise.resolve();
+  old.abort();
+  const next = queue.request('d', fresh.signal, run);
+  await settled;
+  expect(run).toHaveBeenCalledTimes(3);
+  complete.splice(0).forEach(done => done());
+  for (let i = 0; i < 10; i++) await Promise.resolve();
+  expect(run).toHaveBeenCalledTimes(4);
+  complete.splice(0).forEach(done => done());
+  await next;
 });

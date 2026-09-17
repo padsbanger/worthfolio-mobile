@@ -8,7 +8,7 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 - This repository contains the mobile client. The existing web/backend repository is `../worthfolio`; its Python package is `../worthfolio/worthfolio`.
 - The agreed v1 includes portfolio summaries and holdings, browsing existing watchlists, search, simple instrument charts, and account settings.
 - Do not expand v1 into editing, advanced analytics, notifications, persistent offline portfolio storage, or store publication without a user request.
-- M1 and M2 are complete. Hosted mobile login/bootstrap/logout pass on the emulator; the user confirmed physical-phone testing and hosted backend authorization tests. Distinguish user-reported results from locally executed checks. See `milestones.md` for evidence and remaining M3-M5 work. Pause after the M2 commit until the user requests M3.
+- M1-M3 are complete. Hosted authentication and portfolio/watchlist workflows pass on the emulator; M2 phone and backend-auth testing were user-confirmed. Distinguish those evidence sources. M3 adds coordinated 90-second refresh, quote preservation, local watchlist selection, and lifecycle cancellation. See `milestones.md`; pause after the M3 commit until the user requests M4.
 - For M2, use only the hosted backend at `https://worthfolio.pripyat.cloud`. The user explicitly requested no local backend implementation or local backend deployment. The user created a separate public Authentik mobile client; use direct Authorization Code + S256 PKCE. Hosted bearer-token validation and read-only authorization were confirmed for M2; preserve that contract and do not substitute browser cookies.
 
 ## Implementation conventions
