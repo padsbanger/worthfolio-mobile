@@ -42,6 +42,8 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 
 - Preserve the user's limited Expo cloud-build quota. Reuse the installed development client with Metro for JavaScript/TypeScript changes; use local Android compilation when native changes require a new APK. Do not start an EAS cloud build unless the user explicitly requests that build. Earlier cloud-build authorization does not authorize future builds.
 - A milestone checkpoint does not itself require a new cloud build. A locally built APK can satisfy native acceptance gates; release gates still require appropriate signing, bundled JavaScript, and physical-device validation.
+- Use JDK 17 for local Android builds; Android Studio's bundled JDK 25 fails Prefab/CMake configuration in this project. Set `JAVA_HOME` for the build process, following the local setup in `README.md`, without changing system-wide Java settings.
+- On this Windows machine, build through `W:\worthfolio-mobile` (`W:` aliases the parent workspace) to avoid Ninja's path-length limit. See `README.md`; do not move the checkout or change system-wide path policies. Local debug and EAS signing keys differ; do not uninstall an existing app to resolve a signing conflict without considering its local data.
 
 Use these scripts (on Windows PowerShell, use `npm.cmd` / `npx.cmd` if script execution is restricted):
 

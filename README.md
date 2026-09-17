@@ -20,16 +20,23 @@ The app requires an installed Expo **development build**, not Expo Go. Metro alo
 
 ## Android development build
 
-Use the installed development client with Metro for ordinary JavaScript/TypeScript changes. These changes do not require another APK build or consume EAS build quota. When native dependencies or native configuration change, build locally with Android Studio's toolchain:
+Use the installed development client with Metro for ordinary JavaScript/TypeScript changes. These changes do not require another APK build or consume EAS build quota. When native dependencies or native configuration change, build locally with the Android SDK and **JDK 17**. React Native [recommends JDK 17](https://reactnative.dev/docs/set-up-your-environment); Android Studio's bundled JDK 25 fails this project's Prefab/CMake configuration with `WARNING: A restricted method in java.lang.System has been called`.
+
+The Windows setup below uses the standalone Microsoft JDK 17 installed for this workspace. On another machine, [download JDK 17](https://learn.microsoft.com/en-us/java/openjdk/download) and set `JAVA_HOME` to its extracted/installed directory. These environment settings apply only to the current PowerShell session:
 
 ```powershell
 $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+$env:JAVA_HOME = "$env:LOCALAPPDATA\Worthfolio\jdk17\jdk-17.0.20.1+1"
 $env:Path = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\platform-tools;$env:Path"
+Set-Location W:\worthfolio-mobile
 npx.cmd expo run:android --device Pixel_10 --port 8082
 ```
 
+This workspace also needs a shorter build path for Ninja's Windows path limit. `W:` is a drive alias for `C:\Users\konta\Projects\worth`; no project files were moved. If that alias is absent after signing out/restarting Windows, recreate it with `subst.exe W: C:\Users\konta\Projects\worth` before running the commands above. Choose another unused drive letter if `W:` is already assigned elsewhere. Keep the project in a subdirectory of the alias (`W:\worthfolio-mobile`), since Expo autolinking does not discover `package.json` at a drive root. See the native libraries' [Windows build guidance](https://docs.swmansion.com/react-native-reanimated/docs/guides/building-on-windows/).
+
 Adjust the SDK/JDK paths and device name for your machine. Expo's `--device` takes the name (`Pixel_10`); pass `--device` without a value to choose interactively. ADB's `-s` instead takes the serial (`emulator-5554`). Expo generates the ignored `android` directory, builds the APK, and installs it. The debug APK is under `android/app/build/outputs/apk/debug/`. Local Android compilation does not use EAS cloud-build quota.
+
+If Gradle reports `SDK location not found`, set `ANDROID_HOME` in the same terminal before building. For an already generated Android project, the ignored `android/local.properties` can also hold `sdk.dir=C:/Users/konta/AppData/Local/Android/Sdk` (adjust for your account). Do not commit machine-specific paths or downloaded JDK binaries.
 
 EAS cloud builds are optional and must only be started at the user's explicit request to preserve the monthly allowance. If intentionally using the cloud, sign into your own Expo account locally; never paste passwords or tokens into chat or repository files.
 
@@ -106,6 +113,8 @@ python scripts/android-smoke.py --adb "$env:LOCALAPPDATA/Android/Sdk/platform-to
 The smoke check opens every sample-data screen, verifies key labels, and leaves the sample session. Screenshots and UI trees are written to the Git-ignored `artifacts/m1` directory. It does not log into a real account or clear app storage. Use the serial shown by `adb devices` if yours differs.
 
 M1 validation passed: clean installation, TypeScript, ESLint, 13 Jest tests, Expo Doctor (21/21), Android bundle export, cloud development APK build, and the native navigation smoke check. Physical-device authentication and release checks remain pending in [milestones.md](milestones.md).
+
+Local Windows follow-up (2026-09-17): reproduced the Worklets/Screens CMake failures with JDK 25, then passed both tasks with Microsoft JDK 17.0.20.1. The full emulator APK build passed from `W:\worthfolio-mobile\android` using `gradlew.bat app:assembleDebug -x lint -x test --build-cache -PreactNativeArchitectures=x86_64 -PreactNativeDevServerPort=8082`. The resulting `android/app/build/outputs/apk/debug/app-debug.apk` targets the x86_64 emulator and requires Metro. Updating the installed EAS APK was rejected due to different signing keys; the existing app was retained.
 
 At the foundation checkpoint, npm reports 13 moderate advisories in Expo's transitive tooling/router dependencies. The audit's suggested forced fixes include downgrading Expo across major versions; these were not applied. Review compatible upstream fixes during dependency maintenance rather than using `npm audit fix --force`.
 
