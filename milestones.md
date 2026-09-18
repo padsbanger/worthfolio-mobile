@@ -167,4 +167,12 @@ Checkpoint: commit M5 and pause. Do not begin follow-up work unless the user exp
 
 ## Deferred roadmap
 
+### Completed follow-up: quiet refresh and company logos (2026-09-18)
+
+- The user confirmed completion after the refresh and logo changes. Implementation is committed as `bb25721` (`feat: stock icons`).
+- Automatic refresh no longer activates pull-to-refresh progress. Loaded screens preserve content and use a compact delayed-update hint with retry; initial failures retain explicit recovery states.
+- Holdings, watchlists, search, and instrument details consume optional `logoUrl` and `logoFallbackUrl` fields. Failed images fall back to the alternate URL, then ticker initials, without repeated retries on every quote poll.
+- TypeScript, ESLint, and all 110 tests across 15 suites passed during implementation. Emulator checks verified compact refresh feedback and live portfolio/watchlist logos. No new native or cloud build was made; the existing release APK predates these changes.
+- The user authorized starting the next milestone, but no next implementation milestone is defined. Scope selection is pending; do not infer authorization for deferred features from this checkpoint.
+
 After Android v1, plan iOS device validation and distribution. Editing, analytics, richer charts, push notifications, persistent offline access, longer-lived sessions, public distribution, and OTA updates require separate scope decisions rather than being implicit additions to these milestones.
