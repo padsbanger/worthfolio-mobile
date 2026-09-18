@@ -1,5 +1,5 @@
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
-import { RefreshControl } from 'react-native';
+import { FlatList, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { HoldingRow, PortfolioScreen } from '../features/PortfolioScreen';
 import { sampleBootstrap, sampleMarket } from '../fixtures/portfolio';
@@ -83,6 +83,14 @@ test('empty portfolio is distinguished from a failed load', () => {
   expect(screen.getByText('No open holdings')).toBeTruthy();
 });
 
+test('an initial portfolio load uses structural placeholders instead of unavailable financial values', () => {
+  jest.mocked(useBootstrap).mockReturnValue({ isPending: true, isError: false } as ReturnType<typeof useBootstrap>);
+  render(<PortfolioScreen />);
+  expect(screen.getByLabelText('Loading portfolio')).toBeTruthy();
+  expect(screen.queryByText('Unavailable')).toBeNull();
+  expect(screen.queryByText('Try again')).toBeNull();
+});
+
 test('partial header uses server totals even when position values or account cash differ', () => {
   const data = { ...sampleBootstrap, cash: 100000,
     portfolioSummary: { ...sampleBootstrap.portfolioSummary, value: 321, coverage: 50, pricedPositions: 1, totalPositions: 2 } };
@@ -102,6 +110,7 @@ test('background refresh stays quiet while a manual pull shows progress until co
   jest.mocked(useBootstrap).mockReturnValue({ data: sampleBootstrap } as ReturnType<typeof useBootstrap>);
   render(<PortfolioScreen />);
   expect(screen.UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
+  expect(screen.UNSAFE_getByType(FlatList).props.maintainVisibleContentPosition).toEqual({ minIndexForVisible: 0 });
   fireEvent(screen.UNSAFE_getByType(RefreshControl), 'refresh');
   expect(screen.UNSAFE_getByType(RefreshControl).props.refreshing).toBe(true);
   fireEvent(screen.UNSAFE_getByType(RefreshControl), 'refresh');

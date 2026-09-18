@@ -173,3 +173,7 @@ Extended-session presentation refinement: place the compact `Pre` / `After` pric
 ### M15 list-control feedback
 
 The shared list controls name their state directly: `Sort: <current sort>` and selected period chips. A concise line states the selected period's calculation basis (or the account currency for a price sort). After a user changes either setting, a 48-point `Reset` action returns only that screen's local preference to Default order and 1D; its owner/server/screen-scoped preference is saved through the existing queued write. The Reset action is absent for the default view. The sorting modal retains its existing selection, outside-tap close and Android Back close behavior without changing the selected view or watchlist membership.
+
+### M16 loading and refresh
+
+Portfolio and Watchlists use static, non-financial placeholders only during a genuinely empty first load. The placeholder has the same logo, identity, amount and supporting-line structure as an asset row, so real content arrives without a structural jump. A Watchlists row uses that placeholder only while its first daily quote is fetching; a completed missing or failed quote remains an explicit unavailable row. Existing rows, cached values and background refresh behavior stay visible and quiet. Both FlatLists use stable keys and `maintainVisibleContentPosition` for ordinary data updates; deliberate sort, period or watchlist changes retain their existing remount behavior and can reset list position intentionally. Manual pull-to-refresh remains the only trigger for the native spinner.

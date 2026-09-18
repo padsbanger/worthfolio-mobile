@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react-native';
-import { RefreshControl } from 'react-native';
+import { FlatList, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { WatchlistsScreen } from '../features/WatchlistsScreen';
 import { selectedWatchlist, useWatchlistSelection } from '../features/watchlist-selection';
@@ -81,6 +81,15 @@ test('empty selected list is different from no lists or an offline initial load'
   expect(screen.getByText('Connect to load watchlists')).toBeTruthy();
 });
 
+test('an initial watchlists load uses row-shaped placeholders and does not show an empty selector', () => {
+  jest.mocked(useBootstrap).mockReturnValue({} as ReturnType<typeof useBootstrap>);
+  jest.mocked(useWatchlists).mockReturnValue({ isPending: true, isError: false } as ReturnType<typeof useWatchlists>);
+  render(<WatchlistsScreen />);
+  expect(screen.getByLabelText('Loading watchlists')).toBeTruthy();
+  expect(screen.queryByLabelText(/Choose watchlist/)).toBeNull();
+  expect(screen.queryByText('No watchlists yet')).toBeNull();
+});
+
 test('deleted or missing lists fall back to the server active list, first list, or empty state', () => {
   expect(selectedWatchlist(data, 'deleted')?.id).toBe('sample-core');
   expect(selectedWatchlist({ ...data, activeWatchlistId: 'deleted' }, 'also-deleted')?.id).toBe('sample-core');
@@ -116,6 +125,7 @@ test('background list and quote refresh does not show pull progress or change ro
   render(<WatchlistsScreen />);
   await waitFor(() => expect(saved).toHaveBeenCalled());
   expect(screen.UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
+  expect(screen.UNSAFE_getByType(FlatList).props.maintainVisibleContentPosition).toEqual({ minIndexForVisible: 0 });
   expect(screen.queryByText(/Refreshing/)).toBeNull();
   expect(screen.getByLabelText('Open Apple')).toBeTruthy();
 });
@@ -171,6 +181,15 @@ test('missing quote and previous close never display a zero return', async () =>
   expect(screen.getAllByText('Unavailable').length).toBeGreaterThan(0);
   expect(screen.queryByText('0.00%')).toBeNull();
   expect(screen.queryByText('$0.00')).toBeNull();
+});
+
+test('a first quote request reserves a row without showing unavailable or replacing loaded data', async () => {
+  jest.mocked(useListMarkets).mockImplementation(symbols => new Map(symbols.map(symbol => [symbol, { isFetching: true }])) as ReturnType<typeof useListMarkets>);
+  render(<WatchlistsScreen />);
+  await waitFor(() => expect(saved).toHaveBeenCalled());
+  expect(screen.getByLabelText('Loading AAPL quote')).toBeTruthy();
+  expect(screen.queryByText('Unavailable')).toBeNull();
+  expect(screen.queryByLabelText('Open Apple')).toBeNull();
 });
 
 

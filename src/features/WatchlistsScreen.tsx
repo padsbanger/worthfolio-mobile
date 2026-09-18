@@ -4,7 +4,7 @@ import { WatchlistPicker } from '../components/WatchlistPicker';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useBootstrap, useData, useListMarkets, usePortfolioRefresh, useVisibleWatchlist, useWatchlists } from '../api/data';
-import { DataNotice, RefreshHint, Status, styles } from '../components/ui';
+import { AssetRowSkeleton, DataNotice, ListSkeleton, RefreshHint, Status, styles } from '../components/ui';
 import { money, percent, ticker, timestamp } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
 import { colors, sizing, spacing } from '../theme/theme';
@@ -15,10 +15,11 @@ import { useListPreferences } from './list-preferences';
 import { baseUnitPrice, periodChange, periodLabel, priceRates, sortAssets, type ListPeriod } from '../lib/list-view';
 import { useWatchlistSelection } from './watchlist-selection';
 
-function WatchRow({ symbol, showDetails, data, changeData, isError, period, sortPrice, currency }: {
-  symbol: string; showDetails: boolean; data?: Market; changeData?: Market; isError?: boolean; period: ListPeriod; sortPrice?: number | null; currency: string;
+function WatchRow({ symbol, showDetails, data, changeData, isError, loading, period, sortPrice, currency }: {
+  symbol: string; showDetails: boolean; data?: Market; changeData?: Market; isError?: boolean; loading?: boolean; period: ListPeriod; sortPrice?: number | null; currency: string;
 }) {
   const { online, demo } = useData();
+  if (loading && !data && !isError) return <AssetRowSkeleton label={`Loading ${ticker(symbol)} quote`} />;
   const observation = periodChange(changeData, period);
   const change = observation.value;
   const quoteStatus = [!online && !demo ? 'Offline' : isError ? (data ? 'Update delayed' : 'Unavailable') : !data ? 'Unavailable' : null,
@@ -52,6 +53,7 @@ export function WatchlistsScreen() {
   const refresh = usePortfolioRefresh();
   const owner = bootstrap.data?.account.ownerId;
   const data = result.data ?? bootstrap.data;
+  const initialLoading = !data && result.isPending && (online || demo);
   const lists = data?.watchlists ?? [];
   const { current, select } = useWatchlistSelection(data, owner, demo);
   useVisibleWatchlist(current?.symbols ?? []);
@@ -74,11 +76,13 @@ export function WatchlistsScreen() {
   };
   const pullRefresh = usePullRefresh(reload);
   return <View style={styles.screen}><DataNotice />
+    {initialLoading ? <ListSkeleton label="Loading watchlists" rows={3} /> : <>
     <View style={{ paddingHorizontal: spacing.screen, paddingTop: spacing.section, gap: spacing.small }}>
       <WatchlistPicker lists={lists} selectedId={current?.id} onSelect={select} />
       <ListControls sort={view.sort} period={view.period} currency={currency} loading={[...markets.values()].some(m => m.isFetching && !m.data)} onSort={sort => view.update({ sort })} onPeriod={period => view.update({ period })} onReset={view.reset} />
     </View>
     <FlatList key={`${current?.id}:${view.sort}:${view.period}`} extraData={showDetails} data={symbols} keyExtractor={symbol => symbol} contentContainerStyle={styles.listContent}
+      maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
       refreshControl={<RefreshControl refreshing={pullRefresh.refreshing} enabled={online || demo} onRefresh={() => void pullRefresh.onRefresh()} tintColor={colors.accent} />}
       ListHeaderComponent={<View style={{ gap: spacing.small, marginBottom: spacing.small }}>
         <View style={[styles.row, { justifyContent: 'space-between', flexWrap: 'wrap' }]}>
@@ -94,7 +98,8 @@ export function WatchlistsScreen() {
       ListEmptyComponent={result.isError && !data ? <Status title="Watchlists unavailable" message={result.error?.message}
         retry={online || demo ? () => void reload() : undefined} /> : <Status title={!online && !demo && !data ? 'Connect to load watchlists' : result.isPending && !data ? 'Loading watchlists' : current ? 'This list is empty' : 'No watchlists yet'}
         loading={!data && result.isPending && (online || demo)} />}
-      renderItem={({ item }) => <WatchRow symbol={item} showDetails={showDetails} period={view.period} data={quotes.get(item)?.data} changeData={markets.get(item)?.data} isError={quotes.get(item)?.isError || markets.get(item)?.isError} currency={currency}
+      renderItem={({ item }) => <WatchRow symbol={item} showDetails={showDetails} period={view.period} data={quotes.get(item)?.data} changeData={markets.get(item)?.data} isError={quotes.get(item)?.isError || markets.get(item)?.isError} loading={quotes.get(item)?.isFetching === true && !quotes.get(item)?.data} currency={currency}
         sortPrice={view.sort.startsWith('price') ? baseUnitPrice(quotes.get(item)?.data?.lastPrice, quotes.get(item)?.data?.currency || '', rates) : undefined} />} />
+    </>}
   </View>;
 }

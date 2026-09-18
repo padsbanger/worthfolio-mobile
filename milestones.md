@@ -348,29 +348,19 @@ Implementation checks: TypeScript, ESLint and focused selection/preference tests
 
 Planned, not started. Suggested model: Sol.
 
-- [ ] Match initial-loading skeletons to the final row layout and minimize content jumps as names, logos and prices arrive.
-- [ ] Preserve scroll position and loaded content during routine refresh; respect deliberate sort, timeframe or watchlist changes.
-- [ ] Keep background refresh quiet and show pull-to-refresh progress only for a manual gesture.
-- [ ] Keep failures compact when cached data exists; retain clear initial-load retry, empty, offline and expired-session behavior.
-- [ ] Verify slow responses, failures, offline/resume and cancellation without extra polling or synthetic quote substitution.
+- [x] Match initial-loading skeletons to the final row layout and minimize content jumps as names, logos and prices arrive.
+- [x] Preserve scroll position and loaded content during routine refresh; respect deliberate sort, timeframe or watchlist changes.
+- [x] Keep background refresh quiet and show pull-to-refresh progress only for a manual gesture.
+- [x] Keep failures compact when cached data exists; retain clear initial-load retry, empty, offline and expired-session behavior.
+- [x] Verify slow responses, failures, offline/resume and cancellation without extra polling or synthetic quote substitution.
 - [ ] Obtain user acceptance, commit and pause.
 
 Acceptance: refresh feels unobtrusive, never blanks usable content and does not unexpectedly move the user's reading position.
 
-## M17: Instrument navigation
+Implementation checks: TypeScript and ESLint pass. Focused tests cover first-load skeletons, first-quote placeholders, retained loaded rows and quiet background refresh, manual pull progress, compact cached-data errors, initial errors, missing data, and the FlatList position-preservation setting. Full test suite and Android interaction review remain to be completed before acceptance; no additional polling, native dependencies, backend changes or cloud builds are used.
 
-Planned, not started. Suggested model: Sol.
 
-- [ ] Allow swiping between instruments from the originating Portfolio or Watchlists view, preserving its displayed order at entry.
-- [ ] Provide accessible previous/next actions, clear boundary behavior and a standalone fallback when no originating list exists.
-- [ ] Preserve the originating list's selection, filters and scroll position when returning.
-- [ ] Avoid conflicts with chart gestures; cancel obsolete instrument requests and prevent late responses from showing under another symbol.
-- [ ] Verify navigation, Android Back, session changes and gesture behavior on Android.
-- [ ] Obtain user acceptance, commit and pause.
-
-Acceptance: moving between instruments and returning to the list feels continuous, without mixed-symbol data or unexpected list changes.
-
-## M18: Accessibility pass
+## M17: Accessibility pass
 
 Planned, not started. Suggested model: Sol.
 

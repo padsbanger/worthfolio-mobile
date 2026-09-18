@@ -4,7 +4,7 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'rea
 import { router } from 'expo-router';
 import { useBootstrap, useData, useListMarkets, usePortfolioRefresh } from '../api/data';
 import type { Market, Position } from '../api/contracts';
-import { DataNotice, Label, RefreshHint, Status, styles } from '../components/ui';
+import { DataNotice, Label, ListSkeleton, RefreshHint, Status, styles } from '../components/ui';
 import { money, number, percent, positionValues, ticker, timestamp } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
 import { ExtendedQuote } from '../components/ExtendedQuote';
@@ -66,9 +66,10 @@ export function PortfolioScreen() {
     await Promise.all([refresh.refresh(), ...(view.period === '1W' ? [...markets.values()].map(m => m.refetch({ cancelRefetch: false })) : [])]);
   });
   return <View style={styles.screen}><DataNotice />
-    {!data ? <Status title={!online && !demo ? 'Connect to load your portfolio' : result.isError ? 'Portfolio unavailable' : 'Loading your portfolio'}
+    {!data ? result.isPending && (online || demo) ? <ListSkeleton label="Loading portfolio" rows={3} overview /> : <Status title={!online && !demo ? 'Connect to load your portfolio' : result.isError ? 'Portfolio unavailable' : 'Loading your portfolio'}
       message={result.error?.message} loading={result.isPending && (online || demo)} retry={result.isError && (online || demo) ? () => void refresh.refresh() : undefined} />
       : <FlatList key={`${view.sort}:${view.period}`} data={positions} extraData={showDetails} keyExtractor={p => p.symbol} contentContainerStyle={styles.listContent}
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
         refreshControl={<RefreshControl refreshing={pullRefresh.refreshing} enabled={online || demo} onRefresh={() => void pullRefresh.onRefresh()} tintColor={colors.accent} />}
         ListHeaderComponent={<View style={local.header}>
           <PortfolioOverview account={data.account.name} balance={money(summary!.value, summary!.currency)} currency={summary!.currency}

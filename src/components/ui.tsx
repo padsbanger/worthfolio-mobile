@@ -20,6 +20,23 @@ export function Status({ title, message, retry, loading }: { title: string; mess
     {retry && <Button title="Try again" onPress={retry} secondary />}
   </View>;
 }
+/** Static placeholders reserve the same visual structure until a first real quote arrives. */
+export function AssetRowSkeleton({ label = 'Loading quote' }: { label?: string }) {
+  return <View accessible accessibilityLabel={label} accessibilityState={{ busy: true }} style={styles.assetSkeleton}>
+    <View style={styles.skeletonTop}>
+      <View style={styles.skeletonLogo} />
+      <View style={styles.skeletonIdentity}><View style={[styles.skeletonLine, { width: '82%' }]} /><View style={[styles.skeletonLine, { width: '42%' }]} /></View>
+      <View style={styles.skeletonAmount}><View style={[styles.skeletonLine, { width: '76%' }]} /><View style={[styles.skeletonLine, { width: '46%' }]} /></View>
+    </View>
+    <View style={[styles.skeletonLine, { width: '62%' }]} />
+  </View>;
+}
+export function ListSkeleton({ label, rows = 3, overview = false }: { label: string; rows?: number; overview?: boolean }) {
+  return <View accessible accessibilityLabel={label} accessibilityState={{ busy: true }} style={styles.skeletonContent}>
+    {overview && <View style={styles.skeletonOverview}><View style={[styles.skeletonLine, { width: '35%' }]} /><View style={[styles.skeletonLine, { width: '72%', height: 32 }]} /><View style={[styles.skeletonLine, { width: '52%' }]} /></View>}
+    {Array.from({ length: rows }, (_, index) => <AssetRowSkeleton key={index} label={`${label}, row ${index + 1}`} />)}
+  </View>;
+}
 export function DataNotice() {
   const { demo, online } = useData();
   if (!demo && online) return null;
@@ -63,4 +80,12 @@ export const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   divider: { height: 1, backgroundColor: colors.border },
   input: { backgroundColor: colors.surface, color: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: shape.control, paddingHorizontal: 16, minHeight: 52, fontSize: 16 },
+  skeletonContent: { padding: spacing.screen, paddingTop: spacing.section, paddingBottom: spacing.bottom, gap: spacing.tight },
+  skeletonOverview: { paddingVertical: spacing.small, gap: spacing.section, marginBottom: spacing.small },
+  assetSkeleton: { minHeight: 72, paddingVertical: 10, gap: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  skeletonTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.small },
+  skeletonLogo: { width: sizing.logo, height: sizing.logo, borderRadius: sizing.logo / 4, backgroundColor: colors.elevated },
+  skeletonIdentity: { flexGrow: 1, flexShrink: 1, flexBasis: 0, gap: 6, paddingTop: 2 },
+  skeletonAmount: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 104, alignItems: 'flex-end', gap: 6, paddingTop: 2 },
+  skeletonLine: { height: 10, borderRadius: 5, backgroundColor: colors.elevated },
 });
