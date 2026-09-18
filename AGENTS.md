@@ -62,6 +62,7 @@ Use these scripts (on Windows PowerShell, use `npm.cmd` / `npx.cmd` if script ex
 | `npx eas-cli build --platform android --profile preview` | Optional cloud APK build; requires an explicit user request |
 
 - Do not claim checks ran when the toolchain or credentials are unavailable. An Android JavaScript export is not a native APK build or a device test.
+- Prefer a separate test emulator for accessibility setting changes. If changing the user's active emulator, check ADB command exit codes and verify the original font scale/display settings by reading them back after restoration and app relaunch; a cleanup command alone is not proof of restoration.
 - Test meaningful behavior: authentication boundaries, quote preservation/concurrency, valuation presentation, navigation, and failure recovery. Avoid tests that only restate implementation details.
 - Run the checks appropriate to a completed code change. Validate browser redirects, background/resume, back navigation, and chart interaction on a real Android device before declaring v1 complete.
 - Backend changes belong in the sibling repository and must follow its `AGENTS.md`. Its current rules require rebuilding/restarting the completed backend change and verifying `/api/health`, while preserving persisted volumes.

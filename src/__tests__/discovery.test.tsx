@@ -1,8 +1,9 @@
-import { AppState, Text, type AppStateStatus } from 'react-native';
+import { AppState, Keyboard, Text, type AppStateStatus } from 'react-native';
+import { useEffect } from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { onlineManager } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { DataProvider, selectedRefreshMs, useMarket } from '../api/data';
+import { DataProvider, selectedRefreshMs, useData, useMarket } from '../api/data';
 import { SearchScreen } from '../features/SearchScreen';
 import { InstrumentScreen } from '../features/InstrumentScreen';
 import { sampleBootstrap, sampleMarket, sampleSearch } from '../fixtures/portfolio';
@@ -15,6 +16,7 @@ let mockSymbol = 'NASDAQ:AAPL';
 jest.mock('expo-router', () => ({ useIsFocused: () => mockFocused,
   useLocalSearchParams: () => ({ symbol: mockSymbol }), Stack: { Screen: () => null }, router: { push: jest.fn() } }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 24, left: 0, right: 0 }) }));
+jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Icon' }));
 jest.mock('../lib/config', () => ({ server: { url: 'https://worthfolio.test' } }));
 jest.mock('../auth/session', () => ({ useSession: () => ({ session: { id: 1, demo: false,
   credential: { accessToken: 'test-token' } }, expire: jest.fn() }) }));
@@ -90,6 +92,64 @@ function MarketProbe({ range = '1M', seconds = 7 }: { range?: '1M' | '1D'; secon
   const result = useMarket('NASDAQ:AAPL', range, seconds);
   return <Text>{result.data?.name ?? 'Waiting'}</Text>;
 }
+
+test('clearing search immediately aborts pending work and ignores late results', async () => {
+  let finish!: () => void;
+  let signal!: AbortSignal;
+  fetcher.mockImplementation((url: string, options: RequestInit) => {
+    if (url.endsWith('/api/bootstrap')) return Promise.resolve(response(bootstrap));
+    signal = options.signal!;
+    return new Promise(resolve => { finish = () => resolve(response(sampleSearch('Apple'))); });
+  });
+  render(<DataProvider><SearchScreen /></DataProvider>);
+  fireEvent.changeText(screen.getByLabelText('Search instruments'), 'Apple');
+  await tick(301);
+  fireEvent.press(screen.getByLabelText('Clear search'));
+  expect(signal.aborted).toBe(true);
+  expect(screen.getByLabelText('Search instruments').props.value).toBe('');
+  await act(async () => finish());
+  await tick(301);
+  expect(screen.queryByLabelText('Open Apple')).toBeNull();
+  expect(screen.getByText('Find an instrument')).toBeTruthy();
+  expect(fetcher.mock.calls.filter(([url]) => url.includes('/api/search'))).toHaveLength(1);
+});
+
+test('cached search results survive a failed refresh and recover with compact retry', async () => {
+  let refetch!: () => Promise<void>;
+  function SearchProbe() {
+    const { queryClient } = useData();
+    useEffect(() => { refetch = () => queryClient.refetchQueries({ queryKey: ['search', 'Apple'] }); }, [queryClient]);
+    return <SearchScreen />;
+  }
+  fetcher.mockImplementation(async (url: string) => response(url.endsWith('/api/bootstrap') ? bootstrap : sampleSearch('Apple')));
+  render(<DataProvider><SearchProbe /></DataProvider>);
+  fireEvent.changeText(screen.getByLabelText('Search instruments'), 'Apple');
+  await tick(301);
+  expect(await screen.findByLabelText('Open Apple')).toBeTruthy();
+  fetcher.mockImplementation(async (url: string) => url.endsWith('/api/bootstrap') ? response(bootstrap) : { ok: false, status: 403 });
+  await act(async () => refetch());
+  expect(await screen.findByText('Updates delayed')).toBeTruthy();
+  expect(screen.getByLabelText('Open Apple')).toBeTruthy();
+  expect(screen.queryByText('Search unavailable')).toBeNull();
+  fetcher.mockImplementation(async (url: string) => response(url.endsWith('/api/bootstrap') ? bootstrap : sampleSearch('Apple')));
+  fireEvent.press(screen.getByLabelText('Retry refresh'));
+  await waitFor(() => expect(screen.queryByText('Updates delayed')).toBeNull());
+  expect(screen.getByLabelText('Open Apple')).toBeTruthy();
+});
+
+test('submit and opening a result dismiss the keyboard without a new search request', async () => {
+  const dismiss = jest.spyOn(Keyboard, 'dismiss');
+  fetcher.mockImplementation(async (url: string) => response(url.endsWith('/api/bootstrap') ? bootstrap : sampleSearch('Apple')));
+  render(<DataProvider><SearchScreen /></DataProvider>);
+  fireEvent.changeText(screen.getByLabelText('Search instruments'), 'Apple');
+  await tick(301);
+  expect(await screen.findByLabelText('Open Apple')).toBeTruthy();
+  fireEvent(screen.getByLabelText('Search instruments'), 'submitEditing');
+  expect(dismiss).toHaveBeenCalledTimes(1);
+  fireEvent.press(screen.getByLabelText('Open Apple'));
+  expect(dismiss).toHaveBeenCalledTimes(2);
+  expect(fetcher.mock.calls.filter(([url]) => url.includes('/api/search'))).toHaveLength(1);
+});
 
 test('instrument cadence follows backend settings; blur, background and offline stop polling and cancel requests', async () => {
   const view = render(<DataProvider><InstrumentScreen /></DataProvider>);

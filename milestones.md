@@ -238,14 +238,20 @@ M9 checks: TypeScript and ESLint pass; 119 tests in 16 suites pass. The fixed se
 
 ### M10: Search redesign
 
-Depends on M7 and M9 row patterns.
+Depends on M7 and M9 row patterns. M9 was accepted and committed as `6c4a7b0`; M10 was accepted on 2026-09-18.
 
-- [ ] Refine the search field, keyboard/insets behavior, and compact result hierarchy with logos, names, symbols, exchanges, and asset types.
-- [ ] Make initial prompts, no-results states, and connection errors concise; keep existing results visible on refresh failures.
-- [ ] Preserve the two-character minimum, debounce, cancellation, and read-only instrument navigation.
-- [ ] Verify rapid typing, keyboard dismissal/back navigation, long results, accessibility, and failure recovery; complete user review, commit and pause.
+- [x] Refine the search field, keyboard/insets behavior, and compact result hierarchy with logos, names, symbols, exchanges, and asset types.
+- [x] Make initial prompts, no-results states, and connection errors concise; keep existing results visible on refresh failures.
+- [x] Preserve the two-character minimum, debounce, cancellation, and read-only instrument navigation.
+- [x] Test rapid input, immediate clear/cancellation, ignored late results, missing connectivity, empty/error states, cached-result recovery, and keyboard dismissal without extra requests.
+- [x] Verify live Android results, logos, long-name wrapping at normal/1.5x text, keyboard dismissal/tab restoration, instrument opening, and header-Back return retaining the query.
+- [x] User accepted M10 with Looks good. Work on next milestone; commit M10 and proceed to explicitly authorized M11.
 
 Acceptance: fast, readable instrument discovery in the existing Search tab, using only the supported search endpoint.
+
+M10 checks: TypeScript and ESLint pass; 122 tests in 16 suites pass. The search input remains above the scrolling results; Clear keeps input focus, submit/result opening dismisses the keyboard, and Android tabs hide while typing. Results prioritize company name with ticker/exchange/type beneath. Initial states use compact text and a small spinner, while cached results retain a retry hint. Emulator captures are in ignored `artifacts/m10`; font scale was restored to 1.0. The emulator uses a floating IME, so screenshots verify that configuration rather than every keyboard mode. No new backend calls, native build, or cloud build. M11 has not started.
+
+M10 follow-up (2026-09-18): the user reported a zoomed layout. Readback found emulator font_scale still at 1.5 despite the earlier cleanup report; display density/size had no override. Restored font_scale to 1.0, checked command results, then verified 1.0 again after reconnecting the development client and visually confirming normal-sized Portfolio rows. The earlier restore statement was insufficiently verified. No application layout change was needed. Future accessibility runs must verify settings restoration or use a separate emulator.
 
 ### M11: Instrument details and chart presentation
 
@@ -272,7 +278,7 @@ Depends on M7-M11 acceptance.
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is user-accepted; M10 is authorized next. M10-M12 have not been completed. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is committed; M10 is accepted. M11-M12 remain planned. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## Deferred features
 
