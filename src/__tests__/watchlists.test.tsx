@@ -32,10 +32,11 @@ beforeEach(() => {
 test('list selection is local and opens instruments without changing server selection', async () => {
   render(<WatchlistsScreen />);
   await waitFor(() => expect(saved).toHaveBeenCalled());
+  fireEvent.press(screen.getByLabelText(/Choose watchlist\./));
   fireEvent.press(screen.getByText('On my radar'));
-  expect(screen.getByLabelText('Open BTC-USD')).toBeTruthy();
+  expect(screen.getByLabelText('Open Bitcoin / US dollar')).toBeTruthy();
   await waitFor(() => expect(save).toHaveBeenCalledWith('watchlist:https://worthfolio.test:sample', 'sample-explore'));
-  fireEvent.press(screen.getByLabelText('Open BTC-USD'));
+  fireEvent.press(screen.getByLabelText('Open Bitcoin / US dollar'));
   expect(router.push).toHaveBeenCalledWith({ pathname: '/instrument', params: { symbol: 'BTC-USD' } });
   expect(data.activeWatchlistId).toBe('sample-core');
   expect(refetch).not.toHaveBeenCalled();
@@ -55,11 +56,14 @@ test('failed refresh keeps price provenance and both cached and delayed flags vi
   }) as ReturnType<typeof useMarket>);
   render(<WatchlistsScreen />);
   await waitFor(() => expect(saved).toHaveBeenCalled());
-  expect(screen.getAllByText('Update delayed · Test provider · Cached · Provider delayed').length).toBeGreaterThan(0);
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.getAllByText('Source: Test provider')).toHaveLength(3);
+  expect(screen.getAllByText('Update delayed · Cached · Provider delayed').length).toBeGreaterThan(0);
 });
 
 test('empty selected list is different from no lists or an offline initial load', async () => {
   const view = render(<WatchlistsScreen />);
+  fireEvent.press(screen.getByLabelText(/Choose watchlist\./));
   fireEvent.press(screen.getByText('New ideas'));
   expect(screen.getByText('This list is empty')).toBeTruthy();
   await act(async () => {});
@@ -109,7 +113,7 @@ test('background list and quote refresh does not show pull progress or change ro
   await waitFor(() => expect(saved).toHaveBeenCalled());
   expect(screen.UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
   expect(screen.queryByText(/Refreshing/)).toBeNull();
-  expect(screen.getByLabelText('Open NASDAQ:AAPL')).toBeTruthy();
+  expect(screen.getByLabelText('Open Apple')).toBeTruthy();
 });
 
 test('watchlists without cached data retain a full error and retry action', async () => {
@@ -120,4 +124,46 @@ test('watchlists without cached data retain a full error and retry action', asyn
   expect(screen.getByText('Server unavailable')).toBeTruthy();
   await act(async () => fireEvent.press(screen.getByText('Try again')));
   expect(refetch).toHaveBeenCalled();
+});
+
+
+test('restored selection stays named in the selector and can be changed or dismissed', async () => {
+  saved.mockResolvedValue('sample-explore');
+  render(<WatchlistsScreen />);
+  await waitFor(() => expect(screen.getByLabelText('Choose watchlist. On my radar')).toBeTruthy());
+  fireEvent.press(screen.getByLabelText('Choose watchlist. On my radar'));
+  expect(screen.getByRole('button', { name: 'On my radar', selected: true })).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Close watchlist selector'));
+  expect(screen.queryByLabelText('Close watchlist selector')).toBeNull();
+  expect(screen.getByLabelText('Choose watchlist. On my radar')).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Choose watchlist. On my radar'));
+  fireEvent.press(screen.getByLabelText('Core holdings'));
+  expect(screen.getByLabelText('Choose watchlist. Core holdings')).toBeTruthy();
+  expect(screen.getByLabelText('Open Apple')).toBeTruthy();
+  await waitFor(() => expect(save).toHaveBeenLastCalledWith('watchlist:https://worthfolio.test:sample', 'sample-core'));
+});
+
+test('daily change and stale flags stay visible while exact provenance can be collapsed', async () => {
+  jest.mocked(useMarket).mockImplementation(symbol => ({ data: { ...sampleMarket(symbol, '1D'), stale: true } }) as ReturnType<typeof useMarket>);
+  render(<WatchlistsScreen />);
+  await waitFor(() => expect(saved).toHaveBeenCalled());
+  expect(screen.getAllByText('Daily change')).toHaveLength(3);
+  expect(screen.getAllByText('+1.20%')).toHaveLength(3);
+  expect(screen.getAllByText('Stale')).toHaveLength(3);
+  expect(screen.queryByText(/Source:/)).toBeNull();
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.getAllByText(/Source:/)).toHaveLength(3);
+  expect(screen.getAllByText(/Previous close:/)).toHaveLength(3);
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.queryByText(/Source:/)).toBeNull();
+  expect(screen.getAllByText('Stale')).toHaveLength(3);
+});
+
+test('missing quote and previous close never display a zero return', async () => {
+  jest.mocked(useMarket).mockReturnValue({ isError: true } as ReturnType<typeof useMarket>);
+  render(<WatchlistsScreen />);
+  await waitFor(() => expect(saved).toHaveBeenCalled());
+  expect(screen.getAllByText('Unavailable').length).toBeGreaterThan(0);
+  expect(screen.queryByText('0.00%')).toBeNull();
+  expect(screen.queryByText('$0.00')).toBeNull();
 });

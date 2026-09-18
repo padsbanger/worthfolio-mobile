@@ -224,14 +224,17 @@ M8 preserves the existing requests and scheduling. The Quote details control rev
 
 ### M9: Watchlists redesign
 
-Depends on M7-M8 shared components.
+Depends on M7-M8 shared components. M8 was accepted and committed as `f4cca53`; M9 was accepted on 2026-09-18.
 
-- [ ] Refine named-list selection so the active list remains visible and identifiable, including long names and many lists.
-- [ ] Use consistent logo/name/price/daily-change rows with compact quote details and visible stale/delayed/unavailable states.
-- [ ] Preserve local list selection, empty-list behavior, navigation, and quiet/manual refresh behavior.
-- [ ] Verify large text, long company names, list switching, provider failures, and scrolling on Android; complete user review, commit and pause.
+- [x] Refine named-list selection so the active list remains visible and identifiable, including long names and many lists.
+- [x] Use consistent logo/name/price/daily-change rows with compact quote details and visible stale/delayed/unavailable states.
+- [x] Preserve local list selection, empty-list behavior, navigation, and quiet/manual refresh behavior.
+- [x] Verify normal/1.5x text, wrapped company names, selector visibility during scrolling, list switching/restoration, and Android Back dismissal on Pixel_10. Provider-error and missing-price states are covered by tests.
+- [x] User accepted M9 with "Looks good. Work on next milestone"; commit M9 and proceed to explicitly authorized M10.
 
 Acceptance: watchlists are easy to scan and switch without writing server preferences or confusing daily movement with portfolio P&L.
+
+M9 checks: TypeScript and ESLint pass; 119 tests in 16 suites pass. The fixed selector opens a scrollable native modal with selected-state/checkmark feedback and a Close action; list names can wrap. Selection remains local, and switching resets the asset list to its top. Quote details reveal source, exact timestamp, and previous close while daily-change labels, quote times, and exception flags remain visible. Emulator captures are in ignored `artifacts/m9`; the original list selection and font scale were restored after checks. No backend changes, native build, or cloud build. The user authorized M10 next.
 
 ### M10: Search redesign
 
@@ -269,7 +272,7 @@ Depends on M7-M11 acceptance.
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M6 is committed; M7 is committed; M8 is user-accepted; M9 is authorized next. M9-M12 have not been completed. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is user-accepted; M10 is authorized next. M10-M12 have not been completed. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## Deferred features
 
