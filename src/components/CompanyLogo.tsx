@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { server } from '../lib/config';
 import { ticker } from '../lib/format';
-import { colors } from '../theme/theme';
+import { colors, sizing } from '../theme/theme';
 
 type Props = { symbol: string; logoUrl?: string | null; logoFallbackUrl?: string | null; size?: number };
 
@@ -19,7 +19,7 @@ export function CompanyLogo(props: Props) {
   return <LogoImage key={JSON.stringify([props.symbol, props.logoUrl, props.logoFallbackUrl])} {...props} />;
 }
 
-function LogoImage({ symbol, logoUrl, logoFallbackUrl, size = 28 }: Props) {
+function LogoImage({ symbol, logoUrl, logoFallbackUrl, size = sizing.logo }: Props) {
   const [failed, setFailed] = useState<string[]>([]);
   const uri = [logoUri(logoUrl), logoUri(logoFallbackUrl)].find(value => value && !failed.includes(value));
   return <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"

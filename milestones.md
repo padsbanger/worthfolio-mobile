@@ -191,15 +191,19 @@ M6 accepted 2026-09-18. TypeScript, lint, and 110 tests passed during implementa
 
 ### M7: Delta-inspired visual system and app shell
 
-Depends on M6 acceptance. Planning requested 2026-09-18; implementation not started. See the design direction and reference links in `design.md`.
+M6 was accepted and committed as `68cb732`. M7 was accepted on 2026-09-18. See the design direction and reference links in `design.md`.
 
-- [ ] Capture a reproducible M6 baseline and implement a representative Portfolio header/asset-row preview using clearly labeled fixtures.
-- [ ] Define shared colors, typography/numeric styles, spacing, surfaces, separators, logo sizing, metric labels, and compact status components.
-- [ ] Refine the native headers and bottom navigation while retaining exactly Portfolio, Watchlists, and Search; preserve account access and instrument/back navigation.
-- [ ] Validate normal/large text, contrast, selected states, and 48-point tap targets on Android.
-- [ ] Review the reference screen with the user, run relevant checks, commit and pause.
+- [x] Record M6 source baseline `68cb732` and existing `artifacts/density` captures; add a repeatable Portfolio header/asset-row preview using fixed, clearly labeled fixtures. Earlier live-account captures are layout references, not identical-data pixel comparisons.
+- [x] Define shared colors, typography/numeric styles, spacing, surfaces, separators, logo sizing, metric labels, and compact status components.
+- [x] Refine the native headers and bottom navigation while retaining exactly Portfolio, Watchlists, and Search; preserve account access and instrument/back navigation.
+- [x] Validate normal/large text, contrast, selected states, and 48-point tap targets on Android.
+- [x] User accepted the reference direction with "Looks good. Work on next milestone"; checks passed, commit M7 and proceed to explicitly authorized M8.
 
 Acceptance: one coherent visual language and reusable components; the user can assess the intended Delta-inspired direction before all screens are converted. No data/authentication changes.
+
+M7 verification: TypeScript and ESLint pass; 112 tests in 16 suites pass, including sample-preview isolation and asset-row actions/metric labels. Pixel_10 emulator captures in `artifacts/m7` show the preview at font scales 1.0 and 1.5; the original 1.0 setting was restored. A text-scale-aware tab-bar height prevents labels crowding the system navigation area. Calculated text contrast on all three surfaces is at least 6.71:1. No new animations were introduced.
+
+Review path in the development client: Portfolio > Account > Design preview. The route is development-only, contains fixed sample data, and does not request market data. Shared styling is applied to the app shell; the live Portfolio structure remains for M8. M7 accepted 2026-09-18; the user explicitly authorized M8. No native or cloud build was used.
 
 ### M8: Portfolio overview and holdings redesign
 
@@ -261,7 +265,7 @@ Depends on M7-M11 acceptance.
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M6 is user-accepted and M7 is authorized next. M7-M12 have not yet been completed. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M6 is committed; M7 is user-accepted; M8 is authorized next. M8-M12 have not been completed. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## Deferred features
 

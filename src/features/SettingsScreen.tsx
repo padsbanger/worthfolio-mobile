@@ -1,5 +1,6 @@
 import { ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 import { useBootstrap } from '../api/data';
 import { useSession } from '../auth/session';
 import { Button, Card, DataNotice, Heading, Label, styles } from '../components/ui';
@@ -19,5 +20,6 @@ export function SettingsScreen() {
     <Text style={styles.label}>Version {Constants.expoConfig?.version || '0.1.0'} (build {Constants.expoConfig?.android?.versionCode ?? 1})</Text>
     <Text style={styles.small}>Portfolio data stays in memory and is cleared when you sign out. When your access token expires or is revoked, sign in again. Signing out here leaves your browser’s Authentik session signed in.</Text>
     <Button title={session?.demo ? 'Leave sample portfolio' : 'Sign out'} secondary onPress={() => void signOut()} />
+    {__DEV__ && <Button title="Design preview" secondary onPress={() => router.push('/design-preview')} />}
   </ScrollView></View>;
 }

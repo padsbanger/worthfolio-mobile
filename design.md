@@ -144,3 +144,10 @@ Log sanitized endpoint/status/duration diagnostics only. V1 adds no external ana
 - [Expo SVG support](https://docs.expo.dev/versions/latest/sdk/svg/)
 - [TanStack Query with React Native](https://tanstack.com/query/latest/docs/framework/react/react-native)
 - [EAS internal distribution](https://docs.expo.dev/build/internal-distribution/)
+
+
+### M7 reference implementation
+
+The shared theme uses near-black `#0C0E12`, surface `#15181E`, elevated `#20252D`, muted text `#A5ADBA`, and lavender selection `#9AAEFF`. Financial figures use tabular numerals; signed gains/losses retain explicit metric labels. Shared `PortfolioOverview`, `Metric`, and `AssetRow` components provide the reference layout without changing the data contract.
+
+In a development build, open Portfolio > Account > Design preview to review fixed sample holdings at normal and larger text sizes. It has an explicit sample banner, no market queries, and no live account values. The screen is protected by a development-only route guard; it does not add a tab or appear in release navigation. M7 establishes the shell and components; M8-M11 apply the complete layout changes to live screens in sequence.

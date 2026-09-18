@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import type { PropsWithChildren } from 'react';
-import { colors, spacing } from '../theme/theme';
+import { colors, shape, sizing, spacing, typography } from '../theme/theme';
 import { useData } from '../api/data';
 
 export function Heading({ children }: PropsWithChildren) { return <Text accessibilityRole="header" style={styles.heading}>{children}</Text>; }
@@ -38,21 +38,21 @@ export function RefreshHint({ retry, busy }: { retry?: () => void; busy?: boolea
 }
 export const styles = StyleSheet.create({
   refreshHint: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  refreshRetry: { minHeight: 48, minWidth: 48, justifyContent: 'center', alignItems: 'flex-end' },
+  refreshRetry: { minHeight: sizing.touch, minWidth: sizing.touch, justifyContent: 'center', alignItems: 'flex-end' },
   refreshRetryText: { color: colors.accent, fontSize: 12, lineHeight: 18 },
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 18, paddingBottom: 36 },
   // Lists own row padding; a container gap would also pad both sides of separators.
   listContent: { padding: spacing.screen, paddingTop: spacing.section, paddingBottom: spacing.bottom },
   detailContent: { padding: spacing.screen, gap: spacing.section, paddingBottom: spacing.bottom },
-  sectionHeading: { color: colors.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.4 },
+  sectionHeading: { ...typography.section, color: colors.text },
   compactCard: { padding: spacing.screen, gap: spacing.small },
-  heading: { color: colors.text, fontSize: 26, fontWeight: '700', letterSpacing: -0.6 },
-  label: { color: colors.muted, fontSize: 13, lineHeight: 20 },
-  text: { color: colors.text, fontSize: 16, lineHeight: 24 },
-  small: { color: colors.muted, fontSize: 12, lineHeight: 18 },
-  card: { padding: 20, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 8 },
-  button: { minHeight: 48, paddingVertical: 14, paddingHorizontal: 18, backgroundColor: colors.accent, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  heading: { ...typography.title, color: colors.text },
+  label: { ...typography.label, color: colors.muted },
+  text: { ...typography.body, color: colors.text, fontVariant: ['tabular-nums'] },
+  small: { ...typography.caption, color: colors.muted },
+  card: { padding: 20, borderRadius: shape.card, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 8 },
+  button: { minHeight: sizing.touch, paddingVertical: 14, paddingHorizontal: 18, backgroundColor: colors.accent, borderRadius: shape.control, alignItems: 'center', justifyContent: 'center' },
   secondary: { backgroundColor: colors.elevated },
   buttonText: { color: colors.background, fontSize: 15, fontWeight: '700' },
   status: { padding: 28, gap: 16, alignItems: 'center' },
@@ -62,5 +62,5 @@ export const styles = StyleSheet.create({
   noticeText: { color: colors.warning, fontSize: 12, lineHeight: 18 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   divider: { height: 1, backgroundColor: colors.border },
-  input: { backgroundColor: colors.surface, color: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 16, minHeight: 52, fontSize: 16 },
+  input: { backgroundColor: colors.surface, color: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: shape.control, paddingHorizontal: 16, minHeight: 52, fontSize: 16 },
 });
