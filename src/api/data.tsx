@@ -1,5 +1,5 @@
 import NetInfo from '@react-native-community/netinfo';
-import { QueryClient, QueryClientProvider, QueryObserver, focusManager, onlineManager, useQuery } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryObserver, focusManager, onlineManager, useQueries, useQuery } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
 import { useIsFocused } from 'expo-router';
@@ -110,6 +110,22 @@ export function useSearch(query: string, settled = true) {
     queryFn: ({ signal }) => demo ? Promise.resolve(sampleSearch(query))
       : client.request(`/api/search?${new URLSearchParams({ q: query })}`, searchSchema, { signal }),
   });
+}
+
+/** All list members need observations for ranking, including virtualized rows. */
+export function useListMarkets(symbols: string[], range: ChartRange) {
+  const { queries, demo, online, active } = useData();
+  const focused = useIsFocused();
+  const enabled = focused && (demo || (online && active));
+  const results = useQueries({ subscribed: focused,
+    queries: symbols.map(symbol => ({ ...queries.market(symbol, range), enabled,
+      networkMode: demo ? 'always' as const : 'online' as const,
+      // Daily data is refreshed by the existing shared holdings/watchlist round.
+      refetchInterval: enabled && !demo && range !== '1D' ? 90_000 : false as const,
+      ...(demo ? { queryFn: () => Promise.resolve(sampleMarket(symbol, range)) } : {}),
+    })),
+  });
+  return new Map(symbols.map((symbol, index) => [symbol, results[index]!]));
 }
 
 export function usePortfolioRefresh() {

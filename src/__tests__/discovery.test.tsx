@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { onlineManager } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { DataProvider, selectedRefreshMs, useData, useMarket } from '../api/data';
+import { DataProvider, selectedRefreshMs, useData, useListMarkets, useMarket } from '../api/data';
 import { SearchScreen } from '../features/SearchScreen';
 import { InstrumentScreen } from '../features/InstrumentScreen';
 import { sampleBootstrap, sampleMarket, sampleSearch } from '../fixtures/portfolio';
@@ -260,4 +260,41 @@ test('every range requests its own history and keeps the selected control identi
     await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.includes('/api/market') && new URL(url).searchParams.get('range') === range)).toBe(true));
     expect(await screen.findByLabelText('Price history')).toBeTruthy();
   }
+});
+
+
+test('list ranking loads off-screen symbols through the shared queue and cancels history on period change and blur', async () => {
+  const pending: { symbol: string; range: string; signal: AbortSignal; finish: () => void }[] = [];
+  fetcher.mockImplementation((url: string, options: RequestInit) => {
+    if (url.endsWith('/api/bootstrap')) return Promise.resolve(response(bootstrap));
+    const params = new URL(url).searchParams;
+    const symbol = params.get('symbol')!;
+    return new Promise(resolve => pending.push({ symbol, range: params.get('range')!, signal: options.signal!, finish: () => resolve(response(quote(symbol))) }));
+  });
+  function ListProbe({ range }: { range: '1D' | '1M' }) {
+    const results = useListMarkets(['A', 'B', 'C', 'D', 'E'], range);
+    return <Text>{[...results.values()].filter(r => r.data).length} loaded</Text>;
+  }
+  const view = render(<DataProvider><ListProbe range="1D" /></DataProvider>);
+  await waitFor(() => expect(pending).toHaveLength(3));
+  await act(async () => pending[0]!.finish());
+  await waitFor(() => expect(pending).toHaveLength(4));
+  await act(async () => pending[1]!.finish());
+  await waitFor(() => expect(pending).toHaveLength(5));
+  await act(async () => pending.slice(2).forEach(p => p.finish()));
+  expect(await screen.findByText('5 loaded')).toBeTruthy();
+  const count = pending.length;
+  view.rerender(<DataProvider><ListProbe range="1D" /></DataProvider>);
+  expect(pending).toHaveLength(count);
+  view.rerender(<DataProvider><ListProbe range="1M" /></DataProvider>);
+  await waitFor(() => expect(pending).toHaveLength(8));
+  expect(screen.getByText('0 loaded')).toBeTruthy();
+  mockFocused = false;
+  view.rerender(<DataProvider><ListProbe range="1M" /></DataProvider>);
+  expect(pending.slice(5).every(p => p.signal.aborted)).toBe(true);
+  await tick(180_000);
+  expect(pending).toHaveLength(8);
+  await act(async () => pending.slice(5).forEach(p => p.finish()));
+  view.rerender(<DataProvider><ListProbe range="1D" /></DataProvider>);
+  expect(screen.getByText('5 loaded')).toBeTruthy();
 });

@@ -24,6 +24,8 @@ test.each([
   await expect(cache.fetchQuery(options)).rejects.toThrow();
   expect(cache.getQueryData(options.queryKey)).toBe(first);
   expect(fetcher.mock.calls[0][0]).toContain('refresh=1');
+  expect(fetcher.mock.calls[0][0]).toContain('events=1');
+  expect(fetcher.mock.calls[0][0]).not.toContain('extended=1');
   expect(fetcher.mock.calls[0][1].method).toBe('GET');
 });
 

@@ -42,12 +42,24 @@ export const bootstrapSchema = watchlistsSchema.extend({
   authUser: z.object({ sub: z.string(), name: z.string(), email: z.string().optional() }).passthrough(),
 });
 
+const extendedQuoteSchema = z.object({
+  price: finite.positive(), time: z.string().datetime({ offset: true }),
+  changePct: optionalNumber,
+}).passthrough().nullish().catch(undefined);
+
+export const marketSessionSchema = z.object({
+  state: z.string(),
+  preMarket: extendedQuoteSchema, postMarket: extendedQuoteSchema,
+  source: z.string().optional(), refreshedAt: z.string().optional(),
+}).passthrough();
+
 export const marketSchema = z.object({
   ...logoFields,
   symbol: z.string(), name: z.string(), currency: z.string(), source: z.string(),
   lastPrice: optionalNumber, previousClose: optionalNumber,
   refreshedAt: z.string().optional(), stale: z.boolean().optional(),
   delayed: z.boolean().optional(), cached: z.boolean().optional(), notice: z.string().optional(),
+  session: marketSessionSchema.nullish().catch(undefined),
   candles: z.array(z.object({ time: z.string(), close: finite }).passthrough()),
 }).passthrough();
 

@@ -292,7 +292,24 @@ M12 release-candidate evidence (2026-09-18):
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is committed; M10 is committed. M11 is committed. M12 is accepted. All defined milestones M1-M12 are complete; the next milestone is awaiting scope selection. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is committed; M10 is committed. M11 is committed. M12 is accepted. All defined milestones M1-M12 are complete; M13 sorting and periods is now user-authorized and in progress. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+
+## M13: Portfolio and Watchlists sorting and periods
+
+User-authorized after M12 commit `a0af872`. In progress; commit only after acceptance.
+
+- [x] Add a compact shared sort dropdown: Default order, Biggest gains, Lowest gains, Alphabetical, Highest price and Lowest price.
+- [x] Add 1H / 1D / 1W chips (1t interpreted as one week pending clarification). Apply periods to asset price-change percentages, not authoritative portfolio totals/open P&L.
+- [x] Use real existing market observations; clearly mark unavailable history/FX, preserve cached quotes, and sort unavailable values last with deterministic ties.
+- [x] Convert unit prices to account base currency using available backend FX; no fabricated cross-currency ranking.
+- [x] Store only local account-scoped view preferences; no backend writes. Keep shared request concurrency/cancellation and existing refresh behavior.
+- [ ] Test sorting, time bounds, currencies/short positions, preference isolation, failures and navigation; review compact controls on Android.
+- [x] Remove repeated row period/delay captions; add compact pre-market/after-hours quotes from the existing session response, preserving regular valuation.
+- [ ] Obtain user acceptance, commit and pause.
+
+Follow-up checks: 149 tests in 18 suites pass, including session selection, quote timestamps, missing/malformed optional session data, hidden change captions with accessible metric labels, and the daily session request flag. Live hosted session responses and native layout review remain pending; no backend changes or cloud builds.
+
+Implementation checks: TypeScript and ESLint pass; 143 tests in 17 suites pass. Added coverage verifies deterministic sorting/missing-last behavior, percent vs position P&L, GBX/FX conversion, hourly/weekly coverage limits, delayed preference reads/account changes, no membership writes, preserved prices while history loads, and queued off-screen requests with concurrency three and cancellation on blur. No native dependency or backend changes, and no new APK/cloud build. The new compact Watchlists controls were visually observed in the active development client at font scale 1.0. Full native sort/period interaction and enlarged-text validation remain pending: a separate test AVD was prepared with the existing development APK, but the active Metro process did not expose sample mode, and automatic approval review blocked starting a separate sample-mode Metro server (no more specific reason supplied). No authenticated test credentials were copied, and the active emulator settings were left unchanged. Historical percentages use returned candle closes; the selected interval is disclosed in quote details. `1t` is provisionally interpreted as one week (`1W`).
 
 ## Deferred features
 

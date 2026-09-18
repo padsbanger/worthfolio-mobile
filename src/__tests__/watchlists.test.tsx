@@ -4,14 +4,14 @@ import { RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { WatchlistsScreen } from '../features/WatchlistsScreen';
 import { selectedWatchlist, useWatchlistSelection } from '../features/watchlist-selection';
-import { useBootstrap, useData, useMarket, usePortfolioRefresh, useWatchlists } from '../api/data';
+import { useBootstrap, useData, useListMarkets, useMarket, usePortfolioRefresh, useWatchlists } from '../api/data';
 import { sampleBootstrap, sampleMarket } from '../fixtures/portfolio';
 import type { Watchlists } from '../api/contracts';
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('../lib/config', () => ({ server: { url: 'https://worthfolio.test' } }));
 jest.mock('@react-native-async-storage/async-storage', () => ({ getItem: jest.fn(), setItem: jest.fn() }));
-jest.mock('../api/data', () => ({ useBootstrap: jest.fn(), useData: jest.fn(), useMarket: jest.fn(),
+jest.mock('../api/data', () => ({ useBootstrap: jest.fn(), useData: jest.fn(), useMarket: jest.fn(), useListMarkets: jest.fn(),
   usePortfolioRefresh: jest.fn(), useVisibleWatchlist: jest.fn(), useWatchlists: jest.fn() }));
 
 const data: Watchlists = { watchlists: sampleBootstrap.watchlists, activeWatchlistId: 'sample-core' };
@@ -20,6 +20,7 @@ const refresh = jest.fn();
 const saved = jest.mocked(AsyncStorage.getItem);
 const save = jest.mocked(AsyncStorage.setItem);
 beforeEach(() => {
+  jest.mocked(useListMarkets).mockImplementation(symbols => new Map(symbols.map(symbol => [symbol, useMarket(symbol, '1D')])) as ReturnType<typeof useListMarkets>);
   saved.mockReset().mockResolvedValue(null); save.mockReset().mockResolvedValue();
   refetch.mockReset().mockResolvedValue({ data }); refresh.mockReset().mockResolvedValue(undefined);
   jest.mocked(useBootstrap).mockReturnValue({ data: sampleBootstrap } as ReturnType<typeof useBootstrap>);
@@ -50,15 +51,18 @@ test('pull-to-refresh reloads lists and the shared quote round', async () => {
   expect(refresh.mock.invocationCallOrder[0]).toBeGreaterThan(refetch.mock.invocationCallOrder[0]!);
 });
 
-test('failed refresh keeps price provenance and both cached and delayed flags visible', async () => {
+test('failed refresh discloses provenance and delay flags only in quote details', async () => {
   jest.mocked(useMarket).mockImplementation(symbol => ({ isError: true,
     data: { ...sampleMarket(symbol, '1D'), source: 'Test provider', cached: true, delayed: true },
   }) as ReturnType<typeof useMarket>);
   render(<WatchlistsScreen />);
   await waitFor(() => expect(saved).toHaveBeenCalled());
+  expect(screen.queryByText(/delayed/i)).toBeNull();
   fireEvent.press(screen.getByLabelText('Quote details'));
   expect(screen.getAllByText('Source: Test provider')).toHaveLength(3);
   expect(screen.getAllByText('Update delayed · Cached · Provider delayed').length).toBeGreaterThan(0);
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.queryByText(/delayed/i)).toBeNull();
 });
 
 test('empty selected list is different from no lists or an offline initial load', async () => {
@@ -147,7 +151,8 @@ test('daily change and stale flags stay visible while exact provenance can be co
   jest.mocked(useMarket).mockImplementation(symbol => ({ data: { ...sampleMarket(symbol, '1D'), stale: true } }) as ReturnType<typeof useMarket>);
   render(<WatchlistsScreen />);
   await waitFor(() => expect(saved).toHaveBeenCalled());
-  expect(screen.getAllByText('Daily change')).toHaveLength(3);
+  expect(screen.queryByText('Daily change')).toBeNull();
+  expect(screen.getByLabelText('Open Apple').props.accessibilityHint).toContain('Daily change');
   expect(screen.getAllByText('+1.20%')).toHaveLength(3);
   expect(screen.getAllByText('Stale')).toHaveLength(3);
   expect(screen.queryByText(/Source:/)).toBeNull();
@@ -166,4 +171,34 @@ test('missing quote and previous close never display a zero return', async () =>
   expect(screen.getAllByText('Unavailable').length).toBeGreaterThan(0);
   expect(screen.queryByText('0.00%')).toBeNull();
   expect(screen.queryByText('$0.00')).toBeNull();
+});
+
+
+test('watchlist alphabetical and price sorts use all list quotes without changing membership', async () => {
+  render(<WatchlistsScreen />);
+  await act(async () => {});
+  fireEvent.press(screen.getByLabelText('Sort assets. Default order'));
+  fireEvent.press(screen.getByLabelText('Highest price'));
+  expect(screen.getAllByLabelText(/^Open /).map(n => n.props.accessibilityLabel)).toEqual(['Open Microsoft', 'Open Vanguard Total Stock Market ETF', 'Open Apple']);
+  fireEvent.press(screen.getByLabelText('Sort assets. Highest price'));
+  fireEvent.press(screen.getByLabelText('Alphabetical'));
+  expect(screen.getAllByLabelText(/^Open /).map(n => n.props.accessibilityLabel)).toEqual(['Open Apple', 'Open Microsoft', 'Open Vanguard Total Stock Market ETF']);
+  expect(data.watchlists[0]!.symbols).toEqual(['NASDAQ:AAPL', 'NASDAQ:MSFT', 'NYSE:VTI']);
+  await act(async () => {});
+});
+
+
+test('changing the period retains loaded quote prices and names while missing history stays unavailable', async () => {
+  jest.mocked(useListMarkets).mockImplementation((symbols, range) => new Map(symbols.map(symbol => [symbol,
+    range === '1D' ? { data: sampleMarket(symbol, '1D') } : { isFetching: true, data: undefined },
+  ])) as unknown as ReturnType<typeof useListMarkets>);
+  render(<WatchlistsScreen />);
+  await act(async () => {});
+  fireEvent.press(screen.getByLabelText('1W price change'));
+  expect(screen.getByLabelText('Open Apple')).toBeTruthy();
+  expect(screen.getByText('$210.00')).toBeTruthy();
+  expect(screen.getByText('Loading 1W changes\u2026')).toBeTruthy();
+  expect(screen.getAllByText('Unavailable')).toHaveLength(3);
+  expect(screen.queryByText('+1.20%')).toBeNull();
+  await act(async () => {});
 });

@@ -21,9 +21,9 @@ export function PortfolioOverview({ account, balance, currency, pnl, invested, d
   </View>;
 }
 
-export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change, changeLabel, direction, subtitle, metadata, onPress }: {
+export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change, changeLabel, hideChangeLabel = false, direction, subtitle, secondaryPrice, metadata, onPress }: {
   symbol: string; name: string; logoUrl?: string | null; logoFallbackUrl?: string | null;
-  value: string; change: string; changeLabel: string; direction?: 'positive' | 'negative'; subtitle: string; metadata?: ReactNode; onPress?: () => void;
+  value: string; change: string; changeLabel: string; hideChangeLabel?: boolean; direction?: 'positive' | 'negative'; subtitle: string; secondaryPrice?: ReactNode; metadata?: ReactNode; onPress?: () => void;
 }) {
   const { width, fontScale } = useWindowDimensions();
   const stacked = width / fontScale < 300 || value.length > 16 || change.length > 16;
@@ -33,7 +33,8 @@ export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change
       <View style={local.identity}><Text style={local.name}>{name}</Text><Text style={local.label}>{symbol}</Text></View>
       <View style={[local.amount, stacked && { flexBasis: '100%', flexGrow: 0, alignItems: 'flex-start' }]}><Text style={local.value}>{value}</Text>
         <Text style={[local.change, direction && { color: colors[direction] }]}>{change}</Text>
-        <Text style={local.caption}>{changeLabel}</Text>
+        {secondaryPrice}
+        {!hideChangeLabel && <Text style={local.caption}>{changeLabel}</Text>}
       </View>
     </View>
     <Text style={local.caption}>{subtitle}</Text>
