@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react-native';
-import { ExtendedQuote } from '../components/ExtendedQuote';
+import { ExtendedQuote, extendedQuoteDescription } from '../components/ExtendedQuote';
 import { marketSchema } from '../api/contracts';
 import { sampleMarket } from '../fixtures/portfolio';
 import { colors } from '../theme/theme';
@@ -52,4 +52,10 @@ test('missing percentage is not displayed as zero', () => {
     session: { state: 'pre', preMarket: { ...pre, changePct: null } } })} />);
   expect(screen.getByText(/Pre \$101.00/)).toBeTruthy();
   expect(screen.queryByText(/%/)).toBeNull();
+});
+
+test('the compact extended quote has a full non-color accessibility description', () => {
+  expect(extendedQuoteDescription(market('pre'))).toContain('Pre-market price $101.00. Up 1.00%.');
+  expect(extendedQuoteDescription(market('post'))).toContain('After hours price $102.00. Down 2.00%.');
+  expect(extendedQuoteDescription(undefined)).toBeUndefined();
 });

@@ -28,6 +28,13 @@ test('asset rows keep a long identity and supporting line compact while retainin
   expect(screen.getByText('After $123.45 +1.00%')).toBeTruthy();
 });
 
+test('asset action describes hidden period and extended-session meaning without relying on color', () => {
+  render(<AssetRow symbol="AAPL" name="Apple" value="$100.00" change="+1.20%" changeLabel="Daily change" hideChangeLabel
+    subtitle="USD · Sep 18" secondaryDescription="Pre-market price $101.00. Up 1.00%. Quote time: Sep 18."
+    secondaryPrice={<Text>Pre $101.00 +1.00%</Text>} onPress={jest.fn()} />);
+  expect(screen.getByLabelText('Open Apple').props.accessibilityHint).toContain('Daily change +1.20%. Pre-market price $101.00. Up 1.00%.');
+});
+
 test('reference screen labels fixture data and reveals sample provenance without market requests', () => {
   const request = jest.spyOn(global, 'fetch');
   render(<DesignPreviewScreen />);

@@ -4,14 +4,27 @@ import { money, percent, timestamp } from '../lib/format';
 import { styles } from './ui';
 import { colors } from '../theme/theme';
 
-/** One compact session quote; never substitute it for regular price/valuation. */
-export function ExtendedQuote({ market, details = false }: { market?: Market; details?: boolean }) {
+function selectedExtendedQuote(market: Market | undefined) {
   const session = market?.session;
-  if (!session) return null;
+  if (!session) return undefined;
   const pre = session.preMarket && { ...session.preMarket, label: 'Pre-market' };
   const post = session.postMarket && { ...session.postMarket, label: 'After hours' };
-  const quote = session.state === 'pre' ? pre : session.state === 'post' ? post
+  return session.state === 'pre' ? pre : session.state === 'post' ? post
     : [pre, post].filter(q => !!q).sort((a, b) => Date.parse(b.time) - Date.parse(a.time))[0];
+}
+
+export function extendedQuoteDescription(market: Market | undefined) {
+  const quote = selectedExtendedQuote(market);
+  if (!quote) return undefined;
+  const magnitude = quote.changePct == null ? '' : percent(Math.abs(quote.changePct)).replace(/^\+/, '');
+  const movement = quote.changePct == null ? 'Change unavailable.' : quote.changePct > 0 ? `Up ${magnitude}.`
+    : quote.changePct < 0 ? `Down ${magnitude}.` : 'Unchanged.';
+  return `${quote.label} price ${money(quote.price, market?.currency)}. ${movement} Quote time: ${timestamp(quote.time, true)}.`;
+}
+
+/** One compact session quote; never substitute it for regular price/valuation. */
+export function ExtendedQuote({ market, details = false }: { market?: Market; details?: boolean }) {
+  const quote = selectedExtendedQuote(market);
   if (!quote) return null;
   if (details) return <Text style={styles.small}>{quote.label} quote: {timestamp(quote.time, true)}</Text>;
   const price = money(quote.price, market?.currency);

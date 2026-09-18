@@ -17,18 +17,16 @@ beforeEach(() => {
   jest.mocked(usePortfolioRefresh).mockReturnValue({ refreshing: false, error: null, completedAt: null, refresh: jest.fn().mockResolvedValue(undefined) });
 });
 
-test('quote details disclose each source and exact time without hiding summary freshness', () => {
+test('portfolio keeps the header focused on holdings rather than quote provenance or coverage', () => {
   jest.mocked(useBootstrap).mockReturnValue({ data: sampleBootstrap } as ReturnType<typeof useBootstrap>);
   render(<PortfolioScreen />);
-  expect(screen.getByText(/Quote time:/)).toBeTruthy();
+  expect(screen.queryByLabelText('Quote details')).toBeNull();
+  expect(screen.queryByText(/holdings valued/)).toBeNull();
+  expect(screen.queryByText(/coverage/)).toBeNull();
+  expect(screen.queryByText(/Quote time:/)).toBeNull();
+  expect(screen.queryByText(sampleBootstrap.account.name)).toBeNull();
+  expect(screen.queryByText(/Holdings value/)).toBeNull();
   expect(screen.queryByText('Source: Development fixture')).toBeNull();
-  fireEvent.press(screen.getByLabelText('Quote details'));
-  expect(screen.getByLabelText('Quote details').props.accessibilityState.expanded).toBe(true);
-  expect(screen.getAllByText('Source: Development fixture')).toHaveLength(3);
-  expect(screen.getAllByText(`Quote time: ${sampleBootstrap.positions[0]!.quoteRefreshedAt}`)).toHaveLength(3);
-  expect(screen.getByText(/Summary timestamp:/)).toBeTruthy();
-  fireEvent.press(screen.getByLabelText('Quote details'));
-  expect(screen.queryByText(/Summary timestamp:/)).toBeNull();
 });
 
 test('short positions preserve signed value, gain, and currency labels in the new row', () => {
@@ -46,15 +44,12 @@ test('missing FX and stale valuations stay visible with details collapsed', () =
   expect(screen.queryByText('$0.00')).toBeNull();
 });
 
-test('holding delay notices appear only in expanded quote details', () => {
+test('holding delay metadata does not consume compact portfolio row space', () => {
   const props = { position: { ...sampleBootstrap.positions[0]!, delayed: true }, currency: 'USD',
-    period: '1D' as const, market: { ...sampleMarket('NASDAQ:AAPL'), delayed: true }, marketError: true };
-  const view = render(<HoldingRow {...props} />);
+    period: '1D' as const, market: { ...sampleMarket('NASDAQ:AAPL'), delayed: true } };
+  render(<HoldingRow {...props} />);
   expect(screen.queryByText(/delayed/i)).toBeNull();
-  view.rerender(<HoldingRow {...props} showDetails />);
-  expect(screen.getByText(/Update delayed.*Change provider delayed.*Provider delayed/)).toBeTruthy();
-  view.rerender(<HoldingRow {...props} />);
-  expect(screen.queryByText(/delayed/i)).toBeNull();
+  expect(screen.queryByText(/Source:/)).toBeNull();
 });
 
 test('offline portfolio keeps values and disables the pull gesture', () => {
@@ -91,15 +86,15 @@ test('an initial portfolio load uses structural placeholders instead of unavaila
   expect(screen.queryByText('Try again')).toBeNull();
 });
 
-test('partial header uses server totals even when position values or account cash differ', () => {
+test('portfolio keeps the server total without adding coverage diagnostics', () => {
   const data = { ...sampleBootstrap, cash: 100000,
     portfolioSummary: { ...sampleBootstrap.portfolioSummary, value: 321, coverage: 50, pricedPositions: 1, totalPositions: 2 } };
   jest.mocked(useBootstrap).mockReturnValue({ data, isError: false } as unknown as ReturnType<typeof useBootstrap>);
   render(<PortfolioScreen />);
   expect(screen.getByText('$321.00')).toBeTruthy();
   expect(screen.queryByText('$100,321.00')).toBeNull();
-  expect(screen.getByText('Partial valuation: some prices or currency conversions are unavailable.')).toBeTruthy();
-  expect(screen.getByText(/1 of 2 holdings valued/)).toBeTruthy();
+  expect(screen.queryByText(/Partial valuation/)).toBeNull();
+  expect(screen.queryByText(/1 of 2 holdings valued/)).toBeNull();
 });
 
 

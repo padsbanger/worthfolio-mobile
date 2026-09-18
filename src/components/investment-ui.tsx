@@ -10,20 +10,18 @@ export function Metric({ label, value, direction }: { label: string; value: stri
   </View>;
 }
 
-export function PortfolioOverview({ account, balance, currency, pnl, invested, direction }: {
-  account: string; balance: string; currency: string; pnl: string; invested: string; direction: 'positive' | 'negative';
+export function PortfolioOverview({ balance, pnl, invested, direction }: {
+  balance: string; pnl: string; invested: string; direction: 'positive' | 'negative';
 }) {
   return <View style={local.overview}>
-    <Text style={local.label}>{account}</Text>
-    <Text style={local.label}>Holdings value · {currency}</Text>
     <Text style={local.balance}>{balance}</Text>
     <View style={local.metrics}><Metric label="Open P&L" value={pnl} direction={direction} /><Metric label="Invested" value={invested} /></View>
   </View>;
 }
 
-export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change, changeLabel, hideChangeLabel = false, direction, subtitle, secondaryPrice, metadata, onPress }: {
+export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change, changeLabel, hideChangeLabel = false, direction, subtitle, secondaryPrice, secondaryDescription, metadata, onPress }: {
   symbol: string; name: string; logoUrl?: string | null; logoFallbackUrl?: string | null;
-  value: string; change: string; changeLabel: string; hideChangeLabel?: boolean; direction?: 'positive' | 'negative'; subtitle: string; secondaryPrice?: ReactNode; metadata?: ReactNode; onPress?: () => void;
+  value: string; change: string; changeLabel: string; hideChangeLabel?: boolean; direction?: 'positive' | 'negative'; subtitle: string; secondaryPrice?: ReactNode; secondaryDescription?: string; metadata?: ReactNode; onPress?: () => void;
 }) {
   const { width, fontScale } = useWindowDimensions();
   const stacked = width / fontScale < 300 || value.length > 16 || change.length > 16;
@@ -41,7 +39,7 @@ export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change
   </>;
   return <View style={local.asset}>
     {onPress ? <Pressable accessibilityRole="button" accessibilityLabel={`Open ${name}`}
-      accessibilityHint={`${symbol}. Value ${value}. ${changeLabel} ${change}. ${subtitle}. Opens instrument details.`}
+      accessibilityHint={[`${symbol}.`, `Value ${value}.`, `${changeLabel} ${change}.`, secondaryDescription, `${subtitle}.`, 'Opens instrument details.'].filter(Boolean).join(' ')}
       onPress={onPress} style={({ pressed }) => [local.assetAction, pressed && { backgroundColor: colors.surface }]}>{content}</Pressable>
       : content}
     {metadata}

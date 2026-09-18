@@ -292,7 +292,7 @@ M12 release-candidate evidence (2026-09-18):
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M1-M13 are complete. M14 row-layout polish is user-authorized and in progress; M15-M18 below are planned follow-up work, not started. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M1-M17 are complete and accepted. Android text-scale and TalkBack walkthroughs remain documented follow-up verification, but the user accepted M14-M17. No next milestone is defined. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## M13: Portfolio and Watchlists sorting and periods
 
@@ -314,17 +314,17 @@ Implementation checks: TypeScript and ESLint pass; 143 tests in 17 suites pass. 
 
 ## Planned polish milestones
 
-M14-M18 are recorded at the user's request. Finish and obtain acceptance for the current milestone before starting another; wait for the user to authorize each next milestone. Suggested models are handoff recommendations, not instructions to spawn agents. Preserve existing uncommitted work. Keep financial calculations, hosted read-only authentication, request concurrency and lifecycle cancellation intact. No backend changes or Expo cloud builds are included. Run checks appropriate to each change and distinguish automated evidence from device checks. Commit only after milestone acceptance, then pause.
+M14-M17 are recorded at the user's request. Suggested models are handoff recommendations, not instructions to spawn agents. Preserve existing uncommitted work. Keep financial calculations, hosted read-only authentication, request concurrency and lifecycle cancellation intact. No backend changes or Expo cloud builds are included. Run checks appropriate to each change and distinguish automated evidence from device checks. Commit only after milestone acceptance, then pause.
 
 ## M14: Row layout polish
 
-Planned, not started. Suggested model: Terra.
+Completed in commit `fee9d2e`. Suggested model: Terra.
 
 - [x] Align prices and percentages consistently across Portfolio and Watchlists; tighten vertical spacing using shared theme tokens.
 - [x] Standardize logo sizing/fallbacks and company-name treatment, including long names and large values.
 - [x] Keep pre-market/after-hours labels in the right-hand amount column directly below price change, colored by their own signed move; retain quote times in details.
 - [ ] Review missing quotes, currencies, short positions, normal text and enlarged text on Android without clipping, overlap or lost financial meaning.
-- [ ] Obtain user acceptance, commit and pause.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: compact, consistent rows on both tabs with readable values and comfortable touch targets; no financial or API behavior changes.
 
@@ -332,13 +332,13 @@ Implementation checks: TypeScript, ESLint and 34 focused component/list tests pa
 
 ## M15: Filter usability
 
-Planned, not started. Suggested model: Terra.
+Completed in commit `31d89bb`. Suggested model: Terra.
 
 - [x] Make active sort and timeframe selection clear and consistent on both lists, building on M13 controls.
 - [x] Add a local Reset action restoring Default order and 1D for the current screen.
 - [x] Preserve account-scoped preferences across navigation and restart; verify reset persistence and account isolation.
 - [x] Make selection, outside-tap dismissal and Android Back behavior consistent without changing server watchlist state.
-- [ ] Obtain user acceptance, commit and pause.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: users can identify, change and reset the current view without losing their watchlist selection or affecting another account.
 
@@ -346,14 +346,14 @@ Implementation checks: TypeScript, ESLint and focused selection/preference tests
 
 ## M16: Loading and refresh polish
 
-Planned, not started. Suggested model: Sol.
+Completed in commit `58c4e06`. Suggested model: Sol.
 
 - [x] Match initial-loading skeletons to the final row layout and minimize content jumps as names, logos and prices arrive.
 - [x] Preserve scroll position and loaded content during routine refresh; respect deliberate sort, timeframe or watchlist changes.
 - [x] Keep background refresh quiet and show pull-to-refresh progress only for a manual gesture.
 - [x] Keep failures compact when cached data exists; retain clear initial-load retry, empty, offline and expired-session behavior.
 - [x] Verify slow responses, failures, offline/resume and cancellation without extra polling or synthetic quote substitution.
-- [ ] Obtain user acceptance, commit and pause.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: refresh feels unobtrusive, never blanks usable content and does not unexpectedly move the user's reading position.
 
@@ -362,13 +362,15 @@ Implementation checks: TypeScript and ESLint pass. Focused tests cover first-loa
 
 ## M17: Accessibility pass
 
-Planned, not started. Suggested model: Sol.
+Completed after user acceptance. Suggested model: Sol.
 
-- [ ] Review TalkBack reading order, action names, selected/expanded states and focus recovery across tabs, filters and instrument details.
-- [ ] Ensure extended-session labels and hidden visual captions retain understandable accessible financial meaning.
-- [ ] Review touch targets, contrast, signed changes and non-color indicators for gains/losses.
-- [ ] Review enlarged text and narrow layouts without disabling font scaling or clipping important values/actions.
+- [x] Review TalkBack reading order, action names, selected/expanded states and focus recovery across tabs, filters and instrument details.
+- [x] Ensure extended-session labels and hidden visual captions retain understandable accessible financial meaning.
+- [x] Review touch targets, contrast, signed changes and non-color indicators for gains/losses.
+- [x] Review enlarged text and narrow layouts without disabling font scaling or clipping important values/actions.
 - [ ] Perform Android TalkBack and enlarged-text checks; document device settings and any checks that remain unverified.
-- [ ] Obtain user acceptance, commit and pause.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: core browsing and filtering workflows are usable with TalkBack and enlarged text, with financial meaning conveyed independently of color.
+
+Implementation checks: TypeScript and ESLint pass. Automated coverage verifies selected/expanded control semantics, complete action descriptions for hidden period and extended-session metrics, explicit non-color Up/Down wording, contrast of all financial/action text colors, and existing long-name/large-value responsive row behavior. Android TalkBack and enlarged-text walkthroughs remain pending before acceptance; no font-scaling cap, backend change, native dependency or cloud build is used.

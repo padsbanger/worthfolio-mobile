@@ -9,7 +9,7 @@ import { money, percent, ticker, timestamp } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
 import { colors, sizing, spacing } from '../theme/theme';
 import type { Market } from '../api/contracts';
-import { ExtendedQuote } from '../components/ExtendedQuote';
+import { ExtendedQuote, extendedQuoteDescription } from '../components/ExtendedQuote';
 import { ListControls } from '../components/ListControls';
 import { useListPreferences } from './list-preferences';
 import { baseUnitPrice, periodChange, periodLabel, priceRates, sortAssets, type ListPeriod } from '../lib/list-view';
@@ -29,6 +29,7 @@ function WatchRow({ symbol, showDetails, data, changeData, isError, loading, per
     direction={change == null ? undefined : change >= 0 ? 'positive' : 'negative'}
     subtitle={[data?.currency || 'Currency unavailable', timestamp(data?.refreshedAt)].join(' \u00b7 ')}
     secondaryPrice={<ExtendedQuote market={data} />}
+    secondaryDescription={extendedQuoteDescription(data)}
     metadata={<>
       {sortPrice !== undefined && <Text style={styles.small}>Sort price: {money(sortPrice, currency)}</Text>}
       {!showDetails && data?.stale && <Text style={[styles.small, { color: colors.warning }]}>Stale</Text>}
