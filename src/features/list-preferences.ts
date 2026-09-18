@@ -29,5 +29,5 @@ export function useListPreferences(screen: 'portfolio' | 'watchlists', owner: st
     if (key) writes.current = writes.current.catch(() => {}).then(() => AsyncStorage.setItem(key, JSON.stringify(next)));
     void writes.current.catch(() => {});
   };
-  return { ...value, update };
+  return { ...value, update, reset: () => update(defaults) };
 }

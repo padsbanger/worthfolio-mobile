@@ -169,3 +169,7 @@ Extended-session presentation refinement: place the compact `Pre` / `After` pric
 ### M14 row layout
 
 `AssetRow` is the shared layout for Portfolio and Watchlists. It uses a 32-point logo, a flexible left identity column and a right-aligned, flexible amount column with a 104-point readable minimum. Company names, symbols and the supporting line visually use one line with an ellipsis, while the instrument action retains the complete name and supporting text for assistive technology. At narrow effective widths or for unusually long financial figures, the amount column moves below the identity but remains right-aligned and fully visible. Rows use 10-point vertical padding and retain a 48-point touch target. This keeps regular value, period change and the `Pre`/`After` quote aligned without altering valuation or quote selection.
+
+### M15 list-control feedback
+
+The shared list controls name their state directly: `Sort: <current sort>` and selected period chips. A concise line states the selected period's calculation basis (or the account currency for a price sort). After a user changes either setting, a 48-point `Reset` action returns only that screen's local preference to Default order and 1D; its owner/server/screen-scoped preference is saved through the existing queued write. The Reset action is absent for the default view. The sorting modal retains its existing selection, outside-tap close and Android Back close behavior without changing the selected view or watchlist membership.

@@ -92,7 +92,7 @@ export function PortfolioScreen() {
           <View style={{ gap: spacing.tight }}>
             <Text accessibilityRole="header" style={styles.sectionHeading}>Your holdings</Text>
             <Label>Value in {data.account.baseCurrency} / Price change %</Label>
-            <ListControls sort={view.sort} period={view.period} currency={currency} loading={[...markets.values()].some(m => m.isFetching && !m.data)} onSort={sort => view.update({ sort })} onPeriod={period => view.update({ period })} />
+            <ListControls sort={view.sort} period={view.period} currency={currency} loading={[...markets.values()].some(m => m.isFetching && !m.data)} onSort={sort => view.update({ sort })} onPeriod={period => view.update({ period })} onReset={view.reset} />
           </View>
         </View>}
         ListEmptyComponent={<Status title="No open holdings" message="Holdings added in Worthfolio will appear here." />}

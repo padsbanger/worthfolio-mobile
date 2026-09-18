@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
+import { Modal } from 'react-native';
 import { ListControls } from '../components/ListControls';
 import { useListPreferences } from '../features/list-preferences';
 import { baseUnitPrice, periodChange, priceRates, sortAssets, type AssetSort } from '../lib/list-view';
@@ -65,6 +66,25 @@ test('dropdown announces selection and closes after choosing; chips report the s
   fireEvent.press(screen.getByLabelText('1H price change'));
   expect(period).toHaveBeenCalledWith('1H');
 });
+test('selected controls identify the active view and expose reset only after a local change', () => {
+  const reset = jest.fn();
+  const view = render(<ListControls sort="default" period="1D" currency="USD" onSort={jest.fn()} onPeriod={jest.fn()} onReset={reset} />);
+  expect(screen.getByText('Sort: Default order')).toBeTruthy();
+  expect(screen.getByText('1D price change · previous close')).toBeTruthy();
+  expect(screen.queryByLabelText('Reset list view')).toBeNull();
+  view.rerender(<ListControls sort="gains" period="1W" currency="USD" onSort={jest.fn()} onPeriod={jest.fn()} onReset={reset} />);
+  expect(screen.getByText('Sort: Biggest gains')).toBeTruthy();
+  expect(screen.getByText('1W price change · observed closes')).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Reset list view'));
+  expect(reset).toHaveBeenCalledTimes(1);
+});
+test('Android Back closes sorting without changing the local view', () => {
+  render(<ListControls sort="gains" period="1D" currency="USD" onSort={jest.fn()} onPeriod={jest.fn()} />);
+  fireEvent.press(screen.getByLabelText('Sort assets. Biggest gains'));
+  act(() => screen.UNSAFE_getByType(Modal).props.onRequestClose());
+  expect(screen.queryByLabelText('Close sorting')).toBeNull();
+  expect(screen.getByText('Sort: Biggest gains')).toBeTruthy();
+});
 test('late preference restoration cannot override user choice or leak across owners', async () => {
   let finish!: (value: string) => void;
   const get = jest.spyOn(AsyncStorage, 'getItem').mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
@@ -79,5 +99,17 @@ test('late preference restoration cannot override user choice or leak across own
   expect(result.current.sort).toBe('default');
   expect(result.current.period).toBe('1D');
   await act(async () => {});
+  get.mockRestore(); set.mockRestore();
+});
+test('reset restores and persists this screen defaults without altering another owner', async () => {
+  const get = jest.spyOn(AsyncStorage, 'getItem').mockResolvedValue(null);
+  const set = jest.spyOn(AsyncStorage, 'setItem').mockResolvedValue();
+  const { result } = renderHook(() => useListPreferences('watchlists', 'one', false));
+  await act(async () => {});
+  act(() => result.current.update({ sort: 'price-high', period: '1W' }));
+  act(() => result.current.reset());
+  expect(result.current).toMatchObject({ sort: 'default', period: '1D' });
+  await act(async () => {});
+  expect(set).toHaveBeenLastCalledWith('list-view:https://worthfolio.test:one:watchlists', '{"sort":"default","period":"1D"}');
   get.mockRestore(); set.mockRestore();
 });

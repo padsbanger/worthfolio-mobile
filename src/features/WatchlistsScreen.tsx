@@ -76,7 +76,7 @@ export function WatchlistsScreen() {
   return <View style={styles.screen}><DataNotice />
     <View style={{ paddingHorizontal: spacing.screen, paddingTop: spacing.section, gap: spacing.small }}>
       <WatchlistPicker lists={lists} selectedId={current?.id} onSelect={select} />
-      <ListControls sort={view.sort} period={view.period} currency={currency} loading={[...markets.values()].some(m => m.isFetching && !m.data)} onSort={sort => view.update({ sort })} onPeriod={period => view.update({ period })} />
+      <ListControls sort={view.sort} period={view.period} currency={currency} loading={[...markets.values()].some(m => m.isFetching && !m.data)} onSort={sort => view.update({ sort })} onPeriod={period => view.update({ period })} onReset={view.reset} />
     </View>
     <FlatList key={`${current?.id}:${view.sort}:${view.period}`} extraData={showDetails} data={symbols} keyExtractor={symbol => symbol} contentContainerStyle={styles.listContent}
       refreshControl={<RefreshControl refreshing={pullRefresh.refreshing} enabled={online || demo} onRefresh={() => void pullRefresh.onRefresh()} tintColor={colors.accent} />}

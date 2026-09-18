@@ -334,13 +334,15 @@ Implementation checks: TypeScript, ESLint and 34 focused component/list tests pa
 
 Planned, not started. Suggested model: Terra.
 
-- [ ] Make active sort and timeframe selection clear and consistent on both lists, building on M13 controls.
-- [ ] Add a local Reset action restoring Default order and 1D for the current screen.
-- [ ] Preserve account-scoped preferences across navigation and restart; verify reset persistence and account isolation.
-- [ ] Make selection, outside-tap dismissal and Android Back behavior consistent without changing server watchlist state.
+- [x] Make active sort and timeframe selection clear and consistent on both lists, building on M13 controls.
+- [x] Add a local Reset action restoring Default order and 1D for the current screen.
+- [x] Preserve account-scoped preferences across navigation and restart; verify reset persistence and account isolation.
+- [x] Make selection, outside-tap dismissal and Android Back behavior consistent without changing server watchlist state.
 - [ ] Obtain user acceptance, commit and pause.
 
 Acceptance: users can identify, change and reset the current view without losing their watchlist selection or affecting another account.
+
+Implementation checks: TypeScript, ESLint and focused selection/preference tests pass. The tests cover visible current sort/period feedback, Reset visibility and invocation, persisted screen-scoped defaults, account isolation, selection closing, and Android Back dismissal. Full test suite and device review remain to be completed before acceptance; no backend changes or cloud builds are used.
 
 ## M16: Loading and refresh polish
 
