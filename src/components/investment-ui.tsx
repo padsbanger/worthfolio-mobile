@@ -30,14 +30,14 @@ export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change
   const content = <>
     <View style={[local.assetTop, stacked && { flexWrap: 'wrap' }]}>
       <CompanyLogo symbol={symbol} logoUrl={logoUrl} logoFallbackUrl={logoFallbackUrl} size={sizing.logo} />
-      <View style={local.identity}><Text style={local.name}>{name}</Text><Text style={local.label}>{symbol}</Text></View>
-      <View style={[local.amount, stacked && { flexBasis: '100%', flexGrow: 0, alignItems: 'flex-start' }]}><Text style={local.value}>{value}</Text>
+      <View style={local.identity}><Text numberOfLines={1} ellipsizeMode="tail" style={local.name}>{name}</Text><Text numberOfLines={1} style={local.label}>{symbol}</Text></View>
+      <View style={[local.amount, stacked && local.stackedAmount]}><Text style={local.value}>{value}</Text>
         <Text style={[local.change, direction && { color: colors[direction] }]}>{change}</Text>
         {secondaryPrice}
         {!hideChangeLabel && <Text style={local.caption}>{changeLabel}</Text>}
       </View>
     </View>
-    <Text style={local.caption}>{subtitle}</Text>
+    <Text numberOfLines={1} ellipsizeMode="tail" style={local.caption}>{subtitle}</Text>
   </>;
   return <View style={local.asset}>
     {onPress ? <Pressable accessibilityRole="button" accessibilityLabel={`Open ${name}`}
@@ -57,10 +57,11 @@ const local = StyleSheet.create({
   caption: { ...typography.caption, color: colors.muted },
   value: { ...typography.metric, color: colors.text },
   change: { ...typography.label, fontVariant: ['tabular-nums'], color: colors.muted },
-  asset: { minHeight: sizing.touch, paddingVertical: spacing.section, gap: spacing.tight, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  asset: { minHeight: sizing.touch, paddingVertical: 10, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   assetAction: { minHeight: sizing.touch, gap: spacing.tight },
-  assetTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.small },
-  identity: { flex: 1, gap: 2 },
+  assetTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.small },
+  identity: { flexGrow: 1, flexShrink: 1, flexBasis: 0, gap: 2, paddingTop: 1 },
   name: { ...typography.body, fontWeight: '600', color: colors.text },
-  amount: { flex: 1, alignItems: 'flex-end', gap: 2 },
+  amount: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 104, alignItems: 'flex-end', gap: 1 },
+  stackedAmount: { flexBasis: '100%', flexGrow: 0, alignItems: 'flex-end', paddingTop: spacing.tight },
 });

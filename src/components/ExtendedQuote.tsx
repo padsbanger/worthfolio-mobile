@@ -19,7 +19,7 @@ export function ExtendedQuote({ market, details = false }: { market?: Market; de
   const color = quote.changePct == null || quote.changePct === 0 ? colors.muted
     : quote.changePct > 0 ? colors.positive : colors.negative;
   return <Text accessibilityLabel={`${quote.label} ${price}${change}. Quote time: ${timestamp(quote.time, true)}`}
-    style={[styles.small, { color, textAlign: 'right', fontVariant: ['tabular-nums'] }]}>
+    numberOfLines={1} style={[styles.small, { color, textAlign: 'right', fontVariant: ['tabular-nums'] }]}>
     {quote.label === 'Pre-market' ? 'Pre' : 'After'} {price}{change}
   </Text>;
 }

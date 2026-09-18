@@ -320,13 +320,15 @@ M14-M18 are recorded at the user's request. Finish and obtain acceptance for the
 
 Planned, not started. Suggested model: Terra.
 
-- [ ] Align prices and percentages consistently across Portfolio and Watchlists; tighten vertical spacing using shared theme tokens.
-- [ ] Standardize logo sizing/fallbacks and company-name treatment, including long names and large values.
-- [ ] Keep pre-market/after-hours labels in the right-hand amount column directly below price change, colored by their own signed move; retain quote times in details.
+- [x] Align prices and percentages consistently across Portfolio and Watchlists; tighten vertical spacing using shared theme tokens.
+- [x] Standardize logo sizing/fallbacks and company-name treatment, including long names and large values.
+- [x] Keep pre-market/after-hours labels in the right-hand amount column directly below price change, colored by their own signed move; retain quote times in details.
 - [ ] Review missing quotes, currencies, short positions, normal text and enlarged text on Android without clipping, overlap or lost financial meaning.
 - [ ] Obtain user acceptance, commit and pause.
 
 Acceptance: compact, consistent rows on both tabs with readable values and comfortable touch targets; no financial or API behavior changes.
+
+Implementation checks: TypeScript, ESLint and 34 focused component/list tests pass. The shared row tests cover a long identity, a large amount and an extended-session label. Android normal and enlarged-text review remains pending; no native dependencies, backend changes or cloud builds were used.
 
 ## M15: Filter usability
 
