@@ -292,25 +292,89 @@ M12 release-candidate evidence (2026-09-18):
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is committed; M10 is committed. M11 is committed. M12 is accepted. All defined milestones M1-M12 are complete; M13 sorting and periods is now user-authorized and in progress. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M1-M13 are complete. M14 row-layout polish is user-authorized and in progress; M15-M18 below are planned follow-up work, not started. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## M13: Portfolio and Watchlists sorting and periods
 
-User-authorized after M12 commit `a0af872`. In progress; commit only after acceptance.
+Completed in commit `6acc997` after user acceptance.
 
 - [x] Add a compact shared sort dropdown: Default order, Biggest gains, Lowest gains, Alphabetical, Highest price and Lowest price.
 - [x] Add 1H / 1D / 1W chips (1t interpreted as one week pending clarification). Apply periods to asset price-change percentages, not authoritative portfolio totals/open P&L.
 - [x] Use real existing market observations; clearly mark unavailable history/FX, preserve cached quotes, and sort unavailable values last with deterministic ties.
 - [x] Convert unit prices to account base currency using available backend FX; no fabricated cross-currency ranking.
 - [x] Store only local account-scoped view preferences; no backend writes. Keep shared request concurrency/cancellation and existing refresh behavior.
-- [ ] Test sorting, time bounds, currencies/short positions, preference isolation, failures and navigation; review compact controls on Android.
+- [x] Test sorting, time bounds, currencies/short positions, preference isolation, failures and navigation; review compact controls on Android.
 - [x] Remove repeated row period/delay captions; add compact pre-market/after-hours quotes from the existing session response, preserving regular valuation.
-- [ ] Obtain user acceptance, commit and pause.
+- [x] Obtain user acceptance and commit.
 
 Follow-up checks: 149 tests in 18 suites pass, including session selection, quote timestamps, missing/malformed optional session data, hidden change captions with accessible metric labels, and the daily session request flag. Live hosted session responses and native layout review remain pending; no backend changes or cloud builds.
 
 Implementation checks: TypeScript and ESLint pass; 143 tests in 17 suites pass. Added coverage verifies deterministic sorting/missing-last behavior, percent vs position P&L, GBX/FX conversion, hourly/weekly coverage limits, delayed preference reads/account changes, no membership writes, preserved prices while history loads, and queued off-screen requests with concurrency three and cancellation on blur. No native dependency or backend changes, and no new APK/cloud build. The new compact Watchlists controls were visually observed in the active development client at font scale 1.0. Full native sort/period interaction and enlarged-text validation remain pending: a separate test AVD was prepared with the existing development APK, but the active Metro process did not expose sample mode, and automatic approval review blocked starting a separate sample-mode Metro server (no more specific reason supplied). No authenticated test credentials were copied, and the active emulator settings were left unchanged. Historical percentages use returned candle closes; the selected interval is disclosed in quote details. `1t` is provisionally interpreted as one week (`1W`).
 
-## Deferred features
 
-After Android v1, plan iOS device validation and distribution. Editing, analytics, richer charts, push notifications, persistent offline access, longer-lived sessions, public distribution, and OTA updates require separate scope decisions rather than being implicit additions to these milestones.
+## Planned polish milestones
+
+M14-M18 are recorded at the user's request. Finish and obtain acceptance for the current milestone before starting another; wait for the user to authorize each next milestone. Suggested models are handoff recommendations, not instructions to spawn agents. Preserve existing uncommitted work. Keep financial calculations, hosted read-only authentication, request concurrency and lifecycle cancellation intact. No backend changes or Expo cloud builds are included. Run checks appropriate to each change and distinguish automated evidence from device checks. Commit only after milestone acceptance, then pause.
+
+## M14: Row layout polish
+
+Planned, not started. Suggested model: Terra.
+
+- [ ] Align prices and percentages consistently across Portfolio and Watchlists; tighten vertical spacing using shared theme tokens.
+- [ ] Standardize logo sizing/fallbacks and company-name treatment, including long names and large values.
+- [ ] Keep pre-market/after-hours labels in the right-hand amount column directly below price change, colored by their own signed move; retain quote times in details.
+- [ ] Review missing quotes, currencies, short positions, normal text and enlarged text on Android without clipping, overlap or lost financial meaning.
+- [ ] Obtain user acceptance, commit and pause.
+
+Acceptance: compact, consistent rows on both tabs with readable values and comfortable touch targets; no financial or API behavior changes.
+
+## M15: Filter usability
+
+Planned, not started. Suggested model: Terra.
+
+- [ ] Make active sort and timeframe selection clear and consistent on both lists, building on M13 controls.
+- [ ] Add a local Reset action restoring Default order and 1D for the current screen.
+- [ ] Preserve account-scoped preferences across navigation and restart; verify reset persistence and account isolation.
+- [ ] Make selection, outside-tap dismissal and Android Back behavior consistent without changing server watchlist state.
+- [ ] Obtain user acceptance, commit and pause.
+
+Acceptance: users can identify, change and reset the current view without losing their watchlist selection or affecting another account.
+
+## M16: Loading and refresh polish
+
+Planned, not started. Suggested model: Sol.
+
+- [ ] Match initial-loading skeletons to the final row layout and minimize content jumps as names, logos and prices arrive.
+- [ ] Preserve scroll position and loaded content during routine refresh; respect deliberate sort, timeframe or watchlist changes.
+- [ ] Keep background refresh quiet and show pull-to-refresh progress only for a manual gesture.
+- [ ] Keep failures compact when cached data exists; retain clear initial-load retry, empty, offline and expired-session behavior.
+- [ ] Verify slow responses, failures, offline/resume and cancellation without extra polling or synthetic quote substitution.
+- [ ] Obtain user acceptance, commit and pause.
+
+Acceptance: refresh feels unobtrusive, never blanks usable content and does not unexpectedly move the user's reading position.
+
+## M17: Instrument navigation
+
+Planned, not started. Suggested model: Sol.
+
+- [ ] Allow swiping between instruments from the originating Portfolio or Watchlists view, preserving its displayed order at entry.
+- [ ] Provide accessible previous/next actions, clear boundary behavior and a standalone fallback when no originating list exists.
+- [ ] Preserve the originating list's selection, filters and scroll position when returning.
+- [ ] Avoid conflicts with chart gestures; cancel obsolete instrument requests and prevent late responses from showing under another symbol.
+- [ ] Verify navigation, Android Back, session changes and gesture behavior on Android.
+- [ ] Obtain user acceptance, commit and pause.
+
+Acceptance: moving between instruments and returning to the list feels continuous, without mixed-symbol data or unexpected list changes.
+
+## M18: Accessibility pass
+
+Planned, not started. Suggested model: Sol.
+
+- [ ] Review TalkBack reading order, action names, selected/expanded states and focus recovery across tabs, filters and instrument details.
+- [ ] Ensure extended-session labels and hidden visual captions retain understandable accessible financial meaning.
+- [ ] Review touch targets, contrast, signed changes and non-color indicators for gains/losses.
+- [ ] Review enlarged text and narrow layouts without disabling font scaling or clipping important values/actions.
+- [ ] Perform Android TalkBack and enlarged-text checks; document device settings and any checks that remain unverified.
+- [ ] Obtain user acceptance, commit and pause.
+
+Acceptance: core browsing and filtering workflows are usable with TalkBack and enlarged text, with financial meaning conveyed independently of color.
