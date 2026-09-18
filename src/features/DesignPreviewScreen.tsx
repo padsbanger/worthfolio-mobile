@@ -30,7 +30,7 @@ export function DesignPreviewScreen() {
       <Button title={details ? 'Hide sample quote details' : 'Sample quote details'} secondary onPress={() => setDetails(value => !value)} />
       {details && <Card style={styles.compactCard}><Label>Development fixture · Sep 16, 2026, 16:00 UTC</Label>
         <Text style={styles.small}>Static sample prices for visual review. No live account values or market requests are used by this preview.</Text></Card>}
-      <Text style={[styles.small, { color: colors.muted }]}>M7 preview · Portfolio conversion follows in M8.</Text>
+      <Text style={[styles.small, { color: colors.muted }]}>Shared Portfolio layout reference.</Text>
     </ScrollView>
   </View>;
 }

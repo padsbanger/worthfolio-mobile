@@ -2,7 +2,31 @@
 
 M1-M5 are complete: the signed APK and isolated emulator startup checks pass, and the user confirmed release acceptance after receiving the standalone APK and physical-phone checklist; phone/backend checks are user-reported where identified in `milestones.md`. A development-client check does not establish standalone APK acceptance.
 
-## Build identity
+## M12 redesign release (accepted)
+
+Version `0.2.0`, Android build `4`, includes the accepted M6-M11 redesign with Portfolio, Watchlists and Search tabs, company logos, quiet refresh, and the revised instrument chart. Account now uses the shared compact spacing and bottom safe-area padding. Expo/Constants/Router patch versions were aligned with the SDK check. The release uses the existing EAS certificate and the hosted backend/public Authentik client above; no cloud build is required.
+
+Install the M12 release from CMD with the phone connected and USB debugging authorized:
+
+```bat
+cd /d C:\Users\konta\Projects\worth\worthfolio-mobile
+"%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" devices
+"%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" -s YOUR_PHONE_SERIAL install -r artifacts\releases\worthfolio-0.2.0-4.apk
+```
+
+Then disconnect the computer and use the physical-phone checklist below. Report phone model/Android version, the displayed app version/build, and any failed steps. Review all three tabs, instrument details and Account at normal/enlarged text, including TalkBack names/actions and scrolling. Update installation must preserve an EAS-signed app's session/preferences; do not uninstall a differently signed development client automatically.
+
+Artifact: `artifacts/releases/worthfolio-0.2.0-4.apk` (68,205,047 bytes). SHA-256: `64f7ceaa015ff17f0cca83393b234c42eae0daac1e7dec66a4d3f20c1687a117`. The adjacent JSON records source and bundle hashes. Local `assembleRelease` succeeded in 3m 9s, including release lint. Signature matches the EAS certificate below; both arm64-v8a and x86_64 are included. The APK contains Hermes bytecode, is non-debuggable, disables backup, and contains no signing files.
+
+An `adb install -r` update from M5 version code 2 to code 4 succeeded on the isolated Android 16 emulator. Its saved session survived. With no Metro mappings and Wi-Fi/data disabled, cold startup reached the offline Portfolio state. Re-enabling connectivity loaded real holdings without a new login. The initial automation assertion incorrectly expected a signed-out screen; inspection established the preserved-session state, rather than a startup failure.
+
+M11 source baseline: `8df32b4`. The adjacent APK manifest records hashes of tracked non-Markdown source/configuration files as built, including the M12 changes before their milestone commit. The user accepted M12 on 2026-09-18 after receiving this exact APK and the phone checklist. This is user-reported acceptance; no phone model, Android version or individual authentication/TalkBack traces were supplied.
+
+Validation: TypeScript, ESLint, 126 tests in 16 suites, and Expo Doctor 21/21 pass. Tests cover authentication/cancellation/expiry, account isolation, quiet refresh and offline/resume, logos/fallback, signed and unavailable valuations, search, all chart ranges, and accessible chart actions. Source review found no custom animation additions or disabled font scaling; AsyncStorage remains limited to watchlist selection. Normal/150% native captures cover all redesigned screens, wrapping and long-list scrolling on the isolated emulator; its original 100% setting was restored and read back after relaunch. Loaded data survived offline/background/resume and reconnect. Spoken TalkBack traversal and fresh login/logout/cancellation were included in the requested phone review before user acceptance; they were not independently observed by the agent for this release.
+
+Dependency audit reports 13 moderate findings propagated from `decode-uri-component` and `uuid`. The offered automatic fixes replace Expo/Router with incompatible older major versions; no forced dependency downgrade was applied. This is a recorded dependency limitation, separate from the passing Expo compatibility check.
+
+## M5 build identity (historical)
 
 | Item | Value |
 | --- | --- |

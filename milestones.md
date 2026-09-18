@@ -271,18 +271,28 @@ Pixel_10 checks at font_scale 1.0 verified live long-name presentation, all six 
 
 ### M12: Redesign consistency and local release
 
-Depends on M7-M11 acceptance.
+Depends on M7-M11 acceptance. M11 was accepted and committed as `8df32b4`; M12 was accepted by the user on 2026-09-18.
 
-- [ ] Check consistent spacing, typography, icons, loading/empty/error states, status details, and navigation across the three tabs, instrument details, and account screen.
-- [ ] Compare final captures at normal and large text on Android; verify TalkBack labels, 48-point touch targets, reduced motion where used, and long-list scrolling.
-- [ ] Run TypeScript, lint, all meaningful tests, and Expo dependency checks; recheck login/logout, session expiry, offline/resume, quiet refresh, and logo fallback behavior.
-- [ ] Increment app/build identifiers and create an updated standalone APK locally using the existing EAS signing key; record source revision and artifact checksum. No cloud build unless separately requested.
-- [ ] Verify update installation and startup without Metro, then obtain physical-phone acceptance for the three tabs and instrument details.
-- [ ] Document limitations, commit the completed milestone, and pause.
+- [x] Check shared spacing, typography, icons, status/error presentation and navigation across the three tabs, Instrument and Account; align Account padding/cards/safe area and remove obsolete development-preview copy.
+- [x] Compare final captures at normal and large text on Android; verify TalkBack labels, 48-point touch targets, reduced motion where used, and long-list scrolling.
+- [x] Run TypeScript, lint, all meaningful tests, and Expo dependency checks; recheck login/logout, session expiry, offline/resume, quiet refresh, and logo fallback behavior.
+- [x] Increment to 0.2.0 / Android code 4 and build the standalone APK locally with the existing EAS key. Source hashes and checksum are recorded in the adjacent artifact JSON and RELEASE.md; no cloud build used.
+- [x] Verify update installation and startup without Metro, then obtain physical-phone acceptance for the three tabs and instrument details.
+- [x] Document limitations, commit the completed milestone, and pause.
+
+M12 release-candidate evidence (2026-09-18):
+
+- Local TypeScript, lint, 126 Jest tests in 16 suites and Expo Doctor 21/21 pass after updating Expo to 57.0.24, Constants to 57.0.19 and Router to 57.0.22. The first compile was deliberately stopped to align these dependencies; the final local Gradle release, including lint, succeeded in 3m 9s.
+- APK `artifacts/releases/worthfolio-0.2.0-4.apk`, 68,205,047 bytes, SHA-256 `64f7ceaa015ff17f0cca83393b234c42eae0daac1e7dec66a4d3f20c1687a117`. Existing EAS certificate verified; bundled Hermes bytecode, arm64-v8a/x86_64, non-debuggable, backup disabled. Adjacent JSON records M11 baseline and hashes of uncommitted M12 source files. No source mismatch after the build.
+- Updated the separate Worthfolio_Release_M5 emulator from code 2 to code 4 without uninstalling. Its existing session survived. Cold offline launch without Metro mappings showed the reconnect state; reconnect loaded real holdings. Loaded holdings survived offline/background/resume, then the offline label cleared after reconnection.
+- Reviewed normal/1.5x native captures for Portfolio, scrolling holdings, Watchlists/selector, Search with docked keyboard and wrapped results, real Apple chart and Account. Capture scripts initially needed focus/transition waits; final targeted walkthrough passed. Source review retains 48-point controls, accessibility names/states and adjustable chart actions; no custom animations or font-scaling caps were added. Spoken TalkBack traversal was part of the requested phone checklist; no separate spoken-output trace was supplied. Captures are ignored in `artifacts/m12`.
+- Only the isolated emulator's text scale was changed. Both emulators read 1.0 at the end, with the test emulator restored and checked after cold relaunch. The active development installation was not replaced.
+- User acceptance: after receiving the exact APK and requested phone checklist, the user replied "Looks good. Work on next milestone". Record this as release acceptance following the requested phone review, not an agent-operated phone run or independently observed pass for each checklist item. Phone model, Android version and individual authentication/TalkBack traces were not supplied. Token expiry and failure recovery pass automated checks; fresh authentication was not repeated in the M12 emulator run. Commit M12; the roadmap has no defined M13, so its scope requires the user's choice.
+- `RELEASE.md` contains CMD installation instructions and limitations, including the unresolved exact hosted-backend revision and moderate transitive dependency audit findings. No backend changes or Expo cloud builds.
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is committed; M10 is committed. M11 is accepted. M12 is in progress. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is committed; M10 is committed. M11 is committed. M12 is accepted. All defined milestones M1-M12 are complete; the next milestone is awaiting scope selection. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## Deferred features
 

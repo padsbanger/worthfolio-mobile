@@ -1,4 +1,6 @@
 import { ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { spacing } from '../theme/theme';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useBootstrap } from '../api/data';
@@ -8,13 +10,14 @@ import { server } from '../lib/config';
 
 export function SettingsScreen() {
   const { data } = useBootstrap();
+  const insets = useSafeAreaInsets();
   const { session, signOut } = useSession();
-  return <View style={styles.screen}><DataNotice /><ScrollView contentContainerStyle={styles.content}>
+  return <View style={styles.screen}><DataNotice /><ScrollView contentContainerStyle={[styles.detailContent, { paddingBottom: spacing.bottom + insets.bottom }]}>
     <Heading>Your account</Heading>
-    <Card><Label>SIGNED IN AS</Label><Text style={styles.text}>{data?.authUser.name || 'Loading account'}</Text>
+    <Card style={styles.compactCard}><Label>SIGNED IN AS</Label><Text style={styles.text}>{data?.authUser.name || 'Loading account'}</Text>
       {!!data?.authUser.email && <Text style={styles.label}>{data.authUser.email}</Text>}
     </Card>
-    <Card><Label>WORTHFOLIO SERVER</Label><Text style={styles.text}>{server.url || 'Not configured'}</Text>
+    <Card style={styles.compactCard}><Label>WORTHFOLIO SERVER</Label><Text style={styles.text}>{server.url || 'Not configured'}</Text>
       <Label>Read-only mobile access</Label>
     </Card>
     <Text style={styles.label}>Version {Constants.expoConfig?.version || '0.1.0'} (build {Constants.expoConfig?.android?.versionCode ?? 1})</Text>
