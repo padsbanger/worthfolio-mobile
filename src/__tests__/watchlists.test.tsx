@@ -55,7 +55,7 @@ test('failed refresh keeps price provenance and both cached and delayed flags vi
   }) as ReturnType<typeof useMarket>);
   render(<WatchlistsScreen />);
   await waitFor(() => expect(saved).toHaveBeenCalled());
-  expect(screen.getAllByText('Refresh unavailable · Test provider · Cached · Provider delayed').length).toBeGreaterThan(0);
+  expect(screen.getAllByText('Update delayed · Test provider · Cached · Provider delayed').length).toBeGreaterThan(0);
 });
 
 test('empty selected list is different from no lists or an offline initial load', async () => {
@@ -98,4 +98,26 @@ test('a different account cannot inherit the previous account preference or late
   await act(async () => finish('sample-explore'));
   expect(result.current.current?.id).toBe('sample-core');
   expect(saved).toHaveBeenLastCalledWith('watchlist:https://worthfolio.test:second');
+});
+
+
+test('background list and quote refresh does not show pull progress or change row labels', async () => {
+  jest.mocked(useWatchlists).mockReturnValue({ data, refetch, isRefetching: true } as unknown as ReturnType<typeof useWatchlists>);
+  jest.mocked(usePortfolioRefresh).mockReturnValue({ refreshing: true, error: null, completedAt: null, refresh });
+  jest.mocked(useMarket).mockImplementation(symbol => ({ data: sampleMarket(symbol, '1D'), isFetching: true }) as ReturnType<typeof useMarket>);
+  render(<WatchlistsScreen />);
+  await waitFor(() => expect(saved).toHaveBeenCalled());
+  expect(screen.UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
+  expect(screen.queryByText(/Refreshing/)).toBeNull();
+  expect(screen.getByLabelText('Open NASDAQ:AAPL')).toBeTruthy();
+});
+
+test('watchlists without cached data retain a full error and retry action', async () => {
+  jest.mocked(useBootstrap).mockReturnValue({} as ReturnType<typeof useBootstrap>);
+  jest.mocked(useWatchlists).mockReturnValue({ isError: true, error: new Error('Server unavailable'), refetch } as unknown as ReturnType<typeof useWatchlists>);
+  render(<WatchlistsScreen />);
+  expect(screen.getByText('Watchlists unavailable')).toBeTruthy();
+  expect(screen.getByText('Server unavailable')).toBeTruthy();
+  await act(async () => fireEvent.press(screen.getByText('Try again')));
+  expect(refetch).toHaveBeenCalled();
 });

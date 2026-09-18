@@ -2,8 +2,14 @@ import { z } from 'zod';
 
 const finite = z.number().finite();
 const optionalNumber = finite.nullish();
+// Optional presentation metadata must not invalidate otherwise usable quotes.
+const logoFields = {
+  logoUrl: z.string().nullish().catch(undefined),
+  logoFallbackUrl: z.string().nullish().catch(undefined),
+};
 
 export const positionSchema = z.object({
+  ...logoFields,
   symbol: z.string().min(1),
   quantity: finite,
   avgPrice: optionalNumber,
@@ -37,6 +43,7 @@ export const bootstrapSchema = watchlistsSchema.extend({
 });
 
 export const marketSchema = z.object({
+  ...logoFields,
   symbol: z.string(), name: z.string(), currency: z.string(), source: z.string(),
   lastPrice: optionalNumber, previousClose: optionalNumber,
   refreshedAt: z.string().optional(), stale: z.boolean().optional(),
@@ -45,6 +52,7 @@ export const marketSchema = z.object({
 }).passthrough();
 
 export const searchSchema = z.object({ results: z.array(z.object({
+  ...logoFields,
   symbol: z.string(), name: z.string(), exchange: z.string(), assetType: z.string(),
 }).passthrough()) }).passthrough();
 

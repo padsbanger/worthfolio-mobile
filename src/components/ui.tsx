@@ -27,7 +27,19 @@ export function DataNotice() {
     {demo ? 'SAMPLE DATA · Development preview' : 'Offline · Showing loaded data when available'}
   </Text></View>;
 }
+export function RefreshHint({ retry, busy }: { retry?: () => void; busy?: boolean }) {
+  return <View style={styles.refreshHint}>
+    <Text style={[styles.small, { flex: 1 }]}>Updates delayed</Text>
+    {retry && <Pressable accessibilityRole="button" accessibilityLabel="Retry refresh"
+      accessibilityState={{ disabled: !!busy }} disabled={busy} onPress={retry} style={styles.refreshRetry}>
+      <Text style={styles.refreshRetryText}>{busy ? 'Retrying…' : 'Retry'}</Text>
+    </Pressable>}
+  </View>;
+}
 export const styles = StyleSheet.create({
+  refreshHint: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  refreshRetry: { minHeight: 48, minWidth: 48, justifyContent: 'center', alignItems: 'flex-end' },
+  refreshRetryText: { color: colors.accent, fontSize: 12, lineHeight: 18 },
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 18, paddingBottom: 36 },
   heading: { color: colors.text, fontSize: 26, fontWeight: '700', letterSpacing: -0.6 },

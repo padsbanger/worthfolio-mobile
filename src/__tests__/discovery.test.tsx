@@ -148,7 +148,7 @@ test('instrument defaults/reset to 1M, renders holding and daily change, and rej
   fetcher.mockImplementation(async (url: string) => response(url.endsWith('/api/bootstrap') ? bootstrap : sampleMarket('NASDAQ:MSFT')));
   mockSymbol = 'NASDAQ:MSFT'; view.rerender(<DataProvider><InstrumentScreen /></DataProvider>);
   expect(screen.getByLabelText('1M price history')).toBeSelected();
-  expect(await screen.findByText('Refresh unavailable')).toBeTruthy();
+  expect(await screen.findByText('Price history unavailable')).toBeTruthy();
   expect(screen.queryByLabelText('Price history')).toBeNull();
 });
 

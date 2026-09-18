@@ -1,10 +1,11 @@
+import { CompanyLogo } from '../components/CompanyLogo';
 import { useState } from 'react';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { chartRanges, type ChartRange } from '../api/contracts';
 import { useBootstrap, useData, useMarket } from '../api/data';
-import { Card, DataNotice, Heading, Label, Status, styles } from '../components/ui';
+import { Card, DataNotice, Heading, Label, RefreshHint, Status, styles } from '../components/ui';
 import { PriceChart } from '../components/PriceChart';
 import { money, number, percent, positionValues, ticker, timestamp } from '../lib/format';
 import { colors } from '../theme/theme';
@@ -29,7 +30,10 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
   if (!symbol) return <View style={styles.screen}><Status title="Instrument unavailable" message="Go back and select an instrument." /></View>;
   return <View style={styles.screen}><Stack.Screen options={{ title: ticker(symbol) }} /><DataNotice />
     <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 36 + insets.bottom }]}>
-      <Label>{symbol}</Label><Heading>{data?.name || ticker(symbol)}</Heading>
+      <View style={styles.row}>
+        <CompanyLogo symbol={symbol} logoUrl={data?.logoUrl ?? position?.logoUrl} logoFallbackUrl={data?.logoFallbackUrl ?? position?.logoFallbackUrl} size={40} />
+        <View style={{ flex: 1 }}><Label>{symbol}</Label><Heading>{data?.name || ticker(symbol)}</Heading></View>
+      </View>
       <Text style={{ fontSize: 38, color: colors.text, fontWeight: '700' }}>{money(data?.lastPrice, data?.currency)}</Text>
       <Text style={{ color: change == null ? colors.muted : change >= 0 ? colors.positive : colors.negative }}>{percent(change)} today</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
@@ -40,9 +44,10 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
         </Pressable>)}
       </ScrollView>
       <Card>{data ? <PriceChart key={`${symbol}:${range}`} observations={data.candles} currency={data.currency} /> :
-        <Status title={result.isFetching ? 'Loading price history' : 'Price history unavailable'} loading={result.isFetching} />}</Card>
+        <Status title={result.isFetching ? 'Loading price history' : 'Price history unavailable'} loading={result.isFetching}
+          message={result.error?.message} retry={result.isError && (demo || (online && active)) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}</Card>
       {range === 'ALL' && <Text style={styles.small}>Available provider history; the dates shown may not cover the instrument’s full lifetime.</Text>}
-      {result.isError && <Status title="Refresh unavailable" message={result.error.message} retry={demo || (online && active) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}
+      {data && result.isError && <RefreshHint busy={result.isFetching} retry={demo || (online && active) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}
       {data && <Text style={styles.small}>{data.source}{data.delayed ? ' · Provider delayed' : ''}{data.cached ? ' · Cached' : ''}{ '\n' }Fetched: {timestamp(data.refreshedAt)}</Text>}
       {position && <Card><Heading>Your position</Heading><Label>{number(position.quantity)} units · {position.quantity < 0 ? 'Short' : 'Long'}</Label>
         <Text style={styles.text}>Value {money(values?.value, bootstrap.data?.account.baseCurrency)}</Text>
