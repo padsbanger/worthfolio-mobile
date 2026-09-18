@@ -1,15 +1,24 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Svg, { Path } from 'react-native-svg';
 import { useSession } from '../auth/session';
 import { Button, styles } from '../components/ui';
 import { colors } from '../theme/theme';
 import { demoEnabled, server } from '../lib/config';
 
+function WorthfolioMark() {
+  return <Svg width={44} height={44} viewBox="0 0 64 64" accessibilityElementsHidden>
+    <Path d="m12 16 12 34 8-22 8 22 12-34" fill="none" stroke={colors.text} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="m18 35 9-7 10 6 11-13" fill="none" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
+}
+
 export function SignInScreen() {
   const { signIn, busy, error, explore } = useSession();
   return <SafeAreaView style={styles.screen}><ScrollView contentContainerStyle={local.content}>
-    <View style={local.mark}><Ionicons name="stats-chart" size={40} color={colors.accent} /></View>
+    <View style={local.mark} accessible accessibilityLabel="Worthfolio">
+      <WorthfolioMark />
+    </View>
     <Text style={local.brand}>Worthfolio</Text>
     <Text style={local.title}>Your portfolio.{ '\n' }A clearer view.</Text>
     <Text style={local.description}>Keep your holdings and watchlists close. Explore the market, wherever you are.</Text>

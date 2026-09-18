@@ -3,11 +3,20 @@ import type { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
   name: 'Worthfolio',
   slug: 'worthfolio-mobile',
-  version: '0.1.0',
+  version: '0.1.1',
   scheme: 'worthfolio',
   orientation: 'portrait',
   userInterfaceStyle: 'dark',
-  android: { package: 'com.worthfolio.mobile', versionCode: 2, allowBackup: false },
+  icon: './assets/icon.png',
+  android: {
+    package: 'com.worthfolio.mobile',
+    versionCode: 3,
+    allowBackup: false,
+    adaptiveIcon: {
+      foregroundImage: './assets/android-icon-foreground.png',
+      backgroundColor: '#10141D',
+    },
+  },
   ios: { bundleIdentifier: 'com.worthfolio.mobile', supportsTablet: false },
   plugins: ['expo-router', 'expo-secure-store', 'expo-web-browser', 'expo-status-bar', 'expo-font', './plugins/with-release-signing', './plugins/with-android-paths'],
   experiments: { typedRoutes: true },
