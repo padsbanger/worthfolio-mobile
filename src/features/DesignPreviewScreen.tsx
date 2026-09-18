@@ -15,8 +15,8 @@ export function DesignPreviewScreen() {
   return <View style={styles.screen}>
     <View style={styles.notice}><Text style={styles.noticeText}>SAMPLE DATA · Design preview</Text></View>
     <ScrollView contentContainerStyle={[styles.detailContent, { paddingBottom: spacing.bottom + insets.bottom }]}>
-      <PortfolioOverview balance={money(summary.value, summary.currency)}
-        pnl={money(summary.openPnl, summary.currency, true)} invested={money(summary.invested, summary.currency)} direction="positive" />
+      <PortfolioOverview balance={summary.value} currency={summary.currency}
+        pnl={summary.openPnl} invested={summary.invested} direction="positive" />
       <View style={styles.divider} />
       <View style={{ gap: spacing.tight }}><Heading>Holdings</Heading><Label>Value and open P&L · USD</Label></View>
       <View>{positions.map(position => {

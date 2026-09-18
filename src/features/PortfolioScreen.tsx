@@ -56,8 +56,8 @@ export function PortfolioScreen() {
         maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
         refreshControl={<RefreshControl refreshing={pullRefresh.refreshing} enabled={online || demo} onRefresh={() => void pullRefresh.onRefresh()} tintColor={colors.accent} />}
         ListHeaderComponent={<View style={local.header}>
-          <PortfolioOverview balance={money(summary!.value, summary!.currency)}
-            pnl={money(summary!.openPnl, summary!.currency, true)} invested={money(summary!.invested, summary!.currency)}
+          <PortfolioOverview balance={summary!.value} currency={summary!.currency}
+            pnl={summary!.openPnl} invested={summary!.invested}
             direction={summary!.openPnl >= 0 ? 'positive' : 'negative'} />
           {(result.isError || refresh.error) && <RefreshHint busy={refresh.refreshing}
             retry={online || demo ? () => void refresh.refresh() : undefined} />}

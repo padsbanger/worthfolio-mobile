@@ -2,6 +2,8 @@ import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-na
 import type { ReactNode } from 'react';
 import { CompanyLogo } from './CompanyLogo';
 import { colors, sizing, spacing, typography } from '../theme/theme';
+import { money } from '../lib/format';
+import { useCountedNumber } from './use-counted-number';
 
 export function Metric({ label, value, direction }: { label: string; value: string; direction?: 'positive' | 'negative' }) {
   return <View style={local.metric}>
@@ -10,12 +12,15 @@ export function Metric({ label, value, direction }: { label: string; value: stri
   </View>;
 }
 
-export function PortfolioOverview({ balance, pnl, invested, direction }: {
-  balance: string; pnl: string; invested: string; direction: 'positive' | 'negative';
+export function PortfolioOverview({ balance, currency, pnl, invested, direction }: {
+  balance: number; currency: string; pnl: number; invested: number; direction: 'positive' | 'negative';
 }) {
+  const displayedBalance = useCountedNumber(balance);
+  const displayedPnl = useCountedNumber(pnl);
+  const displayedInvested = useCountedNumber(invested);
   return <View style={local.overview}>
-    <Text style={local.balance}>{balance}</Text>
-    <View style={local.metrics}><Metric label="Open P&L" value={pnl} direction={direction} /><Metric label="Invested" value={invested} /></View>
+    <Text style={local.balance}>{money(displayedBalance, currency)}</Text>
+    <View style={local.metrics}><Metric label="Open P&L" value={money(displayedPnl, currency, true)} direction={direction} /><Metric label="Invested" value={money(displayedInvested, currency)} /></View>
   </View>;
 }
 
@@ -60,6 +65,6 @@ const local = StyleSheet.create({
   assetTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.small },
   identity: { flexGrow: 1, flexShrink: 1, flexBasis: 0, gap: 2, paddingTop: 1 },
   name: { ...typography.body, fontWeight: '600', color: colors.text },
-  amount: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 104, alignItems: 'flex-end', gap: 1 },
+  amount: { flexShrink: 1, minWidth: 104, alignItems: 'flex-end', gap: 1 },
   stackedAmount: { flexBasis: '100%', flexGrow: 0, alignItems: 'flex-end', paddingTop: spacing.tight },
 });

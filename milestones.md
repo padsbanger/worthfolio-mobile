@@ -292,7 +292,7 @@ M12 release-candidate evidence (2026-09-18):
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M1-M17 are complete and accepted. Android text-scale and TalkBack walkthroughs remain documented follow-up verification, but the user accepted M14-M17. No next milestone is defined. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M1-M18 are complete and accepted. Android text-scale and TalkBack walkthroughs remain documented follow-up verification. No next milestone is defined. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## M13: Portfolio and Watchlists sorting and periods
 
@@ -374,3 +374,15 @@ Completed after user acceptance. Suggested model: Sol.
 Acceptance: core browsing and filtering workflows are usable with TalkBack and enlarged text, with financial meaning conveyed independently of color.
 
 Implementation checks: TypeScript and ESLint pass. Automated coverage verifies selected/expanded control semantics, complete action descriptions for hidden period and extended-session metrics, explicit non-color Up/Down wording, contrast of all financial/action text colors, and existing long-name/large-value responsive row behavior. Android TalkBack and enlarged-text walkthroughs remain pending before acceptance; no font-scaling cap, backend change, native dependency or cloud build is used.
+
+## M18: Portfolio summary animations
+
+Completed after user acceptance.
+
+- [x] Animate Portfolio balance, Open P&L and Invested values between authoritative summary updates.
+- [x] Keep initial render, unavailable data and Reduce Motion static; preserve source totals and currency formatting.
+- [x] Use short count-up/count-down transitions with tabular figures; do not add a dependency, polling loop or persistent state.
+- [ ] Verify repeated refreshes, downward values, Reduce Motion, background/resume and Android rendering.
+- [x] Obtain user acceptance and commit.
+
+Acceptance: real summary updates receive a subtle, legible count transition without fabricated data, excessive motion or a first-load animation.
