@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import type { PropsWithChildren } from 'react';
-import { colors } from '../theme/theme';
+import { colors, spacing } from '../theme/theme';
 import { useData } from '../api/data';
 
 export function Heading({ children }: PropsWithChildren) { return <Text accessibilityRole="header" style={styles.heading}>{children}</Text>; }
@@ -42,6 +42,11 @@ export const styles = StyleSheet.create({
   refreshRetryText: { color: colors.accent, fontSize: 12, lineHeight: 18 },
   screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 18, paddingBottom: 36 },
+  // Lists own row padding; a container gap would also pad both sides of separators.
+  listContent: { padding: spacing.screen, paddingTop: spacing.section, paddingBottom: spacing.bottom },
+  detailContent: { padding: spacing.screen, gap: spacing.section, paddingBottom: spacing.bottom },
+  sectionHeading: { color: colors.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.4 },
+  compactCard: { padding: spacing.screen, gap: spacing.small },
   heading: { color: colors.text, fontSize: 26, fontWeight: '700', letterSpacing: -0.6 },
   label: { color: colors.muted, fontSize: 13, lineHeight: 20 },
   text: { color: colors.text, fontSize: 16, lineHeight: 24 },

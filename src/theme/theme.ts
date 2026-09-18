@@ -3,3 +3,5 @@ export const colors = {
   text: '#F0F3FA', muted: '#A1ABBE', accent: '#7297FF', positive: '#53CEAF',
   negative: '#FF8190', warning: '#F5CE83',
 };
+
+export const spacing = { tight: 4, small: 8, section: 12, screen: 16, bottom: 24 };

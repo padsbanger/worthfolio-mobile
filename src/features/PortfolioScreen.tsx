@@ -3,10 +3,10 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'rea
 import { router } from 'expo-router';
 import { useBootstrap, useData, usePortfolioRefresh } from '../api/data';
 import type { Position } from '../api/contracts';
-import { Card, DataNotice, Heading, Label, RefreshHint, Status, styles } from '../components/ui';
+import { Card, DataNotice, Label, RefreshHint, Status, styles } from '../components/ui';
 import { money, number, positionValues, ticker, timestamp } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
-import { colors } from '../theme/theme';
+import { colors, spacing } from '../theme/theme';
 
 export function HoldingRow({ position, currency }: { position: Position; currency: string }) {
   const values = positionValues(position, position.lastPrice, currency);
@@ -40,11 +40,11 @@ export function PortfolioScreen() {
   return <View style={styles.screen}><DataNotice />
     {!data ? <Status title={!online && !demo ? 'Connect to load your portfolio' : result.isError ? 'Portfolio unavailable' : 'Loading your portfolio'}
       message={result.error?.message} loading={result.isPending && (online || demo)} retry={result.isError && (online || demo) ? () => void refresh.refresh() : undefined} />
-      : <FlatList data={data.positions} keyExtractor={p => p.symbol} contentContainerStyle={styles.content}
+      : <FlatList data={data.positions} keyExtractor={p => p.symbol} contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={pullRefresh.refreshing} enabled={online || demo} onRefresh={() => void pullRefresh.onRefresh()} tintColor={colors.accent} />}
         ListHeaderComponent={<View style={local.header}>
           <Label>{data.account.name}</Label>
-          <Card>
+          <Card style={styles.compactCard}>
             <Label>HOLDINGS VALUE · {summary!.currency}</Label>
             <Text adjustsFontSizeToFit numberOfLines={1} style={local.total}>{money(summary!.value, summary!.currency)}</Text>
             <Text style={[styles.text, { color: summary!.openPnl >= 0 ? colors.positive : colors.negative }]}>
@@ -58,11 +58,13 @@ export function PortfolioScreen() {
           <Text style={styles.small}>{summary!.pricedPositions} of {summary!.totalPositions} holdings valued · {summary!.coverage.toFixed(0)}% coverage{ '\n' }
             Quote time: {timestamp(summary!.asOf)}
           </Text>
-          {summary!.coverage < 100 && <Text style={{ color: colors.warning }}>Partial valuation: some prices or currency conversions are unavailable.</Text>}
+          {summary!.coverage < 100 && <Text style={[styles.small, { color: colors.warning }]}>Partial valuation: some prices or currency conversions are unavailable.</Text>}
           {(result.isError || refresh.error) && <RefreshHint busy={refresh.refreshing}
             retry={online || demo ? () => void refresh.refresh() : undefined} />}
-          <Heading>Your holdings</Heading>
-          <Label>Value and open P&L in {data.account.baseCurrency}</Label>
+          <View style={{ gap: spacing.tight }}>
+            <Text accessibilityRole="header" style={styles.sectionHeading}>Your holdings</Text>
+            <Label>Value and open P&L in {data.account.baseCurrency}</Label>
+          </View>
         </View>}
         ItemSeparatorComponent={() => <View style={styles.divider} />}
         ListEmptyComponent={<Status title="No open holdings" message="Holdings added in Worthfolio will appear here." />}
@@ -70,8 +72,8 @@ export function PortfolioScreen() {
   </View>;
 }
 const local = StyleSheet.create({
-  header: { gap: 16, marginBottom: 12 }, total: { fontSize: 38, fontWeight: '700', color: colors.text, letterSpacing: -1 },
-  holding: { minHeight: 106, flexDirection: 'row', alignItems: 'center', paddingVertical: 16, gap: 10 },
-  asset: { flex: 1, gap: 5 }, ticker: { fontWeight: '700', color: colors.text, fontSize: 17 },
-  value: { flex: 1, alignItems: 'flex-end', gap: 5 },
+  header: { gap: spacing.small, marginBottom: spacing.small }, total: { fontSize: 34, fontWeight: '700', color: colors.text, letterSpacing: -1 },
+  holding: { minHeight: 88, flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.section, gap: 10 },
+  asset: { flex: 1, gap: spacing.tight }, ticker: { fontWeight: '700', color: colors.text, fontSize: 17 },
+  value: { flex: 1, alignItems: 'flex-end', gap: spacing.tight },
 });

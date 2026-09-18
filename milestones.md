@@ -165,7 +165,7 @@ M5 completion (2026-09-17):
 
 Checkpoint: commit M5 and pause. Do not begin follow-up work unless the user explicitly requests it.
 
-## Deferred roadmap
+## Android refinement roadmap
 
 ### Completed follow-up: quiet refresh and company logos (2026-09-18)
 
@@ -173,6 +173,96 @@ Checkpoint: commit M5 and pause. Do not begin follow-up work unless the user exp
 - Automatic refresh no longer activates pull-to-refresh progress. Loaded screens preserve content and use a compact delayed-update hint with retry; initial failures retain explicit recovery states.
 - Holdings, watchlists, search, and instrument details consume optional `logoUrl` and `logoFallbackUrl` fields. Failed images fall back to the alternate URL, then ticker initials, without repeated retries on every quote poll.
 - TypeScript, ESLint, and all 110 tests across 15 suites passed during implementation. Emulator checks verified compact refresh feedback and live portfolio/watchlist logos. No new native or cloud build was made; the existing release APK predates these changes.
-- The user authorized starting the next milestone, but no next implementation milestone is defined. Scope selection is pending; do not infer authorization for deferred features from this checkpoint.
+- The user selected Android spacing and information density as the next milestone (M6 below).
+
+### M6: Android spacing and information density
+
+Scope: improve the existing read-only screens without removing quote provenance, valuation warnings, or accessible controls.
+
+- [x] Separate list-container spacing from detail-screen spacing so dividers do not receive duplicated vertical gaps.
+- [x] Tighten Portfolio summary/header spacing and holdings, watchlist, and search rows with shared spacing tokens.
+- [x] Group instrument price/change information and reduce detail-card padding; preserve scalable text and minimum 48-point button targets.
+- [x] Run TypeScript, ESLint, and the existing suite: 110 tests in 15 suites pass.
+- [x] Inspect the running Android emulator: Portfolio shows roughly three holdings instead of two; the same watchlist shows five rows instead of four, with logos and quote metadata retained. Captures are in ignored `artifacts/density`.
+- [x] User accepted M6 with "Looks good. Work on next milestone." Physical-phone/large-text traces were not supplied; do not claim those checks were independently verified.
+- [x] Commit M6; the user explicitly authorized moving to M7 at this checkpoint.
+
+M6 accepted 2026-09-18. TypeScript, lint, and 110 tests passed during implementation, with emulator layout evidence above. No native/cloud build was required; the standalone release APK still predates these refinements. This checkpoint also includes the requested redesign roadmap and release:android npm script.
+
+### M7: Delta-inspired visual system and app shell
+
+Depends on M6 acceptance. Planning requested 2026-09-18; implementation not started. See the design direction and reference links in `design.md`.
+
+- [ ] Capture a reproducible M6 baseline and implement a representative Portfolio header/asset-row preview using clearly labeled fixtures.
+- [ ] Define shared colors, typography/numeric styles, spacing, surfaces, separators, logo sizing, metric labels, and compact status components.
+- [ ] Refine the native headers and bottom navigation while retaining exactly Portfolio, Watchlists, and Search; preserve account access and instrument/back navigation.
+- [ ] Validate normal/large text, contrast, selected states, and 48-point tap targets on Android.
+- [ ] Review the reference screen with the user, run relevant checks, commit and pause.
+
+Acceptance: one coherent visual language and reusable components; the user can assess the intended Delta-inspired direction before all screens are converted. No data/authentication changes.
+
+### M8: Portfolio overview and holdings redesign
+
+Depends on M7.
+
+- [ ] Replace the oversized summary presentation with a compact balance-led header, open P&L, invested amount, and account identity.
+- [ ] Apply the shared logo-led asset rows with aligned value/P&L columns, quantities, and understandable currency labels.
+- [ ] Add compact quote-status presentation with accessible source/timestamp details; retain visible incomplete-valuation and stale-data cues.
+- [ ] Keep summary totals backend-authoritative and explicitly distinguish open P&L from daily returns. Do not add a portfolio-history graph without a supported endpoint.
+- [ ] Compare the same viewport/data state with M6; verify more usable holdings space without clipped values or reduced touch targets.
+- [ ] Check long/short holdings, missing prices/FX, large values, empty data, offline use, and failed refresh; complete user review, commit and pause.
+
+Acceptance: the first screen prioritizes balance and holdings, with financial meaning and freshness still clear. No synthetic metrics or additional polling.
+
+### M9: Watchlists redesign
+
+Depends on M7-M8 shared components.
+
+- [ ] Refine named-list selection so the active list remains visible and identifiable, including long names and many lists.
+- [ ] Use consistent logo/name/price/daily-change rows with compact quote details and visible stale/delayed/unavailable states.
+- [ ] Preserve local list selection, empty-list behavior, navigation, and quiet/manual refresh behavior.
+- [ ] Verify large text, long company names, list switching, provider failures, and scrolling on Android; complete user review, commit and pause.
+
+Acceptance: watchlists are easy to scan and switch without writing server preferences or confusing daily movement with portfolio P&L.
+
+### M10: Search redesign
+
+Depends on M7 and M9 row patterns.
+
+- [ ] Refine the search field, keyboard/insets behavior, and compact result hierarchy with logos, names, symbols, exchanges, and asset types.
+- [ ] Make initial prompts, no-results states, and connection errors concise; keep existing results visible on refresh failures.
+- [ ] Preserve the two-character minimum, debounce, cancellation, and read-only instrument navigation.
+- [ ] Verify rapid typing, keyboard dismissal/back navigation, long results, accessibility, and failure recovery; complete user review, commit and pause.
+
+Acceptance: fast, readable instrument discovery in the existing Search tab, using only the supported search endpoint.
+
+### M11: Instrument details and chart presentation
+
+Depends on M7-M10.
+
+- [ ] Apply the logo/name and price/change hierarchy, compact range controls, and shared position-statistic styles.
+- [ ] Reduce decorative chart framing and use available width while preserving accurate axes, date bounds, and touch inspection.
+- [ ] Keep source, timestamp, cached/delayed flags, unavailable prices, and bounded ALL history understandable through compact metadata/details.
+- [ ] Validate all existing ranges, sparse/flat/empty data, large text, long names, currency conversion/GBX/short holdings, screen focus, and background cancellation.
+- [ ] Complete Android/user review, run relevant checks, commit and pause.
+
+Acceptance: a polished detail screen powered by real existing observations, with no extra indicators, invented history, or changed polling contract.
+
+### M12: Redesign consistency and local release
+
+Depends on M7-M11 acceptance.
+
+- [ ] Check consistent spacing, typography, icons, loading/empty/error states, status details, and navigation across the three tabs, instrument details, and account screen.
+- [ ] Compare final captures at normal and large text on Android; verify TalkBack labels, 48-point touch targets, reduced motion where used, and long-list scrolling.
+- [ ] Run TypeScript, lint, all meaningful tests, and Expo dependency checks; recheck login/logout, session expiry, offline/resume, quiet refresh, and logo fallback behavior.
+- [ ] Increment app/build identifiers and create an updated standalone APK locally using the existing EAS signing key; record source revision and artifact checksum. No cloud build unless separately requested.
+- [ ] Verify update installation and startup without Metro, then obtain physical-phone acceptance for the three tabs and instrument details.
+- [ ] Document limitations, commit the completed milestone, and pause.
+
+Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
+
+Roadmap status: M6 is user-accepted and M7 is authorized next. M7-M12 have not yet been completed. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+
+## Deferred features
 
 After Android v1, plan iOS device validation and distribution. Editing, analytics, richer charts, push notifications, persistent offline access, longer-lived sessions, public distribution, and OTA updates require separate scope decisions rather than being implicit additions to these milestones.

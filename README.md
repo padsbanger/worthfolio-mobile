@@ -82,10 +82,12 @@ The release variant bundles JavaScript and disables sample access. Local release
 When explicitly requested, the alternative cloud command is:
 
 ```bat
-npx eas-cli build --platform android --profile preview
+npm run release:android
 ```
 
 The preview profile bundles JavaScript into an installable APK and does not require Metro. It uses the configured HTTPS API origin and disables sample access. No app-store submission or OTA update workflow is configured.
+
+`release:android` starts an EAS cloud build and prints its expo.dev build link. Each run uses your Expo build quota. If needed, sign in first with `npx eas-cli login`. Download the APK from the completed build page. This script uses the existing `preview` profile and does not automatically change the app version or Android version code in `app.config.ts`.
 
 ## Authentication
 

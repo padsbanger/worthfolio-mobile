@@ -5,7 +5,7 @@ import { useBootstrap, useData, useMarket, usePortfolioRefresh, useVisibleWatchl
 import { DataNotice, RefreshHint, Status, styles } from '../components/ui';
 import { money, percent, ticker, timestamp } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
-import { colors } from '../theme/theme';
+import { colors, spacing } from '../theme/theme';
 import { useWatchlistSelection } from './watchlist-selection';
 
 function WatchRow({ symbol }: { symbol: string }) {
@@ -17,10 +17,10 @@ function WatchRow({ symbol }: { symbol: string }) {
     data?.source, data?.cached ? 'Cached' : null, data?.delayed ? 'Provider delayed' : null].filter(Boolean).join(' · ');
   return <Pressable accessibilityRole="button" accessibilityLabel={`Open ${symbol}`}
     onPress={() => router.push({ pathname: '/instrument', params: { symbol } })}
-    style={[styles.row, { paddingVertical: 18, minHeight: 90 }]}>
-    <View style={{ flex: 1, gap: 5 }}><View style={[styles.row, { gap: 8 }]}><CompanyLogo symbol={symbol} logoUrl={data?.logoUrl} logoFallbackUrl={data?.logoFallbackUrl} />
+    style={[styles.row, { paddingVertical: spacing.section, minHeight: 88 }]}>
+    <View style={{ flex: 1, gap: spacing.tight }}><View style={[styles.row, { gap: 8 }]}><CompanyLogo symbol={symbol} logoUrl={data?.logoUrl} logoFallbackUrl={data?.logoFallbackUrl} />
       <Text style={[styles.text, { flexShrink: 1 }]}>{ticker(symbol)}</Text></View><Text style={styles.small}>{data?.name || symbol}</Text></View>
-    <View style={{ flex: 1, alignItems: 'flex-end', gap: 5 }}>
+    <View style={{ flex: 1, alignItems: 'flex-end', gap: spacing.tight }}>
       <Text style={styles.text}>{money(data?.lastPrice, data?.currency)}</Text>
       <Text style={{ color: change == null ? colors.muted : change >= 0 ? colors.positive : colors.negative }}>{percent(change)}</Text>
       <Text style={[styles.small, { textAlign: 'right' }]}>{quoteStatus || 'Unavailable'}</Text>
@@ -46,18 +46,18 @@ export function WatchlistsScreen() {
   };
   const pullRefresh = usePullRefresh(reload);
   return <View style={styles.screen}><DataNotice />
-    <FlatList data={current?.symbols ?? []} keyExtractor={symbol => symbol} contentContainerStyle={styles.content}
+    <FlatList data={current?.symbols ?? []} keyExtractor={symbol => symbol} contentContainerStyle={styles.listContent}
       refreshControl={<RefreshControl refreshing={pullRefresh.refreshing} enabled={online || demo} onRefresh={() => void pullRefresh.onRefresh()} tintColor={colors.accent} />}
-      ListHeaderComponent={<View style={{ gap: 14 }}>
+      ListHeaderComponent={<View style={{ gap: spacing.small, marginBottom: spacing.small }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
           {lists.map(list => <Pressable key={list.id} accessibilityRole="button" accessibilityState={{ selected: current?.id === list.id }}
             onPress={() => select(list.id)}
-            style={{ minHeight: 48, paddingHorizontal: 18, justifyContent: 'center', backgroundColor: current?.id === list.id ? colors.elevated : colors.surface, borderRadius: 12,
+            style={{ minHeight: 48, paddingHorizontal: spacing.section, justifyContent: 'center', backgroundColor: current?.id === list.id ? colors.elevated : colors.surface, borderRadius: 12,
               borderWidth: 1, borderColor: current?.id === list.id ? colors.accent : colors.border }}>
             <Text style={styles.text}>{list.name}</Text>
           </Pressable>)}
         </ScrollView>
-        <Text style={styles.small}>Browse your saved lists. Manage them in Worthfolio on the web.</Text>
+        <Text style={styles.small}>Manage lists on Worthfolio web.</Text>
         {data && (result.isError || refresh.error) && <RefreshHint busy={result.isFetching || refresh.refreshing}
           retry={online || demo ? () => void reload() : undefined} />}
       </View>}

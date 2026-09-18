@@ -4,7 +4,7 @@ import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { useData, useSearch } from '../api/data';
 import { DataNotice, RefreshHint, Status, styles } from '../components/ui';
-import { colors } from '../theme/theme';
+import { colors, spacing } from '../theme/theme';
 import { ticker } from '../lib/format';
 
 export function SearchScreen() {
@@ -18,8 +18,8 @@ export function SearchScreen() {
   const retry = canSearch && settled && result.isError ? () => void result.refetch({ cancelRefetch: false }) : undefined;
   return <View style={styles.screen}><DataNotice />
     <FlatList data={settled && query.length >= 2 ? result.data?.results ?? [] : []} keyExtractor={item => item.symbol}
-      keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}
-      ListHeaderComponent={<View style={{ gap: 12 }}>
+      keyboardShouldPersistTaps="handled" contentContainerStyle={styles.listContent}
+      ListHeaderComponent={<View style={{ gap: spacing.small, marginBottom: spacing.small }}>
         <TextInput accessibilityLabel="Search instruments" placeholder="Company, symbol, or fund" placeholderTextColor={colors.muted}
           value={input} onChangeText={setInput} style={styles.input} autoCapitalize="none" autoCorrect={false} returnKeyType="search" clearButtonMode="while-editing" />
         <Text style={styles.small}>Discover an instrument and explore its price history.</Text>
@@ -31,9 +31,9 @@ export function SearchScreen() {
       ItemSeparatorComponent={() => <View style={styles.divider} />}
       renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.name}`}
         onPress={() => router.push({ pathname: '/instrument', params: { symbol: item.symbol } })}
-        style={[styles.row, { paddingVertical: 20, minHeight: 90 }]}>
+        style={[styles.row, { paddingVertical: spacing.section, minHeight: 80 }]}>
         <CompanyLogo symbol={item.symbol} logoUrl={item.logoUrl} logoFallbackUrl={item.logoFallbackUrl} size={32} />
-        <View style={{ flex: 1, gap: 5 }}>
+        <View style={{ flex: 1, gap: spacing.tight }}>
         <Text style={[styles.text, { fontWeight: '700' }]}>{ticker(item.symbol)}</Text>
         <Text style={styles.text}>{item.name}</Text>
         <Text style={styles.small}>{item.exchange} · {item.assetType}</Text>

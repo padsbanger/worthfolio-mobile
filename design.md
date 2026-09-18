@@ -37,6 +37,25 @@ The chart plots real candle close observations. Offer `1D`, `5D`, `1M`, `6M`, `1
 
 Use Worthfolio's dark palette, native screen transitions, safe areas, scalable text, accessible labels, and touch targets of at least 48 logical pixels. Pull-to-refresh is available on Portfolio and Watchlists. Do not rely on color alone for gain/loss or quote status.
 
+## Delta-inspired Android redesign
+
+Direction requested 2026-09-18: evolve the visual presentation toward Delta Investment Tracker while retaining Worthfolio identity and exactly three bottom tabs: **Portfolio, Watchlists, Search**. Instrument details and account settings remain stack screens. M6 density work is the baseline; M7-M12 sequence the redesign and release validation in `milestones.md`.
+
+Reference: Delta's [Portfolio 3.0 discussion](https://delta.app/academy/post/your-portfolio-your-way) emphasizes consistent layouts, at-a-glance information, and polished scrolling; its [feature overview](https://delta.app/en/features) provides portfolio and asset-detail references. Reviewed 2026-09-18. These are design references, not a specification to reproduce Delta's entire feature set. The following choices are Worthfolio's proposed interpretation.
+
+- **Visual system:** near-black canvas, restrained elevated surfaces, subtle separators, strong numeric hierarchy, aligned/tabular numbers, and a consistent company-logo treatment. Use color for selection and signed gains/losses; keep secondary text readable. Preserve Worthfolio branding.
+- **Portfolio:** compact account header, prominent holdings value, clearly labeled open P&L and invested amount, then holdings without a large decorative card consuming the first screen. Keep coverage and stale-data exceptions visible. Group supporting metadata instead of repeating long explanatory paragraphs.
+- **Asset rows:** stable logo/name/symbol alignment on the left and right-aligned value or price with a clearly labeled change metric. Use compact secondary information and predictable row spacing. Long names and larger text can wrap; values must not overlap or silently disappear.
+- **Watchlists:** a compact named-list selector with the active list always identifiable, followed by the shared asset-row treatment. Preserve local list selection. Keep daily percentage changes distinct from portfolio open P&L.
+- **Search:** prominent search input and compact logo-led results with company name, ticker, and exchange/type. Preserve debouncing, cancellation, and explicit initial loading/empty/error states.
+- **Instrument details:** logo/name header, strong price and daily-change hierarchy, a larger usable chart area with understated framing, compact range selection, and grouped position statistics. Preserve existing ranges, actual history bounds, and touch inspection.
+- **Refresh and metadata:** background refresh remains quiet, failures preserve loaded content, and pull progress appears only after a gesture. Compact freshness indicators can open accessible in-screen details for source, exact timestamp, and cache/delay state; do not remove provenance or hide partial-valuation warnings.
+- **Accessibility and motion:** at least 48 logical-pixel interactive targets, scalable text, safe areas, visible selected states, and signed values in addition to color. Avoid layout shifts during refresh; any transition respects reduced-motion settings.
+
+Data limits: no fabricated portfolio performance chart, daily portfolio return, allocation analysis, or sparkline. Existing market candles support instrument charts only; holdings total and open P&L remain backend-authoritative. No extra quote polling solely for decorative row charts. Missing new metadata must degrade gracefully. Backend features, write actions, alerts, broker connections, additional tabs, and public distribution are outside this visual redesign.
+
+Delivery: establish a reference screen and reusable components first, then redesign one surface per milestone. Compare emulator captures at the same viewport, text scale, scroll position, and data state; use clearly labeled fixtures for reproducible comparisons. Keep loaded, empty, partial, offline, and failed-refresh states in review. Reuse Metro for UI changes; produce an updated locally signed APK at the final release checkpoint. Commit only completed milestones and pause between them.
+
 ## Client architecture
 
 - Expo development builds, Expo Router, strict TypeScript, npm, and a pinned lockfile. Use stable SDK-compatible dependencies selected during scaffolding.
