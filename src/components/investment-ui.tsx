@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { ReactNode } from 'react';
+import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { CompanyLogo } from './CompanyLogo';
-import { colors, sizing, spacing, typography } from '../theme/theme';
+import { colors, shape, sizing, spacing, typography } from '../theme/theme';
 import { money } from '../lib/format';
 import { useCountedNumber } from './use-counted-number';
 
@@ -18,9 +19,38 @@ export function PortfolioOverview({ balance, currency, pnl, invested, direction 
   const displayedBalance = useCountedNumber(balance);
   const displayedPnl = useCountedNumber(pnl);
   const displayedInvested = useCountedNumber(invested);
+  const { width, fontScale } = useWindowDimensions();
+  const balanceText = money(displayedBalance, currency);
+  const compact = width / fontScale < 360 || balanceText.length > 14;
+  const tone = Number.isFinite(pnl) && pnl !== 0 ? colors[direction] : colors.muted;
   return <View style={local.overview}>
-    <Text style={local.balance}>{money(displayedBalance, currency)}</Text>
-    <View style={local.metrics}><Metric label="Open P&L" value={money(displayedPnl, currency, true)} direction={direction} /><Metric label="Invested" value={money(displayedInvested, currency)} /></View>
+    <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={StyleSheet.absoluteFill}>
+      <Svg width="100%" height="100%">
+        <Defs><LinearGradient id="portfolioGlow" x1="0%" y1="100%" x2="100%" y2="0%">
+          <Stop offset="0" stopColor={colors.surface} /><Stop offset="1" stopColor={colors.accent} stopOpacity="0.13" />
+        </LinearGradient></Defs>
+        <Rect width="100%" height="100%" fill="url(#portfolioGlow)" />
+        {[64, 100, 136].map(radius => <Circle key={radius} cx="100%" cy="0" r={radius} fill="none" stroke={colors.accent} strokeOpacity="0.09" />)}
+      </Svg>
+    </View>
+    <View style={local.overviewHeading}>
+      <Text style={local.eyebrow}>PORTFOLIO VALUE</Text>
+      <View style={local.currencyBadge}><Text style={local.currency}>{currency}</Text></View>
+    </View>
+    <Text style={[local.balance, compact && local.compactBalance]}>{balanceText}</Text>
+    <View style={local.metrics}>
+      <View style={local.metric}>
+        <Text style={local.label}>Open P&L</Text>
+        <View style={[local.pnlBadge, { backgroundColor: `${tone}14` }]}>
+          <Text accessible={false} importantForAccessibility="no" style={[local.pnlArrow, { color: tone }]}>{!Number.isFinite(pnl) || pnl === 0 ? '\u2014' : direction === 'positive' ? '\u2197' : '\u2198'}</Text>
+          <Text style={[local.value, { color: tone, flexShrink: 1 }]}>{money(displayedPnl, currency, true)}</Text>
+        </View>
+      </View>
+      <View style={local.metric}>
+        <Text style={local.label}>Invested</Text>
+        <Text style={[local.value, local.invested]}>{money(displayedInvested, currency)}</Text>
+      </View>
+    </View>
   </View>;
 }
 
@@ -52,9 +82,17 @@ export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change
 }
 
 const local = StyleSheet.create({
-  overview: { gap: spacing.tight, paddingVertical: spacing.small },
-  balance: { ...typography.balance, color: colors.text },
-  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.screen, paddingTop: spacing.small },
+  overview: { gap: spacing.small, padding: spacing.screen, marginBottom: spacing.small, borderRadius: shape.card + 4, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, overflow: 'hidden' },
+  overviewHeading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: spacing.small },
+  eyebrow: { ...typography.caption, fontWeight: '600', letterSpacing: 1.5, color: colors.muted },
+  currencyBadge: { paddingHorizontal: spacing.small, paddingVertical: 2, borderRadius: 6, backgroundColor: `${colors.accent}14` },
+  currency: { ...typography.caption, fontWeight: '600', color: colors.accent },
+  balance: { ...typography.balance, fontSize: 40, lineHeight: 50, color: colors.text, marginBottom: spacing.small },
+  compactBalance: { fontSize: 30, lineHeight: 40 },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.section, paddingTop: spacing.section, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  pnlBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: spacing.tight, paddingHorizontal: spacing.small, paddingVertical: spacing.tight, borderRadius: 8 },
+  pnlArrow: { ...typography.metric },
+  invested: { paddingVertical: spacing.tight },
   metric: { flexGrow: 1, flexBasis: 130, gap: spacing.tight },
   label: { ...typography.label, color: colors.muted },
   caption: { ...typography.caption, color: colors.muted },

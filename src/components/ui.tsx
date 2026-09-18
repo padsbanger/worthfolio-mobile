@@ -33,7 +33,7 @@ export function AssetRowSkeleton({ label = 'Loading quote' }: { label?: string }
 }
 export function ListSkeleton({ label, rows = 3, overview = false }: { label: string; rows?: number; overview?: boolean }) {
   return <View accessible accessibilityLabel={label} accessibilityState={{ busy: true }} style={styles.skeletonContent}>
-    {overview && <View style={styles.skeletonOverview}><View style={[styles.skeletonLine, { width: '35%' }]} /><View style={[styles.skeletonLine, { width: '72%', height: 32 }]} /><View style={[styles.skeletonLine, { width: '52%' }]} /></View>}
+    {overview && <View style={styles.skeletonOverview}><View style={[styles.skeletonLine, { width: '35%' }]} /><View style={[styles.skeletonLine, { width: '82%', height: 50 }]} /><View style={styles.skeletonMetrics}>{[0, 1].map(index => <View key={index} style={styles.skeletonIdentity}><View style={[styles.skeletonLine, { width: '50%' }]} /><View style={[styles.skeletonLine, { width: '85%', height: 24 }]} /></View>)}</View></View>}
     {Array.from({ length: rows }, (_, index) => <AssetRowSkeleton key={index} label={`${label}, row ${index + 1}`} />)}
   </View>;
 }
@@ -81,7 +81,8 @@ export const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.border },
   input: { backgroundColor: colors.surface, color: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: shape.control, paddingHorizontal: 16, minHeight: 52, fontSize: 16 },
   skeletonContent: { padding: spacing.screen, paddingTop: spacing.section, paddingBottom: spacing.bottom, gap: spacing.tight },
-  skeletonOverview: { paddingVertical: spacing.small, gap: spacing.section, marginBottom: spacing.small },
+  skeletonOverview: { padding: spacing.screen, gap: spacing.section, marginBottom: spacing.small, borderRadius: shape.card + 4, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  skeletonMetrics: { flexDirection: 'row', gap: spacing.section, paddingTop: spacing.section, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   assetSkeleton: { minHeight: 72, paddingVertical: 10, gap: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   skeletonTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.small },
   skeletonLogo: { width: sizing.logo, height: sizing.logo, borderRadius: sizing.logo / 4, backgroundColor: colors.elevated },

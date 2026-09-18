@@ -61,7 +61,6 @@ export function PortfolioScreen() {
             direction={summary!.openPnl >= 0 ? 'positive' : 'negative'} />
           {(result.isError || refresh.error) && <RefreshHint busy={refresh.refreshing}
             retry={online || demo ? () => void refresh.refresh() : undefined} />}
-          <View style={styles.divider} />
           <View style={{ gap: spacing.tight }}>
             <Text accessibilityRole="header" style={styles.sectionHeading}>Your holdings</Text>
             <Label>Value in {data.account.baseCurrency} / Price change %</Label>
