@@ -1,0 +1,13 @@
+<resources>
+    <color name="widget_background">#15181E</color>
+    <color name="widget_foreground">#F4F6FA</color>
+    <color name="widget_muted">#A5ADBA</color>
+    <color name="widget_accent">#9AAEFF</color>
+    <color name="widget_positive">#67D9AE</color>
+    <color name="widget_negative">#FF8795</color>
+    <string name="widget_value_label">PORTFOLIO VALUE</string>
+    <string name="widget_brand">Worthfolio</string>
+    <string name="widget_name">Worthfolio Portfolio</string>
+    <string name="widget_setup">Open Worthfolio to get started</string>
+    <string name="widget_description">Your last portfolio snapshot, with balances hidden until you choose to show them.</string>
+</resources>

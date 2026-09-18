@@ -292,7 +292,7 @@ M12 release-candidate evidence (2026-09-18):
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M1-M18 are complete and accepted. Android text-scale and TalkBack walkthroughs remain documented follow-up verification. No next milestone is defined. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M1-M18 are complete and accepted. Android text-scale checks remain follow-up verification. Android TalkBack walkthroughs are waived at the user's request and are not an acceptance gate for future milestones; retain existing accessibility semantics. Historical TalkBack evidence below is unchanged and does not imply device verification. M19 is accepted; physical-phone follow-up checks remain unverified as documented below. M20-M25 remain planned. The user requested a commit and pause. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## M13: Portfolio and Watchlists sorting and periods
 
@@ -368,7 +368,7 @@ Completed after user acceptance. Suggested model: Sol.
 - [x] Ensure extended-session labels and hidden visual captions retain understandable accessible financial meaning.
 - [x] Review touch targets, contrast, signed changes and non-color indicators for gains/losses.
 - [x] Review enlarged text and narrow layouts without disabling font scaling or clipping important values/actions.
-- [ ] Perform Android TalkBack and enlarged-text checks; document device settings and any checks that remain unverified.
+- [ ] Perform Android enlarged-text checks; document device settings and any checks that remain unverified. The Android TalkBack walkthrough is waived at the user's request, not recorded as passed.
 - [x] Obtain user acceptance and commit.
 
 Acceptance: core browsing and filtering workflows are usable with TalkBack and enlarged text, with financial meaning conveyed independently of color.
@@ -386,3 +386,96 @@ Completed after user acceptance.
 - [x] Obtain user acceptance and commit.
 
 Acceptance: real summary updates receive a subtle, legible count transition without fabricated data, excessive motion or a first-load animation.
+
+## M19: Android home-screen widget
+
+Accepted by the user with "Looks ok. Commit and pause." after the build-6 design update. Automated and emulator evidence is recorded below; physical-phone checks were not independently verified and remain documented follow-up work.
+
+Build an Android home-screen widget for a quick portfolio check. Start with portfolio summary; a selected-watchlist variant is a follow-up candidate. iOS widgets are outside this milestone.
+
+- [x] Review the native widget integration and document its storage, session and refresh design before implementation. Resolve the existing in-memory-only portfolio-data boundary explicitly: any retained widget snapshot must be minimal, account-bound, protected and excluded from backups; do not silently introduce persistent portfolio query caches.
+- [x] Show authoritative portfolio value and Open P&L in the account base currency, with an explicit last-updated timestamp. Preserve unavailable values and partial-coverage meaning; never calculate a separate portfolio total or substitute synthetic data.
+- [x] Include a privacy control to hide monetary values, with a masked default until the user chooses to show balances on the home screen.
+- [x] Tap the widget to open Portfolio through the existing authentication flow. Provide clear setup, signed-out, expired-session, unavailable and stale-data states.
+- [x] Update from successful authenticated app refreshes first; document freshness while the app is closed. Evaluate bounded Android background refresh separately within the design, without promising live updates or extending token lifetime, adding refresh tokens, or bypassing existing read-only authorization.
+- [x] Clear sensitive widget content on logout, session expiry and account change; prevent late responses from restoring a previous account's values. Define and test expiry behavior while the app is not running.
+- [x] Support compact and wider launcher layouts with readable amounts, accessible labels, signed gain/loss indicators and Worthfolio's dark UI design on either launcher theme.
+- [ ] Verify widget placement, resizing, tap navigation, privacy, offline/stale behavior, process death, reboot and account isolation on Android; distinguish automated, emulator and physical-phone evidence.
+- [x] Build and validate a locally signed APK for the native integration, preserving the existing signing identity and installed app data. No Expo cloud build or backend deployment is included.
+- [x] Obtain user acceptance, document limitations, commit the accepted milestone and pause.
+
+Acceptance: an Android launcher widget shows an accurate, timestamped portfolio summary, respects the user's visibility choice and session boundaries, and opens the correct authenticated Portfolio screen. Stale or unavailable data is explicit, including when the app has been closed.
+
+Implementation evidence (2026-09-18): TypeScript and ESLint pass; 169 tests in 21 Jest suites pass; Expo Doctor passes 21/21. New tests cover authoritative totals/coverage, missing prices, account/session races, expiry clearing, accepted-bootstrap publishing and excluding demo data. Native instrumentation on the isolated Worthfolio_Widget_M19 Android 16 emulator passes Keystore encryption, masked defaults, visibility, old-lease rejection, expiry deletion, reboot clearing, corrupt-file recovery and rendering. Instrumentation fixtures are confined to the separate test APK and absent from the release APK.
+
+Release 0.3.0 / code 5 was built locally with the existing EAS signing certificate, bundled JavaScript and arm64-v8a/x86_64 support; it updated a code-4 installation without uninstalling. APK and source hashes are in artifacts/releases/worthfolio-0.3.0-5.json; see RELEASE.md. Full app Android lint reports 0 errors / 52 warnings after excluding two crashing dependency analysis tasks (Worklets and Reanimated, Kotlin KaModule tooling failures); this is not an unrestricted dependency-lint pass. Initial Kotlin compilation required its non-incremental fallback for C:/W: path aliases; the final command explicitly disables incremental Kotlin compilation.
+
+Launcher evidence: added the widget through the picker; inspected 4x3 and final compact 4x2 layouts, light/dark rendering, partial-value, masked and expired states, and a large amount at font scale 1.5. Tap from an expired widget opens the native sign-in screen without Metro. A masked snapshot remained labeled after process kill/offline; a real emulator reboot cleared it to "Open Worthfolio after restart". Test-emulator text scale was restored and verified at 1.0; the existing Pixel_10 installation and settings were preserved. Captures are in ignored artifacts/m19. Fresh real-account widget publishing, Account pin/visibility interaction and physical-phone resizing remain unverified follow-up checks. The user accepted the milestone without supplying physical-phone traces. Android TalkBack checks are excluded as requested.
+
+Limitations: snapshots refresh only with the app; Android may delay expiry alarms and launcher cleanup while force-stopped. The visibility switch discloses this and defaults to masked after sign-in/cold app restart. No background credentials, token refresh, backend deployment or cloud build was added. The user accepted M19 and explicitly requested a commit and pause. M20 has not started.
+
+M19 design follow-up: the user requested that the widget follow the app UI. Build 6 replaces the initial light/system-theme treatment with PortfolioOverview's dark gradient, decorative lavender rings, muted uppercase label, Worthfolio accent, tabular balance and signed P&L badge. Large values use a compact nominal text size while preserving Android font scaling. The existing widget storage, privacy, refresh and session contracts are unchanged. Updated native build and device evidence are recorded in RELEASE.md; the user subsequently accepted this design and requested a commit and pause.
+
+## Planned UI polish and cleanup
+
+M20-M25 record the user's requested UI improvements; this is roadmap work, not an instruction to start implementation. Preserve financial meaning, hosted read-only authentication, account isolation, request concurrency and lifecycle behavior. Refine existing M14-M18 work where review identifies a concrete issue rather than repeating completed changes. Android TalkBack walkthroughs are excluded at the user's request; enlarged-text, layout and ordinary interaction checks remain in scope. No backend changes or Expo cloud builds are included. For each milestone, run appropriate checks, document device evidence and limitations, obtain user acceptance, commit and pause.
+
+## M20: Portfolio hierarchy and numeric presentation
+
+- [ ] Make portfolio value the dominant header element, Open P&L secondary and Invested quieter, keeping all labels readable and existing summary animations intact.
+- [ ] Standardize tabular digits, amount alignment and precision for prices, percentages and quantities across lists, summary and instrument details. Preserve meaningful tiny prices, currency conventions, signed values and unavailable states.
+- [ ] Review normal and enlarged text, long names, very large balances, small prices, short positions and missing quotes without clipping or losing financial meaning.
+- [ ] Obtain user acceptance and commit.
+
+Acceptance: the portfolio header is easy to scan and numeric presentation is consistent without changing underlying values or misleading rounding.
+
+## M21: List toolbar and shared interaction polish
+
+- [ ] Consolidate sort and period controls into a consistent toolbar on Portfolio and Watchlists with clear selected states; allow responsive wrapping for narrow screens and enlarged text.
+- [ ] Standardize sheet/dialog titles, padding, selection indicators, outside-tap dismissal, Android Back handling and focus restoration.
+- [ ] Apply consistent pressed states to buttons and rows. Add subtle haptic feedback for deliberate selection changes where supported; avoid feedback during automatic refresh and respect device settings.
+- [ ] Verify that changes preserve local account-scoped preferences, watchlist selection, reset behavior and usable touch targets.
+- [ ] Obtain user acceptance and commit.
+
+Acceptance: filtering and selection feel consistent across both lists, sheets and dialogs, including narrow layouts and navigation back to the list.
+
+## M22: Instrument details and chart inspection
+
+- [ ] Organize instrument details into Price, Your position and Quote details with a clear visual hierarchy; keep technical metadata collapsed by default and retain visible stale/unavailable indicators.
+- [ ] Place the inspected chart date and price in a stable area above the chart so inspection does not obscure the price line or cause layout jumps.
+- [ ] Preserve chart ranges, actual observation dates, currency meaning, sparse/empty history handling and existing inspection controls.
+- [ ] Review held and unheld instruments, long names, large/small prices, normal/enlarged text and navigation back to the originating list.
+- [ ] Obtain user acceptance and commit.
+
+Acceptance: price and position information is easy to distinguish, and chart inspection remains legible without obscuring data or changing financial calculations.
+
+## M23: Status messages and empty states
+
+- [ ] Consolidate offline, stale and refresh information into one compact status area per screen, with clear precedence when multiple conditions apply. Preserve material partial-data warnings and session-expiry handling.
+- [ ] Keep background refresh quiet and manual refresh feedback explicit, retaining useful cached content and the correct retry action.
+- [ ] Give each empty state a specific explanation and an available next action, such as Search or selecting another watchlist. Distinguish empty portfolios/lists from failed or unavailable data; do not imply unsupported mobile editing.
+- [ ] Check loading-to-loaded transitions for shifting controls, rows or amounts and fix observed jumps without repeating the completed loading milestone unnecessarily.
+- [ ] Obtain user acceptance and commit.
+
+Acceptance: users can understand data freshness, failures and empty content at a glance without competing banners or blanking usable data.
+
+## M24: Account screen organization
+
+- [ ] Group supported appearance and display preferences separately from account and session information; keep version/build details at the bottom.
+- [ ] Use consistent section spacing, action wording and control styles; make sign-out easy to identify without dominating routine preferences.
+- [ ] Preserve preference scope and session behavior; do not add decorative controls for settings that are not implemented.
+- [ ] Review normal/enlarged text, narrow layouts and navigation.
+- [ ] Obtain user acceptance and commit.
+
+Acceptance: Account clearly separates display preferences, session actions and application information with no change to authentication behavior.
+
+## M25: Cross-screen visual cleanup and device review
+
+- [ ] Remove redundant labels, borders and cards where spacing already communicates grouping; retain labels needed to interpret financial values.
+- [ ] Standardize icons and wording for equivalent actions across Portfolio, Watchlists, Search, Instrument, Account and shared overlays.
+- [ ] Review the combined experience with long company names, very large balances, tiny prices, missing quotes and enlarged text; fix concrete inconsistencies left after M20-M24.
+- [ ] Complete pending enlarged-text/layout walkthroughs and verify restoration of device settings. Android TalkBack walkthroughs are excluded at the user's request.
+- [ ] Check loading transitions, pressed states, chart inspection, dialogs and return navigation on Android; record automated, emulator and physical-device evidence separately.
+- [ ] Obtain user acceptance, document remaining limitations and commit.
+
+Acceptance: the mobile app has consistent visual hierarchy, controls and terminology, with readable edge-case layouts and documented Android review evidence.

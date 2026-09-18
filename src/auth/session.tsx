@@ -8,6 +8,7 @@ import { bootstrapSchema, credentialSchema, type Credential } from '../api/contr
 import { callbackUri, demoEnabled, oidc, server } from '../lib/config';
 import { OidcClient, type Discovery } from './oidc';
 import { z } from 'zod';
+import { activateWidget, clearWidget } from '../widget/bridge';
 
 const storageKey = 'worthfolio.session.v1';
 type Session = { id: number; credential: Credential | null; demo: boolean };
@@ -36,6 +37,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const expire = useCallback(() => {
     generation.current++;
+    void clearWidget().catch(() => {});
     setSession(null);
     setError('Your session ended. Please sign in again.');
     void persist(null).catch(() => setError('Session ended. Secure storage could not be cleared; retry sign out or restart the app.'));
@@ -46,13 +48,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
     const initialGeneration = generation.current;
     void SecureStore.getItemAsync(storageKey).then(async raw => {
       if (!active || generation.current !== initialGeneration) return;
-      if (!raw) return;
+      if (!raw) { await clearWidget(); return; }
       const parsed = credentialSchema.extend({ server: z.string(), issuer: z.string(), clientId: z.string() }).safeParse(JSON.parse(raw));
       if (parsed.success && parsed.data.server === server.url && parsed.data.issuer === oidc.issuer &&
           parsed.data.clientId === oidc.clientId && parsed.data.expiresAt * 1000 > Date.now()) {
-        setSession({ id: ++generation.current, demo: false, credential: parsed.data });
-      } else await persist(null);
-    }).catch(() => { if (active) setError('Could not restore your saved session. Please sign in again.'); })
+        const id = ++generation.current;
+        await activateWidget(id, Crypto.randomUUID(), parsed.data.expiresAt).catch(() => {});
+        if (active && generation.current === id) setSession({ id, demo: false, credential: parsed.data });
+      } else { await clearWidget(); await persist(null); }
+    }).catch(() => { void clearWidget().catch(() => {}); if (active) setError('Could not restore your saved session. Please sign in again.'); })
       .finally(() => { if (active) setReady(true); });
     return () => { active = false; };
   }, [persist]);
@@ -122,6 +126,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       if (generation.current !== attempt) return;
       if (credential.expiresAt * 1000 <= Date.now()) throw new Error('The access token expired. Please sign in again.');
       await persist(credential);
+      if (generation.current === attempt) await activateWidget(attempt, Crypto.randomUUID(), credential.expiresAt).catch(() => {});
       if (generation.current === attempt) {
         activated = true;
         setSession({ id: attempt, credential, demo: false });
@@ -142,6 +147,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   async function signOut() {
     const token = session?.credential?.accessToken;
     generation.current++;
+    void clearWidget().catch(() => {});
     loginClient.current?.close();
     if (browserOpen.current) {
       try { WebBrowser.dismissAuthSession(); } catch { /* The browser may already have closed. */ }
@@ -157,7 +163,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }
 
   return <SessionContext.Provider value={{ session, ready, busy, error, signIn, signOut, expire,
-    explore: () => { if (demoEnabled) { setError(null); setSession({ id: ++generation.current, credential: null, demo: true }); } },
+    explore: () => { if (demoEnabled) { void clearWidget().catch(() => {}); setError(null); setSession({ id: ++generation.current, credential: null, demo: true }); } },
   }}>{children}</SessionContext.Provider>;
 }
 

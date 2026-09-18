@@ -4,6 +4,14 @@ Native, personal, read-only Worthfolio companion built with Expo SDK 57, React N
 
 The native foundation is implemented: Portfolio, Watchlists, Search, Instrument, Account, and Sign-in screens; labeled development fixtures; API contracts; session-isolated query caches; and direct Authentik login using a public mobile client with PKCE. M2 authentication is complete: hosted login, authenticated bootstrap, and logout pass on the emulator, with physical-phone testing confirmed by the user. M3 portfolio/watchlists are complete, including coordinated quote refresh and failure recovery. M4 adds cancellable search, focused chart refresh, touch/accessibility inspection, and range selection; automated/emulator checks pass and the user confirmed physical-phone feature acceptance. M5 is complete: the standalone APK was built and verified locally, and the user confirmed release acceptance after the physical-phone checklist. See [RELEASE.md](RELEASE.md) for the APK identity, evidence, and documented limitations.
 
+## Android home-screen widget (M19)
+
+The 0.3.0 / build 6 native build adds a portfolio widget. Sign in, open Account, and choose **Add widget to home screen**, or long-press the Android launcher and select Widgets > Worthfolio. **Show widget balances** is off by default and resets after a cold app restart or new sign-in.
+
+The widget matches the app's dark portfolio card, including its gradient, lavender accents, balance hierarchy and signed P&L badge. It keeps this appearance on light and dark launchers. The widget displays the last accepted backend summary, its observation time and any partial-valuation coverage. It updates when the app refreshes; it does not fetch prices in the background. A minimal summary is encrypted in Android no-backup storage; app portfolio queries remain memory-only. Logout clears it. Expiry cleanup uses an Android alarm and can be delayed by the OS, especially when the app is force-stopped. Reboot clears the snapshot. See `design.md` and `RELEASE.md` for validation and limitations.
+
+This requires a new native APK; Expo Go and an older development client cannot load the widget module. For a development install, use `npx expo prebuild --platform android --no-install` followed by the standard `npx expo run:android --device` workflow below. Preserve the installed signing identity and data when updating.
+
 ## Run locally
 
 Use Node 24 and npm. The examples below use Command Prompt (CMD).

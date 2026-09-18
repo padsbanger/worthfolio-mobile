@@ -2,6 +2,40 @@
 
 M1-M5 are complete: the signed APK and isolated emulator startup checks pass, and the user confirmed release acceptance after receiving the standalone APK and physical-phone checklist; phone/backend checks are user-reported where identified in `milestones.md`. A development-client check does not establish standalone APK acceptance.
 
+## M19 widget design update: build 6 (accepted)
+
+Version **0.3.0 / Android code 6** follows the app's PortfolioOverview design: dark gradient and subtle lavender rings, shared text/accent/gain/loss colors, uppercase value label, tabular balance and signed P&L badge. It remains dark on either launcher theme. Narrow/enlarged-text layouts omit the extra brand label and shorten the coverage caption while retaining its meaning. Widget data, session and refresh behavior is unchanged.
+
+APK: `artifacts/releases/worthfolio-0.3.0-6.apk`, 68,242,103 bytes, SHA-256 `46069b46e33c0287ccd5e21903cac5c7ed6610d971e55113336f4c320f19aad2`. The original EAS signing certificate is verified; the adjacent JSON records current source/bundle hashes. Use this build instead of build 5 in the installation command below.
+
+Local release and instrumentation builds pass. App Android lint reports 0 errors / 50 warnings with the same Worklets/Reanimated dependency analysis exclusions documented below. Native encryption/session/expiry/reboot/corruption checks pass again. A separate Worthfolio_Widget_Style emulator was used for normal and 1.5x text checks; observed header/footer crowding was fixed and the final 4x2 partial-value layout fits. Captures are in `artifacts/m19/style-*.png`. Its text scale was restored and read back as 1.0. The user's running Worthfolio_Widget_M19 emulator was updated in place to build 6; no account data was cleared or fixtures injected into that emulator during this design update. JavaScript behavior is unchanged, so the prior 169-test result remains the latest full-suite evidence. The user accepted the build-6 design with "Looks ok. Commit and pause." Physical-phone traces were not supplied; the remaining phone checks below are follow-up limitations, not independently verified passes.
+
+## M19 initial widget candidate: build 5 (superseded)
+
+Version **0.3.0 / Android code 5** includes the Android portfolio widget and Account controls. The APK is `artifacts/releases/worthfolio-0.3.0-5.apk` (68,239,471 bytes), SHA-256 `0f4c373a0ef4e85ded0cf73bc3eb0cf15c3d1d82fdb6cdeb354a07dcb3117900`. The adjacent JSON records baseline `db3b9d4`, hashes of all current non-Markdown source/configuration files, bundle hash and the existing EAS certificate. The release contains arm64-v8a/x86_64 native code and bundled JavaScript; the separate instrumentation test class/fixtures are absent from its DEX files.
+
+Install on a phone or release-test emulator with the matching signing key (CMD):
+
+```bat
+cd /d C:\Users\konta\Projects\worth\worthfolio-mobile
+adb devices
+adb -s YOUR_DEVICE_SERIAL install -r artifacts\releases\worthfolio-0.3.0-5.apk
+```
+
+The existing Pixel_10 emulator has a differently signed development installation. Update that through `npx expo run:android --device Pixel_10` from `W:\worthfolio-mobile`, rather than uninstalling it to install this release. Native plugin changes require prebuild when regenerating a checkout; see README.md.
+
+After signing in, open **Account > Add widget to home screen**, or long-press an empty launcher area, select **Widgets**, search **Worthfolio**, then add **Worthfolio Portfolio**. Balances are masked until **Show widget balances** is enabled. A cold app restart/new sign-in resets that visibility choice. The widget shows the last app-refreshed snapshot, observation time and partial valuation; no background network refresh is performed. Android can delay expiry alarms/launcher cleanup, especially when force-stopped; reboot clears the encrypted summary. See design.md for the minimal no-backup storage exception.
+
+Validation: TypeScript, ESLint, 169 Jest tests and Expo Doctor 21/21 pass. Locally signed release and instrumentation APK builds succeed. App Android lint reports 0 errors and 52 warnings; Worklets/Reanimated dependency analysis crashed in Kotlin KaModule tooling and was excluded, so unrestricted dependency lint is not claimed. The final build used:
+
+```bat
+gradlew.bat :app:assembleRelease :app:assembleReleaseAndroidTest :app:lintRelease -x :react-native-worklets:lintAnalyzeRelease -x :react-native-reanimated:lintAnalyzeRelease -Pkotlin.incremental=false -PreactNativeArchitectures=arm64-v8a,x86_64
+```
+
+An isolated Android 16 emulator accepted an update from code 4 without uninstalling. Native tests passed encryption, session/visibility/expiry boundaries and corrupt-snapshot recovery. Launcher checks covered placement, 4x3 and final 4x2 rendering, light/dark, partial/masked/expired states, 1.5x text with a large amount, tap-to-sign-in, process kill/offline and a real reboot clearing the snapshot. Text scale was restored and read back as 1.0. Screenshots and build output are in ignored `artifacts/m19*`; no production credentials were copied and no cloud build was started.
+
+Unverified physical-phone follow-up checks: sign in with a real account, confirm summary/time/coverage against Portfolio, use the Account visibility and pin controls, resize on your launcher, refresh, and confirm logout clears the widget. Real provider login and account-to-widget publishing were not exercised on the isolated emulator. Android TalkBack is excluded at the user's request. The user accepted M19 and requested a commit and pause; do not start M20 automatically.
+
 ## M12 redesign release (accepted)
 
 Version `0.2.0`, Android build `4`, includes the accepted M6-M11 redesign with Portfolio, Watchlists and Search tabs, company logos, quiet refresh, and the revised instrument chart. Account now uses the shared compact spacing and bottom safe-area padding. Expo/Constants/Router patch versions were aligned with the SDK check. The release uses the existing EAS certificate and the hosted backend/public Authentik client above; no cloud build is required.

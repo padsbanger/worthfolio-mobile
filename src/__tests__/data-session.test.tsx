@@ -3,6 +3,9 @@ import { act, render, screen, waitFor } from '@testing-library/react-native';
 import { DataProvider, useBootstrap } from '../api/data';
 import { useSession } from '../auth/session';
 import { sampleBootstrap } from '../fixtures/portfolio';
+import { publishWidget } from '../widget/bridge';
+
+jest.mock('../widget/bridge', () => ({ publishWidget: jest.fn().mockResolvedValue(undefined) }));
 
 jest.mock('expo-router', () => ({ useIsFocused: () => true }));
 jest.mock('../lib/config', () => ({ server: { url: 'https://worthfolio.test' } }));
@@ -57,6 +60,7 @@ test('logout removes loaded account data and a new session starts with a separat
   global.fetch = fetcher;
   const view = render(<Boundary />);
   expect(await screen.findByText('First account')).toBeTruthy();
+  expect(publishWidget).toHaveBeenCalledWith(1, expect.objectContaining({ account: expect.objectContaining({ name: 'First account' }) }));
   currentSession = null;
   view.rerender(<Boundary />);
   expect(screen.getByText('Signed out')).toBeTruthy();
@@ -89,4 +93,12 @@ test.each([200, 401])('a late response from an old account (%s) cannot overwrite
   expect(screen.getByText('Second account')).toBeTruthy();
   expect(screen.queryByText('First account')).toBeNull();
   expect(expire).not.toHaveBeenCalled();
+  expect(publishWidget).not.toHaveBeenCalledWith(1, expect.anything());
+});
+
+test('sample portfolio data is never sent to the launcher widget', async () => {
+  currentSession = { id: 1, demo: true, credential: null };
+  render(<Boundary />);
+  expect(await screen.findByText(sampleBootstrap.account.name)).toBeTruthy();
+  expect(publishWidget).not.toHaveBeenCalled();
 });

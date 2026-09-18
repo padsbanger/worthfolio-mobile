@@ -11,6 +11,7 @@ import { MarketQueue } from './market-queue';
 import { searchSchema, type Bootstrap, type ChartRange } from './contracts';
 import { createDataQueries } from './queries';
 import { PortfolioRefresh } from './portfolio-refresh';
+import { publishWidget } from '../widget/bridge';
 
 const DataContext = createContext<{ client: ApiClient; demo: boolean; online: boolean; active: boolean;
   queries: ReturnType<typeof createDataQueries>; refresh: PortfolioRefresh; queryClient: QueryClient;
@@ -41,6 +42,15 @@ export function DataProvider({ children }: PropsWithChildren) {
   const demo = session?.demo ?? false;
   const [online, setOnline] = useState(false);
   const [active, setActive] = useState(AppState.currentState === 'active');
+  useEffect(() => {
+    if (!session || session.demo) return;
+    return queryClient.getQueryCache().subscribe(event => {
+      if (event.type === 'updated' && event.action.type === 'success' && event.query.queryKey[0] === 'bootstrap') {
+        const data = event.query.state.data as Bootstrap | undefined;
+        if (data) void publishWidget(session.id, data).catch(() => {});
+      }
+    });
+  }, [queryClient, session]);
   useEffect(() => {
     let foreground = AppState.currentState === 'active';
     let connected = false;

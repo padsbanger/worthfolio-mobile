@@ -12,6 +12,8 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 - M6-M12 are complete: the Android redesign and locally signed 0.2.0 (code 4) release were accepted after the requested phone checklist. Automated/emulator checks and user-reported release acceptance are distinguished in `RELEASE.md` and `milestones.md`. M13 is authorized for local Portfolio/Watchlists sorting and time-period controls; see milestones.md. Continue to commit only accepted milestones.
 - For M2, use only the hosted backend at `https://worthfolio.pripyat.cloud`. The user explicitly requested no local backend implementation or local backend deployment. The user created a separate public Authentik mobile client; use direct Authorization Code + S256 PKCE. Hosted bearer-token validation and read-only authorization were confirmed for M2; preserve that contract and do not substitute browser cookies.
 
+M19 (Android home-screen widget, build 6) is accepted. The user explicitly requested a commit and pause. Preserve the documented physical-phone verification limitations; do not infer that those checks passed. M20 is the next planned milestone and must not start until the user resumes work.
+
 ## Implementation conventions
 
 - Use Expo development builds, Expo Router, strict TypeScript, and npm. Select a stable Expo SDK when scaffolding, use Expo-compatible native dependency versions, and commit the lockfile.
@@ -28,7 +30,7 @@ Build a native, personal, read-only Worthfolio companion with React Native, Expo
 - Use the system browser with the public mobile OIDC client and S256 PKCE. No client secret belongs in the app. Store only the access token, expiry, and server/issuer/client binding in Expo SecureStore; do not consume ID tokens or request/store refresh tokens in v1.
 - Mobile access must be read-only at the backend, not merely hidden in the UI. Only the agreed Worthfolio read endpoints accept mobile access tokens; revoke tokens through Authentik on logout. Native sign-in must successfully read authenticated bootstrap before saving a session.
 - Preserve verified OIDC subject ownership and browser CSRF protection. Hosted API validation must enforce access-token expiry and revocation; a separate issuer must map to the existing account without trusting email or an unverified subject. Backchannel logout/revocation requires backend validation, not just deleting credentials on the phone.
-- Keep portfolio responses in memory. AsyncStorage is for non-sensitive preferences only; do not persist query data, holdings, quotes, or user profiles there.
+- Keep portfolio responses in memory. AsyncStorage is for non-sensitive preferences only; do not persist query data, holdings, quotes, or user profiles there. M19 is a user-requested exception only for the minimal native widget summary: encrypt it with Android Keystore in no-backup storage, bind it to the active session, and clear it on logout/expiry. It must never restore application query data; see design.md.
 - Cancel in-flight work and clear account data on logout, expiry, or account change. Prevent late responses from repopulating another session's cache.
 - Do not log tokens, authorization headers, authorization codes, PKCE verifiers, or complete authentication callback URLs.
 

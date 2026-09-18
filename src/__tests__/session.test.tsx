@@ -5,6 +5,9 @@ import * as WebBrowser from 'expo-web-browser';
 import { SessionProvider, useSession } from '../auth/session';
 import { sampleBootstrap } from '../fixtures/portfolio';
 import { oidc } from '../lib/config';
+import { activateWidget, clearWidget } from '../widget/bridge';
+
+jest.mock('../widget/bridge', () => ({ activateWidget: jest.fn().mockResolvedValue(undefined), clearWidget: jest.fn().mockResolvedValue(undefined) }));
 
 jest.mock('../lib/config', () => ({
   server: { url: 'https://worthfolio.test', error: null }, demoEnabled: true, callbackUri: 'worthfolio://auth/callback',
@@ -70,6 +73,7 @@ test('public-client login binds state and S256, verifies API access, and stores 
   const { result } = await setup();
   await act(() => result.current.signIn());
   expect(result.current.session?.credential?.accessToken).toBe('test-mobile-token');
+  expect(activateWidget).toHaveBeenCalledWith(result.current.session!.id, expect.any(String), credential().expiresAt);
   const launch = new URL(browser.mock.calls[0]![0]);
   const request = fetcher.mock.calls[1]![1];
   const body = Object.fromEntries(new URLSearchParams(request.body));
@@ -94,6 +98,15 @@ test('public-client login binds state and S256, verifies API access, and stores 
   const stored = JSON.parse(save.mock.calls[0]![1]);
   expect(stored).toEqual({ server: 'https://worthfolio.test', ...oidc, ...credential() });
   expect(result.current.busy).toBe(false);
+});
+
+test('expiry clears the widget and invalidates the mobile session', async () => {
+  const { result } = await setup();
+  await act(() => result.current.signIn());
+  jest.mocked(clearWidget).mockClear();
+  act(() => result.current.expire());
+  expect(clearWidget).toHaveBeenCalledTimes(1);
+  expect(result.current.session).toBeNull();
 });
 
 test.each([
