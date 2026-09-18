@@ -1,14 +1,15 @@
 import { CompanyLogo } from '../components/CompanyLogo';
 import { useState } from 'react';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { chartRanges, type ChartRange } from '../api/contracts';
 import { useBootstrap, useData, useMarket } from '../api/data';
-import { Card, DataNotice, Heading, Label, RefreshHint, Status, styles } from '../components/ui';
+import { DataNotice, Heading, Label, RefreshHint, Status, styles } from '../components/ui';
 import { PriceChart } from '../components/PriceChart';
 import { money, number, percent, positionValues, ticker, timestamp } from '../lib/format';
-import { colors, spacing } from '../theme/theme';
+import { Metric } from '../components/investment-ui';
+import { colors, sizing, spacing, typography } from '../theme/theme';
 
 export function InstrumentScreen() {
   const params = useLocalSearchParams<{ symbol?: string }>();
@@ -18,6 +19,7 @@ export function InstrumentScreen() {
 
 function InstrumentDetails({ symbol }: { symbol: string }) {
   const [range, setRange] = useState<ChartRange>('1M');
+  const [showDetails, setShowDetails] = useState(false);
   const bootstrap = useBootstrap();
   const result = useMarket(symbol, range, bootstrap.data?.marketData?.selectedRefreshSeconds ?? null);
   const { online, demo, active } = useData();
@@ -32,30 +34,66 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
     <ScrollView contentContainerStyle={[styles.detailContent, { paddingBottom: spacing.bottom + insets.bottom }]}>
       <View style={styles.row}>
         <CompanyLogo symbol={symbol} logoUrl={data?.logoUrl ?? position?.logoUrl} logoFallbackUrl={data?.logoFallbackUrl ?? position?.logoFallbackUrl} size={40} />
-        <View style={{ flex: 1 }}><Label>{symbol}</Label><Heading>{data?.name || ticker(symbol)}</Heading></View>
+        <View style={{ flex: 1 }}><Label>{symbol}</Label><Heading>{data?.name || position?.name || ticker(symbol)}</Heading></View>
       </View>
       <View style={{ gap: spacing.tight }}>
-      <Text style={{ fontSize: 34, color: colors.text, fontWeight: '700' }}>{money(data?.lastPrice, data?.currency)}</Text>
-      <Text style={{ color: change == null ? colors.muted : change >= 0 ? colors.positive : colors.negative }}>{percent(change)} today</Text>
+      <Text style={local.price}>{money(data?.lastPrice, data?.currency)}</Text>
+      <Text style={[styles.label, { color: change == null ? colors.muted : change >= 0 ? colors.positive : colors.negative }]}>{percent(change)} daily change</Text>
+      <Text style={styles.small}>{data?.currency === 'GBX' ? 'GBP · converted from GBX' : data?.currency || 'Currency unavailable'}</Text>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={local.ranges}>
         {chartRanges.map(item => <Pressable key={item} accessibilityRole="button" accessibilityLabel={`${item} price history`} accessibilityState={{ selected: range === item }}
-          onPress={() => setRange(item)} style={{ minWidth: 48, minHeight: 48, paddingHorizontal: 12, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 12,
-            backgroundColor: range === item ? colors.accent : colors.surface }}>
-          <Text style={{ color: range === item ? colors.background : colors.text, fontWeight: '600' }}>{item}</Text>
-        </Pressable>)}
+          onPress={() => setRange(item)} style={[local.range, range === item && local.selectedRange]}>
+          <Text style={[local.rangeText, range === item && { color: colors.accent }]}>{item}</Text></Pressable>)}
       </ScrollView>
-      <Card style={styles.compactCard}>{data ? <PriceChart key={`${symbol}:${range}`} observations={data.candles} currency={data.currency} /> :
+      <View>{data ? <PriceChart key={`${symbol}:${range}`} observations={data.candles} currency={data.currency} /> :
         <Status title={result.isFetching ? 'Loading price history' : 'Price history unavailable'} loading={result.isFetching}
-          message={result.error?.message} retry={result.isError && (demo || (online && active)) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}</Card>
+          message={result.error?.message} retry={result.isError && (demo || (online && active)) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}</View>
       {range === 'ALL' && <Text style={styles.small}>Available provider history; the dates shown may not cover the instrument’s full lifetime.</Text>}
       {data && result.isError && <RefreshHint busy={result.isFetching} retry={demo || (online && active) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}
-      {data && <Text style={styles.small}>{data.source}{data.delayed ? ' · Provider delayed' : ''}{data.cached ? ' · Cached' : ''}{ '\n' }Fetched: {timestamp(data.refreshedAt)}</Text>}
-      {position && <Card style={styles.compactCard}><Heading>Your position</Heading><Label>{number(position.quantity)} units · {position.quantity < 0 ? 'Short' : 'Long'}</Label>
-        <Text style={styles.text}>Value {money(values?.value, bootstrap.data?.account.baseCurrency)}</Text>
-        <Text style={styles.text}>Open P&L {money(values?.pnl, bootstrap.data?.account.baseCurrency, true)}</Text>
-        <Label>Average entry {money(position.avgPrice, position.currency)}</Label>
-      </Card>}
+      {data && <View style={local.metadata}>
+        <View style={local.metadataHeader}>
+          <View style={local.freshness}>
+            <Text style={styles.small}>{timestamp(data.refreshedAt)}</Text>
+            {(data.stale || data.delayed || data.cached) && <Text style={[styles.small, { color: colors.warning }]}>
+              {[data.stale && 'Stale', data.delayed && 'Provider delayed', data.cached && 'Cached'].filter(Boolean).join(' \u00b7 ')}
+            </Text>}
+          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Quote details" accessibilityState={{ expanded: showDetails }}
+            onPress={() => setShowDetails(value => !value)} style={local.detailsButton}>
+            <Text style={[styles.small, { color: colors.accent }]}>{showDetails ? 'Hide details' : 'Quote details'}</Text>
+          </Pressable>
+        </View>
+        {showDetails && <View style={{ gap: spacing.tight }}>
+          <Text style={styles.small}>Source: {data.source || 'Unavailable'}</Text>
+          <Text style={styles.small}>Fetched: {data.refreshedAt || 'Time unavailable'}</Text>
+          <Text style={styles.small}>Previous close: {money(data.previousClose, data.currency)}</Text>
+        </View>}
+      </View>}
+      {position && <View style={local.position}>
+        <Text style={styles.sectionHeading}>Your position</Text>
+        <Label>{number(position.quantity)} units · {position.quantity < 0 ? 'Short' : 'Long'}</Label>
+        <View style={local.metrics}>
+          <Metric label={`Value · ${bootstrap.data?.account.baseCurrency}`} value={money(values?.value, bootstrap.data?.account.baseCurrency)} />
+          <Metric label="Open P&L" value={money(values?.pnl, bootstrap.data?.account.baseCurrency, true)}
+            direction={values?.pnl == null ? undefined : values.pnl >= 0 ? 'positive' : 'negative'} />
+          <Metric label="Average entry" value={money(position.avgPrice, position.currency)} />
+        </View>
+      </View>}
     </ScrollView>
   </View>;
 }
+
+const local = StyleSheet.create({
+  price: { ...typography.balance, color: colors.text },
+  ranges: { flexGrow: 1, justifyContent: 'space-between', gap: spacing.tight },
+  range: { minWidth: sizing.touch, minHeight: sizing.touch, paddingHorizontal: spacing.small, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
+  selectedRange: { backgroundColor: colors.elevated },
+  rangeText: { ...typography.label, fontWeight: '600', color: colors.muted },
+  metadata: { gap: spacing.tight },
+  metadataHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.small },
+  freshness: { flex: 1, gap: spacing.tight },
+  detailsButton: { minHeight: sizing.touch, minWidth: sizing.touch, justifyContent: 'center' },
+  position: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.section, gap: spacing.small },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.screen },
+});

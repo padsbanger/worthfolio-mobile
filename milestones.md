@@ -255,15 +255,19 @@ M10 follow-up (2026-09-18): the user reported a zoomed layout. Readback found em
 
 ### M11: Instrument details and chart presentation
 
-Depends on M7-M10.
+Depends on M7-M10. M10 was accepted and committed as `0c8a0c9`. M11 was accepted by the user on 2026-09-18.
 
-- [ ] Apply the logo/name and price/change hierarchy, compact range controls, and shared position-statistic styles.
-- [ ] Reduce decorative chart framing and use available width while preserving accurate axes, date bounds, and touch inspection.
-- [ ] Keep source, timestamp, cached/delayed flags, unavailable prices, and bounded ALL history understandable through compact metadata/details.
-- [ ] Validate all existing ranges, sparse/flat/empty data, large text, long names, currency conversion/GBX/short holdings, screen focus, and background cancellation.
-- [ ] Complete Android/user review, run relevant checks, commit and pause.
+- [x] Apply the logo/name and price/change hierarchy, compact range controls, and shared position-statistic styles.
+- [x] Reduce decorative chart framing and use available width while preserving accurate axes, date bounds, and touch inspection.
+- [x] Keep source, timestamp, cached/delayed flags, unavailable prices, and bounded ALL history understandable through compact metadata/details.
+- [x] Validate ranges, sparse/flat/empty data, long names, currency conversion/GBX/short holdings, screen focus, and background cancellation; user accepted after the requested visual/enlarged-text review. Individual phone traces were not supplied.
+- [x] Android checks and automated checks pass; user accepted and explicitly authorized M12. Commit M11.
 
 Acceptance: a polished detail screen powered by real existing observations, with no extra indicators, invented history, or changed polling contract.
+
+M11 implementation checks (2026-09-18): TypeScript, ESLint and 126 tests in 16 suites pass. New integration cases cover all six ranges, quote-detail disclosure without network requests, retention of history after failed refreshes, signed short positions, GBX conversion and unavailable FX. Existing chart tests cover sparse/flat/single/empty data and accessible inspection; lifecycle tests cover focus/background cancellation. The chart now uses the content width without a surrounding card and shows actual observed close bounds; position metrics use the shared wrapping layout. Source, exact fetch time and previous close expand on demand; cached/delayed/stale flags remain visible.
+
+Pixel_10 checks at font_scale 1.0 verified live long-name presentation, all six selected range controls, touch inspection, quote disclosure, position scrolling and Android Back returning to holdings. Captures are in ignored `artifacts/m11`. The active emulator's font/display settings were not changed; final font-scale readback is 1.0. The user subsequently accepted with "Looks good. Work on next milestone" after the requested visual/enlarged-text review; this is user-reported acceptance, not an agent-operated large-text run. No polling/data/auth changes, APK build or cloud build. Commit the accepted M11 and proceed to authorized M12.
 
 ### M12: Redesign consistency and local release
 
@@ -278,7 +282,7 @@ Depends on M7-M11 acceptance.
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is committed; M10 is accepted. M11-M12 remain planned. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M6 is committed; M7 is committed; M8 is committed; M9 is committed; M10 is committed. M11 is accepted. M12 is in progress. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## Deferred features
 

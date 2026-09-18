@@ -200,8 +200,8 @@ test('instrument defaults/reset to 1M, renders holding and daily change, and rej
   fetcher.mockImplementation(async (url: string) => response(url.endsWith('/api/bootstrap') ? { ...bootstrap, positions: [holding] } : quote(new URL(url).searchParams.get('symbol')!)));
   const view = render(<DataProvider><InstrumentScreen /></DataProvider>);
   expect(await screen.findByText('Your position')).toBeTruthy();
-  expect(await screen.findByText('+1.20% today')).toBeTruthy();
-  expect(screen.getByText('Value $4,200.00')).toBeTruthy();
+  expect(await screen.findByText('+1.20% daily change')).toBeTruthy();
+  expect(screen.getByText('$4,200.00')).toBeTruthy();
   expect(screen.getByLabelText('1M price history')).toBeSelected();
   fireEvent.press(screen.getByLabelText('ALL price history'));
   expect(await screen.findByText(/Available provider history/)).toBeTruthy();
@@ -217,4 +217,47 @@ test('cadence defaults safely when absent/invalid and cannot create a busy timer
   expect(selectedRefreshMs(7)).toBe(7_000);
   for (const value of [0, -1, NaN, Infinity]) expect(selectedRefreshMs(value)).toBe(5_000);
   expect(selectedRefreshMs(0.01)).toBe(1_000);
+});
+
+
+test('instrument keeps quote flags visible and reveals provenance without another request; failed updates retain history', async () => {
+  fetcher.mockImplementation(async (url: string) => response(url.endsWith('/api/bootstrap') ? bootstrap : { ...quote(), cached: true, delayed: true }));
+  render(<DataProvider><InstrumentScreen /></DataProvider>);
+  expect(await screen.findByText('Provider delayed \u00b7 Cached')).toBeTruthy();
+  expect(screen.queryByText('Source: Test provider')).toBeNull();
+  const count = fetcher.mock.calls.length;
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.getByText('Source: Test provider')).toBeTruthy();
+  expect(screen.getByText(`Fetched: ${quote().refreshedAt}`)).toBeTruthy();
+  expect(fetcher.mock.calls).toHaveLength(count);
+  fetcher.mockImplementation(async (url: string) => url.endsWith('/api/bootstrap') ? response(bootstrap) : { ok: false, status: 403 });
+  await tick(7100);
+  expect(await screen.findByText('Updates delayed')).toBeTruthy();
+  expect(screen.getByLabelText('Price history')).toBeTruthy();
+  expect(screen.getByText('Apple')).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.queryByText('Source: Test provider')).toBeNull();
+  expect(screen.getByText('Provider delayed \u00b7 Cached')).toBeTruthy();
+});
+
+test.each([['GBX', 1.25, '-$50.00', '+$5.00'], ['EUR', null, 'Unavailable', 'Unavailable']] as const)(
+  'position metrics preserve short signs, GBX conversion and missing FX for %s', async (currency, baseRate, value, pnl) => {
+    const holding = { ...sampleBootstrap.positions[0]!, quantity: -2, avgPrice: 2200, lastPrice: 2000, currency, baseRate, quoteSource: 'Test provider' };
+    fetcher.mockImplementation(async (url: string) => response(url.endsWith('/api/bootstrap') ? { ...bootstrap, positions: [holding] } : { ...quote(), currency, lastPrice: 2000 }));
+    render(<DataProvider><InstrumentScreen /></DataProvider>);
+    expect(await screen.findByText('-2 units \u00b7 Short')).toBeTruthy();
+    expect(screen.getAllByText(value).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(pnl).length).toBeGreaterThan(0);
+  },
+);
+
+test('every range requests its own history and keeps the selected control identifiable', async () => {
+  render(<DataProvider><InstrumentScreen /></DataProvider>);
+  expect(await screen.findByText('Apple')).toBeTruthy();
+  for (const range of ['1D', '5D', '6M', '1Y', 'ALL', '1M']) {
+    fireEvent.press(screen.getByLabelText(`${range} price history`));
+    expect(screen.getByLabelText(`${range} price history`)).toBeSelected();
+    await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.includes('/api/market') && new URL(url).searchParams.get('range') === range)).toBe(true));
+    expect(await screen.findByLabelText('Price history')).toBeTruthy();
+  }
 });
