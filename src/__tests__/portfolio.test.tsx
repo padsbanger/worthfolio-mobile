@@ -1,18 +1,57 @@
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 import { router } from 'expo-router';
-import { PortfolioScreen } from '../features/PortfolioScreen';
+import { HoldingRow, PortfolioScreen } from '../features/PortfolioScreen';
 import { sampleBootstrap } from '../fixtures/portfolio';
-import { useBootstrap, usePortfolioRefresh } from '../api/data';
+import { useBootstrap, useData, usePortfolioRefresh } from '../api/data';
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('../api/data', () => ({
-  useBootstrap: jest.fn(), useData: () => ({ online: true, demo: true }),
+  useBootstrap: jest.fn(), useData: jest.fn(),
   usePortfolioRefresh: jest.fn(),
 }));
 
 beforeEach(() => {
+  jest.mocked(useData).mockReturnValue({ online: true, demo: true } as ReturnType<typeof useData>);
   jest.mocked(usePortfolioRefresh).mockReturnValue({ refreshing: false, error: null, completedAt: null, refresh: jest.fn().mockResolvedValue(undefined) });
+});
+
+test('quote details disclose each source and exact time without hiding summary freshness', () => {
+  jest.mocked(useBootstrap).mockReturnValue({ data: sampleBootstrap } as ReturnType<typeof useBootstrap>);
+  render(<PortfolioScreen />);
+  expect(screen.getByText(/Quote time:/)).toBeTruthy();
+  expect(screen.queryByText('Source: Development fixture')).toBeNull();
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.getByLabelText('Quote details').props.accessibilityState.expanded).toBe(true);
+  expect(screen.getAllByText('Source: Development fixture')).toHaveLength(3);
+  expect(screen.getAllByText(`Quote time: ${sampleBootstrap.positions[0]!.quoteRefreshedAt}`)).toHaveLength(3);
+  expect(screen.getByText(/Summary timestamp:/)).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.queryByText(/Summary timestamp:/)).toBeNull();
+});
+
+test('short positions preserve signed value, gain, and currency labels in the new row', () => {
+  render(<HoldingRow position={{ ...sampleBootstrap.positions[0]!, quantity: -2, avgPrice: 180, lastPrice: 150 }} currency="USD" />);
+  expect(screen.getByText('-$300.00')).toBeTruthy();
+  expect(screen.getByText('+$60.00')).toBeTruthy();
+  expect(screen.getByText(/-2 units · Short/)).toBeTruthy();
+  expect(screen.getByText('Open P&L · USD')).toBeTruthy();
+});
+
+test('missing FX and quote exceptions stay visible with details collapsed', () => {
+  render(<HoldingRow position={{ ...sampleBootstrap.positions[0]!, currency: 'EUR', baseRate: null, cached: true, delayed: true, stale: true }} currency="USD" />);
+  expect(screen.getAllByText('Unavailable')).toHaveLength(2);
+  expect(screen.getByText('Valuation unavailable · Stale · Cached · Provider delayed')).toBeTruthy();
+  expect(screen.queryByText('$0.00')).toBeNull();
+});
+
+test('offline portfolio keeps values and disables the pull gesture', () => {
+  jest.mocked(useData).mockReturnValue({ online: false, demo: false } as ReturnType<typeof useData>);
+  jest.mocked(useBootstrap).mockReturnValue({ data: sampleBootstrap } as ReturnType<typeof useBootstrap>);
+  render(<PortfolioScreen />);
+  expect(screen.getByText('$16,800.00')).toBeTruthy();
+  expect(screen.getByText(/Offline/)).toBeTruthy();
+  expect(screen.UNSAFE_getByType(RefreshControl).props.enabled).toBe(false);
 });
 
 test('portfolio renders authoritative totals, labels sample data, and opens a holding', () => {

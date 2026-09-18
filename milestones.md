@@ -207,16 +207,20 @@ Review path in the development client: Portfolio > Account > Design preview. The
 
 ### M8: Portfolio overview and holdings redesign
 
-Depends on M7.
+Depends on M7, accepted and committed as `7bfe1c4`. M8 was accepted on 2026-09-18.
 
-- [ ] Replace the oversized summary presentation with a compact balance-led header, open P&L, invested amount, and account identity.
-- [ ] Apply the shared logo-led asset rows with aligned value/P&L columns, quantities, and understandable currency labels.
-- [ ] Add compact quote-status presentation with accessible source/timestamp details; retain visible incomplete-valuation and stale-data cues.
-- [ ] Keep summary totals backend-authoritative and explicitly distinguish open P&L from daily returns. Do not add a portfolio-history graph without a supported endpoint.
-- [ ] Compare the same viewport/data state with M6; verify more usable holdings space without clipped values or reduced touch targets.
-- [ ] Check long/short holdings, missing prices/FX, large values, empty data, offline use, and failed refresh; complete user review, commit and pause.
+- [x] Replace the oversized summary presentation with a compact balance-led header, open P&L, invested amount, and account identity.
+- [x] Apply the shared logo-led asset rows with aligned value/P&L columns, quantities, and understandable currency labels.
+- [x] Add compact quote-status presentation with accessible source/timestamp details; retain visible incomplete-valuation and stale-data cues.
+- [x] Keep summary totals backend-authoritative and explicitly distinguish open P&L from daily returns. Do not add a portfolio-history graph without a supported endpoint.
+- [x] Compare top-of-Portfolio at the same emulator viewport/text scale with the M6 capture: summary framing is reduced and holdings begin earlier. Both show partial coverage; live prices differ, so this is a layout comparison rather than an identical-data pixel test. Check enlarged-text rows with wrapping/stacked figures and 48-point controls.
+- [x] Run TypeScript, lint, and 116 tests in 16 suites, covering authoritative totals, long/short valuation, missing prices/FX, empty/offline data, manual/background refresh, and quote-detail disclosure.
+- [x] Verify live holdings, quote-detail expansion, instrument navigation/back, and normal/1.5x text on Pixel_10. Restore the original font scale; captures are in ignored `artifacts/m8`. Very long monetary strings use the stacked row layout.
+- [x] User accepted M8 with "Looks good. Work on next milestone"; commit M8 and proceed to explicitly authorized M9.
 
 Acceptance: the first screen prioritizes balance and holdings, with financial meaning and freshness still clear. No synthetic metrics or additional polling.
+
+M8 preserves the existing requests and scheduling. The Quote details control reveals per-holding source, original timestamp and currency alongside the distinct summary timestamp. Metadata is outside the instrument action so assistive technology can read it separately. Coverage exceptions and refresh failures remain visible while collapsed. No cloud/native build was needed. The user authorized M9 next.
 
 ### M9: Watchlists redesign
 
@@ -265,7 +269,7 @@ Depends on M7-M11 acceptance.
 
 Acceptance: a reviewed, consistent Delta-inspired Worthfolio build that retains the hosted read-only/authentication contract and works independently of the development computer.
 
-Roadmap status: M6 is committed; M7 is user-accepted; M8 is authorized next. M8-M12 have not been completed. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
+Roadmap status: M6 is committed; M7 is committed; M8 is user-accepted; M9 is authorized next. M9-M12 have not been completed. Execute and commit one accepted milestone at a time, preserving the user's pause workflow.
 
 ## Deferred features
 

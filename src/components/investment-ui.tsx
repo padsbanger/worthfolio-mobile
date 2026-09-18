@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import type { ReactNode } from 'react';
 import { CompanyLogo } from './CompanyLogo';
 import { colors, sizing, spacing, typography } from '../theme/theme';
 
@@ -20,24 +21,30 @@ export function PortfolioOverview({ account, balance, currency, pnl, invested, d
   </View>;
 }
 
-export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change, changeLabel, direction, subtitle, onPress }: {
+export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change, changeLabel, direction, subtitle, metadata, onPress }: {
   symbol: string; name: string; logoUrl?: string | null; logoFallbackUrl?: string | null;
-  value: string; change: string; changeLabel: string; direction?: 'positive' | 'negative'; subtitle: string; onPress?: () => void;
+  value: string; change: string; changeLabel: string; direction?: 'positive' | 'negative'; subtitle: string; metadata?: ReactNode; onPress?: () => void;
 }) {
+  const { width, fontScale } = useWindowDimensions();
+  const stacked = width / fontScale < 300 || value.length > 16 || change.length > 16;
   const content = <>
-    <View style={local.assetTop}>
+    <View style={[local.assetTop, stacked && { flexWrap: 'wrap' }]}>
       <CompanyLogo symbol={symbol} logoUrl={logoUrl} logoFallbackUrl={logoFallbackUrl} size={sizing.logo} />
       <View style={local.identity}><Text style={local.name}>{name}</Text><Text style={local.label}>{symbol}</Text></View>
-      <View style={local.amount}><Text style={local.value}>{value}</Text>
+      <View style={[local.amount, stacked && { flexBasis: '100%', flexGrow: 0, alignItems: 'flex-start' }]}><Text style={local.value}>{value}</Text>
         <Text style={[local.change, direction && { color: colors[direction] }]}>{change}</Text>
         <Text style={local.caption}>{changeLabel}</Text>
       </View>
     </View>
     <Text style={local.caption}>{subtitle}</Text>
   </>;
-  return onPress ? <Pressable accessibilityRole="button" accessibilityLabel={`Open ${name}`}
-    onPress={onPress} style={({ pressed }) => [local.asset, pressed && { backgroundColor: colors.surface }]}>{content}</Pressable>
-    : <View style={local.asset}>{content}</View>;
+  return <View style={local.asset}>
+    {onPress ? <Pressable accessibilityRole="button" accessibilityLabel={`Open ${name}`}
+      accessibilityHint={`${symbol}. Value ${value}. ${changeLabel} ${change}. ${subtitle}. Opens instrument details.`}
+      onPress={onPress} style={({ pressed }) => [local.assetAction, pressed && { backgroundColor: colors.surface }]}>{content}</Pressable>
+      : content}
+    {metadata}
+  </View>;
 }
 
 const local = StyleSheet.create({
@@ -50,6 +57,7 @@ const local = StyleSheet.create({
   value: { ...typography.metric, color: colors.text },
   change: { ...typography.label, fontVariant: ['tabular-nums'], color: colors.muted },
   asset: { minHeight: sizing.touch, paddingVertical: spacing.section, gap: spacing.tight, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  assetAction: { minHeight: sizing.touch, gap: spacing.tight },
   assetTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.small },
   identity: { flex: 1, gap: 2 },
   name: { ...typography.body, fontWeight: '600', color: colors.text },

@@ -1,33 +1,33 @@
-import { CompanyLogo } from '../components/CompanyLogo';
+import { useState } from 'react';
+import { AssetRow, PortfolioOverview } from '../components/investment-ui';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useBootstrap, useData, usePortfolioRefresh } from '../api/data';
 import type { Position } from '../api/contracts';
-import { Card, DataNotice, Label, RefreshHint, Status, styles } from '../components/ui';
+import { DataNotice, Label, RefreshHint, Status, styles } from '../components/ui';
 import { money, number, positionValues, ticker, timestamp } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
-import { colors, spacing } from '../theme/theme';
+import { colors, sizing, spacing } from '../theme/theme';
 
-export function HoldingRow({ position, currency }: { position: Position; currency: string }) {
+export function HoldingRow({ position, currency, showDetails = false }: { position: Position; currency: string; showDetails?: boolean }) {
   const values = positionValues(position, position.lastPrice, currency);
-  return <Pressable accessibilityRole="button" accessibilityLabel={`Open ${position.name || position.symbol}`}
-    onPress={() => router.push({ pathname: '/instrument', params: { symbol: position.symbol } })}
-    style={({ pressed }) => [local.holding, pressed && { backgroundColor: colors.surface }]}>
-    <View style={local.asset}>
-      <View style={[styles.row, { gap: 8 }]}><CompanyLogo symbol={position.symbol} logoUrl={position.logoUrl} logoFallbackUrl={position.logoFallbackUrl} />
-        <Text style={[local.ticker, { flexShrink: 1 }]}>{ticker(position.symbol)}</Text></View>
-      <Text style={styles.small}>{number(position.quantity)} units · {position.quantity < 0 ? 'Short' : 'Long'}</Text>
-      <Text style={styles.small}>{money(position.lastPrice, position.currency)} / unit</Text>
-    </View>
-    <View style={local.value}>
-      <Text style={styles.text}>{money(values.value, currency)}</Text>
-      <Text style={{ color: values.pnl == null ? colors.muted : values.pnl >= 0 ? colors.positive : colors.negative }}>
-        {money(values.pnl, currency, true)}
-      </Text>
-      <Text style={styles.small}>{position.quoteSource || 'Last known price'}</Text>
-      <Text style={styles.small}>{timestamp(position.quoteRefreshedAt)}</Text>
-    </View>
-  </Pressable>;
+  const status = [values.value == null ? 'Valuation unavailable' : null,
+    position.stale === true ? 'Stale' : null, position.cached === true ? 'Cached' : null,
+    position.delayed === true ? 'Provider delayed' : null].filter(Boolean).join(' \u00b7 ');
+  return <AssetRow symbol={ticker(position.symbol)} name={position.name || position.symbol}
+    logoUrl={position.logoUrl} logoFallbackUrl={position.logoFallbackUrl}
+    value={money(values.value, currency)} change={money(values.pnl, currency, true)} changeLabel={`Open P&L \u00b7 ${currency}`}
+    direction={values.pnl == null ? undefined : values.pnl >= 0 ? 'positive' : 'negative'}
+    subtitle={`${number(position.quantity)} units \u00b7 ${position.quantity < 0 ? 'Short' : 'Long'} \u00b7 ${money(position.lastPrice, position.currency)} / unit`}
+    metadata={<>
+      {!!status && <Text style={[styles.small, { color: colors.warning }]}>{status}</Text>}
+      {showDetails && <View style={local.quoteDetails}>
+        <Text style={styles.small}>Source: {position.quoteSource || 'Last known price'}</Text>
+        <Text style={styles.small}>Quote time: {position.quoteRefreshedAt || 'Time unavailable'}</Text>
+        <Text style={styles.small}>Quote currency: {position.currency} / Values in {currency}</Text>
+      </View>}
+    </>}
+    onPress={() => router.push({ pathname: '/instrument', params: { symbol: position.symbol } })} />;
 }
 
 export function PortfolioScreen() {
@@ -35,45 +35,46 @@ export function PortfolioScreen() {
   const { online, demo } = useData();
   const refresh = usePortfolioRefresh();
   const pullRefresh = usePullRefresh(refresh.refresh);
+  const [showDetails, setShowDetails] = useState(false);
   const data = result.data;
   const summary = data?.portfolioSummary;
   return <View style={styles.screen}><DataNotice />
     {!data ? <Status title={!online && !demo ? 'Connect to load your portfolio' : result.isError ? 'Portfolio unavailable' : 'Loading your portfolio'}
       message={result.error?.message} loading={result.isPending && (online || demo)} retry={result.isError && (online || demo) ? () => void refresh.refresh() : undefined} />
-      : <FlatList data={data.positions} keyExtractor={p => p.symbol} contentContainerStyle={styles.listContent}
+      : <FlatList data={data.positions} extraData={showDetails} keyExtractor={p => p.symbol} contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={pullRefresh.refreshing} enabled={online || demo} onRefresh={() => void pullRefresh.onRefresh()} tintColor={colors.accent} />}
         ListHeaderComponent={<View style={local.header}>
-          <Label>{data.account.name}</Label>
-          <Card style={styles.compactCard}>
-            <Label>HOLDINGS VALUE · {summary!.currency}</Label>
-            <Text adjustsFontSizeToFit numberOfLines={1} style={local.total}>{money(summary!.value, summary!.currency)}</Text>
-            <Text style={[styles.text, { color: summary!.openPnl >= 0 ? colors.positive : colors.negative }]}>
-              {money(summary!.openPnl, summary!.currency, true)} open P&L
-            </Text>
-            <View style={styles.divider} />
-            <View style={[styles.row, { justifyContent: 'space-between', flexWrap: 'wrap' }]}>
-              <Label>Invested</Label><Text style={styles.text}>{money(summary!.invested, summary!.currency)}</Text>
+          <PortfolioOverview account={data.account.name} balance={money(summary!.value, summary!.currency)} currency={summary!.currency}
+            pnl={money(summary!.openPnl, summary!.currency, true)} invested={money(summary!.invested, summary!.currency)}
+            direction={summary!.openPnl >= 0 ? 'positive' : 'negative'} />
+          <View style={local.freshness}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.small}>{summary!.pricedPositions} of {summary!.totalPositions} holdings valued / {summary!.coverage.toFixed(0)}% coverage</Text>
+              <Text style={styles.small}>Quote time: {timestamp(summary!.asOf)}</Text>
             </View>
-          </Card>
-          <Text style={styles.small}>{summary!.pricedPositions} of {summary!.totalPositions} holdings valued · {summary!.coverage.toFixed(0)}% coverage{ '\n' }
-            Quote time: {timestamp(summary!.asOf)}
-          </Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Quote details" accessibilityState={{ expanded: showDetails }}
+              onPress={() => setShowDetails(value => !value)} style={local.detailsButton}>
+              <Text style={local.detailsLabel}>{showDetails ? 'Hide details' : 'Quote details'}</Text>
+            </Pressable>
+          </View>
+          {showDetails && <Text style={styles.small}>Summary timestamp: {summary!.asOf || 'Time unavailable'}. Each holding has its own quote timestamp below.</Text>}
           {summary!.coverage < 100 && <Text style={[styles.small, { color: colors.warning }]}>Partial valuation: some prices or currency conversions are unavailable.</Text>}
           {(result.isError || refresh.error) && <RefreshHint busy={refresh.refreshing}
             retry={online || demo ? () => void refresh.refresh() : undefined} />}
+          <View style={styles.divider} />
           <View style={{ gap: spacing.tight }}>
             <Text accessibilityRole="header" style={styles.sectionHeading}>Your holdings</Text>
             <Label>Value and open P&L in {data.account.baseCurrency}</Label>
           </View>
         </View>}
-        ItemSeparatorComponent={() => <View style={styles.divider} />}
         ListEmptyComponent={<Status title="No open holdings" message="Holdings added in Worthfolio will appear here." />}
-        renderItem={({ item }) => <HoldingRow position={item} currency={data.account.baseCurrency} />} />}
+        renderItem={({ item }) => <HoldingRow position={item} currency={data.account.baseCurrency} showDetails={showDetails} />} />}
   </View>;
 }
 const local = StyleSheet.create({
-  header: { gap: spacing.small, marginBottom: spacing.small }, total: { fontSize: 34, fontWeight: '700', color: colors.text, letterSpacing: -1 },
-  holding: { minHeight: 88, flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.section, gap: 10 },
-  asset: { flex: 1, gap: spacing.tight }, ticker: { fontWeight: '700', color: colors.text, fontSize: 17 },
-  value: { flex: 1, alignItems: 'flex-end', gap: spacing.tight },
+  header: { gap: spacing.small, marginBottom: spacing.tight },
+  freshness: { flexDirection: 'row', alignItems: 'center', gap: spacing.small, flexWrap: 'wrap' },
+  detailsButton: { minHeight: sizing.touch, minWidth: sizing.touch, maxWidth: '45%', justifyContent: 'center' },
+  detailsLabel: { ...styles.small, color: colors.accent },
+  quoteDetails: { gap: 2, paddingTop: spacing.tight },
 });
