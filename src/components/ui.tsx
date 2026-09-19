@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
   heading: { ...typography.title, color: colors.text },
   label: { ...typography.label, color: colors.muted },
   text: { ...typography.body, color: colors.text, fontVariant: ['tabular-nums'] },
-  small: { ...typography.caption, color: colors.muted },
+  small: { ...typography.caption, color: colors.muted, fontVariant: ['tabular-nums'] },
   card: { padding: 20, borderRadius: shape.card, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 8 },
   button: { minHeight: sizing.touch, paddingVertical: 14, paddingHorizontal: 18, backgroundColor: colors.accent, borderRadius: shape.control, alignItems: 'center', justifyContent: 'center' },
   secondary: { backgroundColor: colors.elevated },

@@ -37,18 +37,18 @@ export function PortfolioOverview({ balance, currency, pnl, invested, direction 
       <Text style={local.eyebrow}>PORTFOLIO VALUE</Text>
       <View style={local.currencyBadge}><Text style={local.currency}>{currency}</Text></View>
     </View>
-    <Text style={[local.balance, compact && local.compactBalance]}>{balanceText}</Text>
+    <Text adjustsFontSizeToFit minimumFontScale={0.72} numberOfLines={1} style={[local.balance, compact && local.compactBalance]}>{balanceText}</Text>
     <View style={local.metrics}>
       <View style={local.metric}>
         <Text style={local.label}>Open P&L</Text>
         <View style={[local.pnlBadge, { backgroundColor: `${tone}14` }]}>
           <Text accessible={false} importantForAccessibility="no" style={[local.pnlArrow, { color: tone }]}>{!Number.isFinite(pnl) || pnl === 0 ? '\u2014' : direction === 'positive' ? '\u2197' : '\u2198'}</Text>
-          <Text style={[local.value, { color: tone, flexShrink: 1 }]}>{money(displayedPnl, currency, true)}</Text>
+          <Text style={[local.pnlValue, { color: tone }]}>{money(displayedPnl, currency, true)}</Text>
         </View>
       </View>
       <View style={local.metric}>
         <Text style={local.label}>Invested</Text>
-        <Text style={[local.value, local.invested]}>{money(displayedInvested, currency)}</Text>
+        <Text style={local.invested}>{money(displayedInvested, currency)}</Text>
       </View>
     </View>
   </View>;
@@ -87,17 +87,18 @@ const local = StyleSheet.create({
   eyebrow: { ...typography.caption, fontWeight: '600', letterSpacing: 1.5, color: colors.muted },
   currencyBadge: { paddingHorizontal: spacing.small, paddingVertical: 2, borderRadius: 6, backgroundColor: `${colors.accent}14` },
   currency: { ...typography.caption, fontWeight: '600', color: colors.accent },
-  balance: { ...typography.balance, fontSize: 40, lineHeight: 50, color: colors.text, marginBottom: spacing.small },
-  compactBalance: { fontSize: 30, lineHeight: 40 },
+  balance: { ...typography.balance, fontSize: 44, lineHeight: 54, color: colors.text, marginBottom: spacing.small },
+  compactBalance: { fontSize: 34, lineHeight: 42 },
   metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.section, paddingTop: spacing.section, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  pnlBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: spacing.tight, paddingHorizontal: spacing.small, paddingVertical: spacing.tight, borderRadius: 8 },
-  pnlArrow: { ...typography.metric },
-  invested: { paddingVertical: spacing.tight },
+  pnlBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: spacing.tight, paddingHorizontal: spacing.small, paddingVertical: 2, borderRadius: 8 },
+  pnlArrow: { ...typography.label, fontWeight: '600' },
+  pnlValue: { ...typography.metric, fontSize: 15, lineHeight: 22, flexShrink: 1, fontVariant: ['tabular-nums'] },
+  invested: { ...typography.label, paddingVertical: spacing.tight, fontVariant: ['tabular-nums'], color: colors.muted },
   metric: { flexGrow: 1, flexBasis: 130, gap: spacing.tight },
   label: { ...typography.label, color: colors.muted },
   caption: { ...typography.caption, color: colors.muted },
-  value: { ...typography.metric, color: colors.text },
-  change: { ...typography.label, fontVariant: ['tabular-nums'], color: colors.muted },
+  value: { ...typography.metric, color: colors.text, textAlign: 'right' },
+  change: { ...typography.label, fontVariant: ['tabular-nums'], color: colors.muted, textAlign: 'right' },
   asset: { minHeight: sizing.touch, paddingVertical: 10, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   assetAction: { minHeight: sizing.touch, gap: spacing.tight },
   assetTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.small },

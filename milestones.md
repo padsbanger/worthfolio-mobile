@@ -422,12 +422,14 @@ M20-M25 record the user's requested UI improvements; this is roadmap work, not a
 
 ## M20: Portfolio hierarchy and numeric presentation
 
-- [ ] Make portfolio value the dominant header element, Open P&L secondary and Invested quieter, keeping all labels readable and existing summary animations intact.
-- [ ] Standardize tabular digits, amount alignment and precision for prices, percentages and quantities across lists, summary and instrument details. Preserve meaningful tiny prices, currency conventions, signed values and unavailable states.
-- [ ] Review normal and enlarged text, long names, very large balances, small prices, short positions and missing quotes without clipping or losing financial meaning.
-- [ ] Obtain user acceptance and commit.
+- [x] Make portfolio value the dominant header element, Open P&L secondary and Invested quieter, keeping all labels readable and existing summary animations intact.
+- [x] Standardize tabular digits, amount alignment and precision for prices, percentages and quantities across lists, summary and instrument details. Preserve meaningful tiny prices, currency conventions, signed values and unavailable states.
+- [x] Review normal and enlarged text, long names, very large balances, small prices, short positions and missing quotes without clipping or losing financial meaning.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: the portfolio header is easy to scan and numeric presentation is consistent without changing underlying values or misleading rounding.
+
+Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. In the existing development client, live Portfolio was checked at normal and 130% Android text scale: the enlarged balance remains the primary header figure; P&L, Invested, long names, unavailable quotes and full row amounts remain readable. The shared formatter now retains up to six fractional digits for non-zero sub-cent prices while keeping standard amounts, GBX conversion, signs and unavailable states intact. Captures are ignored in `artifacts/m20-normal.png` and `artifacts/m20-large.png`. The emulator font scale was restored and read back as 1.0. No backend, native dependency, APK or cloud build change was made. Physical-phone review remains unverified; Android TalkBack is excluded at the user's request. The user accepted M20 with "looks good. commit and work on next milestone".
 
 ## M21: List toolbar and shared interaction polish
 

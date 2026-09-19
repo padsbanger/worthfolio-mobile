@@ -2,7 +2,7 @@ import { bootstrapSchema, marketSchema } from '../api/contracts';
 import { sampleBootstrap, sampleMarket } from '../fixtures/portfolio';
 import { chartGeometry, nearestPoint } from '../lib/chart';
 import { parseServerUrl } from '../lib/config';
-import { positionValues, money } from '../lib/format';
+import { positionValues, money, percent } from '../lib/format';
 
 test('only HTTPS origins without credentials, paths, or query strings are accepted', () => {
   expect(parseServerUrl('https://worthfolio.pripyat.cloud/').url).toBe('https://worthfolio.pripyat.cloud');
@@ -27,6 +27,9 @@ test('position displays preserve short signs, GBX scaling, and missing conversio
   expect(positionValues({ symbol: 'X', quantity: 10, lastPrice: null, currency: 'USD' }).value).toBeNull();
   expect(money(null)).toBe('Unavailable');
   expect(money(0)).toBe('$0.00');
+  expect(money(0.000123, 'USD')).toBe('$0.000123');
+  expect(money(0.000123, 'GBX')).toBe('£0.000001');
+  expect(percent(Number.NaN)).toBe('Unavailable');
 });
 
 test('missing FX is only one-to-one when the normalized quote currency matches the account currency', () => {
