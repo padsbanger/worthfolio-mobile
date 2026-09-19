@@ -469,13 +469,15 @@ Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. Portfol
 
 ## M24: Account screen organization
 
-- [ ] Group supported appearance and display preferences separately from account and session information; keep version/build details at the bottom.
-- [ ] Use consistent section spacing, action wording and control styles; make sign-out easy to identify without dominating routine preferences.
-- [ ] Preserve preference scope and session behavior; do not add decorative controls for settings that are not implemented.
-- [ ] Review normal/enlarged text, narrow layouts and navigation.
-- [ ] Obtain user acceptance and commit.
+- [x] Group supported appearance and display preferences separately from account and session information; keep version/build details at the bottom.
+- [x] Use consistent section spacing, action wording and control styles; make sign-out easy to identify without dominating routine preferences.
+- [x] Preserve preference scope and session behavior; do not add decorative controls for settings that are not implemented.
+- [x] Review normal/enlarged text, narrow layouts and navigation.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: Account clearly separates display preferences, session actions and application information with no change to authentication behavior.
+
+Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. Account now groups account details, Home screen widget preferences, Session action/explanation, development-only preview and app version in that order. The existing widget capability messaging, signed-in identity, read-only server label and sign-out callback are unchanged. Android captures at normal and 130% text show the sections and long session explanation wrapping without clipping; the emulator text scale was restored and read back as 1.0. Captures are ignored in `artifacts/m24-*.png`. No backend, native dependency, APK or cloud build change was made. Physical-phone review remains unverified; Android TalkBack is excluded at the user's request. The user accepted M24 with "looks good. commit and work on next milestone".
 
 ## M25: Cross-screen visual cleanup and device review
 
