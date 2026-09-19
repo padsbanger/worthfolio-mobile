@@ -3,7 +3,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useBootstrap, useData, useListMarkets, usePortfolioRefresh } from '../api/data';
 import type { Market, Position } from '../api/contracts';
-import { DataNotice, Label, ListSkeleton, RefreshHint, Status, styles } from '../components/ui';
+import { DataNotice, Label, ListSkeleton, Status, styles } from '../components/ui';
 import { money, number, percent, positionValues, ticker } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
 import { ExtendedQuote, extendedQuoteDescription } from '../components/ExtendedQuote';
@@ -49,7 +49,8 @@ export function PortfolioScreen() {
   const pullRefresh = usePullRefresh(async () => {
     await Promise.all([refresh.refresh(), ...(view.period === '1W' ? [...markets.values()].map(m => m.refetch({ cancelRefetch: false })) : [])]);
   });
-  return <View style={styles.screen}><DataNotice />
+  return <View style={styles.screen}><DataNotice refreshError={!!data && (result.isError || !!refresh.error)} busy={refresh.refreshing}
+    retry={online || demo ? () => void refresh.refresh() : undefined} />
     {!data ? result.isPending && (online || demo) ? <ListSkeleton label="Loading portfolio" rows={3} overview /> : <Status title={!online && !demo ? 'Connect to load your portfolio' : result.isError ? 'Portfolio unavailable' : 'Loading your portfolio'}
       message={result.error?.message} loading={result.isPending && (online || demo)} retry={result.isError && (online || demo) ? () => void refresh.refresh() : undefined} />
       : <FlatList key={`${view.sort}:${view.period}`} data={positions} keyExtractor={p => p.symbol} contentContainerStyle={styles.listContent}
@@ -59,8 +60,6 @@ export function PortfolioScreen() {
           <PortfolioOverview balance={summary!.value} currency={summary!.currency}
             pnl={summary!.openPnl} invested={summary!.invested}
             direction={summary!.openPnl >= 0 ? 'positive' : 'negative'} />
-          {(result.isError || refresh.error) && <RefreshHint busy={refresh.refreshing}
-            retry={online || demo ? () => void refresh.refresh() : undefined} />}
           <View style={{ gap: spacing.tight }}>
             <Text accessibilityRole="header" style={styles.sectionHeading}>Your holdings</Text>
             <Label>Value in {data.account.baseCurrency} / Price change %</Label>

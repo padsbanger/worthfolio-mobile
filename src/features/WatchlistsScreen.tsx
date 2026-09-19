@@ -4,7 +4,7 @@ import { WatchlistPicker } from '../components/WatchlistPicker';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useBootstrap, useData, useListMarkets, usePortfolioRefresh, useVisibleWatchlist, useWatchlists } from '../api/data';
-import { AssetRowSkeleton, DataNotice, ListSkeleton, RefreshHint, Status, styles } from '../components/ui';
+import { AssetRowSkeleton, DataNotice, ListSkeleton, Status, styles } from '../components/ui';
 import { money, percent, ticker, timestamp } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
 import { colors, sizing, spacing } from '../theme/theme';
@@ -76,7 +76,8 @@ export function WatchlistsScreen() {
     await Promise.all([refresh.refresh(), ...(view.period === '1W' ? [...markets.values()].map(m => m.refetch({ cancelRefetch: false })) : [])]);
   };
   const pullRefresh = usePullRefresh(reload);
-  return <View style={styles.screen}><DataNotice />
+  return <View style={styles.screen}><DataNotice refreshError={!!data && (result.isError || !!refresh.error)} busy={result.isFetching || refresh.refreshing}
+    retry={online || demo ? () => void reload() : undefined} />
     {initialLoading ? <ListSkeleton label="Loading watchlists" rows={3} /> : <>
     <View style={{ paddingHorizontal: spacing.screen, paddingTop: spacing.section, gap: spacing.small }}>
       <WatchlistPicker lists={lists} selectedId={current?.id} onSelect={select} />
@@ -93,11 +94,10 @@ export function WatchlistsScreen() {
             <Text style={[styles.small, { color: colors.accent }]}>{showDetails ? 'Hide details' : 'Quote details'}</Text>
           </Pressable>
         </View>
-        {data && (result.isError || refresh.error) && <RefreshHint busy={result.isFetching || refresh.refreshing}
-          retry={online || demo ? () => void reload() : undefined} />}
       </View>}
       ListEmptyComponent={result.isError && !data ? <Status title="Watchlists unavailable" message={result.error?.message}
         retry={online || demo ? () => void reload() : undefined} /> : <Status title={!online && !demo && !data ? 'Connect to load watchlists' : result.isPending && !data ? 'Loading watchlists' : current ? 'This list is empty' : 'No watchlists yet'}
+        message={current ? 'Choose another watchlist or add instruments in Worthfolio.' : 'Create watchlists in Worthfolio to follow instruments here.'}
         loading={!data && result.isPending && (online || demo)} />}
       renderItem={({ item }) => <WatchRow symbol={item} showDetails={showDetails} period={view.period} data={quotes.get(item)?.data} changeData={markets.get(item)?.data} isError={quotes.get(item)?.isError || markets.get(item)?.isError} loading={quotes.get(item)?.isFetching === true && !quotes.get(item)?.data} currency={currency}
         sortPrice={view.sort.startsWith('price') ? baseUnitPrice(quotes.get(item)?.data?.lastPrice, quotes.get(item)?.data?.currency || '', rates) : undefined} />} />

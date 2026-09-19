@@ -37,12 +37,17 @@ export function ListSkeleton({ label, rows = 3, overview = false }: { label: str
     {Array.from({ length: rows }, (_, index) => <AssetRowSkeleton key={index} label={`${label}, row ${index + 1}`} />)}
   </View>;
 }
-export function DataNotice() {
+export function DataNotice({ refreshError = false, retry, busy = false }: { refreshError?: boolean; retry?: () => void; busy?: boolean }) {
   const { demo, online } = useData();
-  if (!demo && online) return null;
-  return <View style={styles.notice}><Text style={styles.noticeText}>
-    {demo ? 'SAMPLE DATA · Development preview' : 'Offline · Showing loaded data when available'}
-  </Text></View>;
+  const message = !online ? 'Offline · Showing loaded data when available' : refreshError ? 'Updates delayed'
+    : demo ? 'SAMPLE DATA · Development preview' : null;
+  if (!message) return null;
+  return <View style={styles.notice} accessibilityLiveRegion="polite"><Text style={styles.noticeText}>{message}</Text>
+    {refreshError && retry && online && <Pressable accessibilityRole="button" accessibilityLabel="Retry refresh"
+      accessibilityState={{ disabled: busy }} disabled={busy} onPress={retry} style={styles.noticeRetry}>
+      <Text style={styles.noticeRetryText}>{busy ? 'Retrying…' : 'Retry'}</Text>
+    </Pressable>}
+  </View>;
 }
 export function RefreshHint({ retry, busy }: { retry?: () => void; busy?: boolean }) {
   return <View style={styles.refreshHint}>
@@ -75,8 +80,10 @@ export const styles = StyleSheet.create({
   status: { padding: 28, gap: 16, alignItems: 'center' },
   statusTitle: { color: colors.text, fontSize: 19, fontWeight: '600', textAlign: 'center' },
   description: { color: colors.muted, fontSize: 15, lineHeight: 23, textAlign: 'center' },
-  notice: { backgroundColor: colors.elevated, paddingVertical: 10, paddingHorizontal: 20 },
-  noticeText: { color: colors.warning, fontSize: 12, lineHeight: 18 },
+  notice: { minHeight: sizing.touch, flexDirection: 'row', alignItems: 'center', gap: spacing.small, backgroundColor: colors.elevated, paddingLeft: spacing.screen, paddingRight: spacing.tight },
+  noticeText: { flex: 1, color: colors.warning, fontSize: 12, lineHeight: 18 },
+  noticeRetry: { minHeight: sizing.touch, minWidth: sizing.touch, alignItems: 'center', justifyContent: 'center' },
+  noticeRetryText: { color: colors.accent, fontSize: 12, lineHeight: 18, fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   divider: { height: 1, backgroundColor: colors.border },
   input: { backgroundColor: colors.surface, color: colors.text, borderWidth: 1, borderColor: colors.border, borderRadius: shape.control, paddingHorizontal: 16, minHeight: 52, fontSize: 16 },

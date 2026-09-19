@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { chartRanges, type ChartRange } from '../api/contracts';
 import { useBootstrap, useData, useMarket } from '../api/data';
-import { DataNotice, Heading, Label, RefreshHint, Status, styles } from '../components/ui';
+import { DataNotice, Heading, Label, Status, styles } from '../components/ui';
 import { PriceChart } from '../components/PriceChart';
 import { money, number, percent, positionValues, ticker, timestamp } from '../lib/format';
 import { Metric } from '../components/investment-ui';
@@ -30,7 +30,8 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
   // A provider's currency change must not reinterpret the holding's cost basis/FX.
   const values = position ? positionValues(position, data?.currency === position.currency ? data.lastPrice ?? position.lastPrice : position.lastPrice, bootstrap.data?.account.baseCurrency) : null;
   if (!symbol) return <View style={styles.screen}><Status title="Instrument unavailable" message="Go back and select an instrument." /></View>;
-  return <View style={styles.screen}><Stack.Screen options={{ title: ticker(symbol) }} /><DataNotice />
+  return <View style={styles.screen}><Stack.Screen options={{ title: ticker(symbol) }} /><DataNotice refreshError={!!data && result.isError} busy={result.isFetching}
+    retry={demo || (online && active) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />
     <ScrollView contentContainerStyle={[styles.detailContent, { paddingBottom: spacing.bottom + insets.bottom }]}>
       <View style={styles.row}>
         <CompanyLogo symbol={symbol} logoUrl={data?.logoUrl ?? position?.logoUrl} logoFallbackUrl={data?.logoFallbackUrl ?? position?.logoFallbackUrl} size={40} />
@@ -52,7 +53,6 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
         <Status title={result.isFetching ? 'Loading price history' : 'Price history unavailable'} loading={result.isFetching}
           message={result.error?.message} retry={result.isError && (demo || (online && active)) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}</View>
       {range === 'ALL' && <Text style={styles.small}>Available provider history; the dates shown may not cover the instrument’s full lifetime.</Text>}
-      {data && result.isError && <RefreshHint busy={result.isFetching} retry={demo || (online && active) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}
       {data && <View style={local.quoteDetails}>
         <Text style={local.sectionHeading}>Quote details</Text>
         <View style={local.metadataHeader}>

@@ -457,13 +457,15 @@ Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. The scr
 
 ## M23: Status messages and empty states
 
-- [ ] Consolidate offline, stale and refresh information into one compact status area per screen, with clear precedence when multiple conditions apply. Preserve material partial-data warnings and session-expiry handling.
-- [ ] Keep background refresh quiet and manual refresh feedback explicit, retaining useful cached content and the correct retry action.
-- [ ] Give each empty state a specific explanation and an available next action, such as Search or selecting another watchlist. Distinguish empty portfolios/lists from failed or unavailable data; do not imply unsupported mobile editing.
-- [ ] Check loading-to-loaded transitions for shifting controls, rows or amounts and fix observed jumps without repeating the completed loading milestone unnecessarily.
-- [ ] Obtain user acceptance and commit.
+- [x] Consolidate offline, stale and refresh information into one compact status area per screen, with clear precedence when multiple conditions apply. Preserve material partial-data warnings and session-expiry handling.
+- [x] Keep background refresh quiet and manual refresh feedback explicit, retaining useful cached content and the correct retry action.
+- [x] Give each empty state a specific explanation and an available next action, such as Search or selecting another watchlist. Distinguish empty portfolios/lists from failed or unavailable data; do not imply unsupported mobile editing.
+- [x] Check loading-to-loaded transitions for shifting controls, rows or amounts and fix observed jumps without repeating the completed loading milestone unnecessarily.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: users can understand data freshness, failures and empty content at a glance without competing banners or blanking usable data.
+
+Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. Portfolio, Watchlists and Instrument now pass their retained-data refresh errors into the shared top-of-screen notice, so Offline takes precedence, delayed updates retain values with one Retry action, and initial unavailable states remain their existing full-page recovery states. Watchlist empty states now explain whether the selected list is empty or no lists exist, without adding unsupported mobile editing. Existing tests cover offline cached values, initial loading placeholders, empty/failure distinctions, retry and preserved quote/history behavior. An Android emulator airplane-mode check showed the compact Offline notice above cached Portfolio data; network was restored afterwards. Capture is ignored in `artifacts/m23-offline.png`; font scale remains 1.0. No backend, native dependency, APK or cloud build change was made. Physical-phone review remains unverified; Android TalkBack is excluded at the user's request. The user accepted M23 with "looks good. commit and work on next milestone".
 
 ## M24: Account screen organization
 
