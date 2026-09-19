@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { chartGeometry, nearestPoint, type ChartPoint, type Observation } from '../lib/chart';
 import { money, timestamp } from '../lib/format';
@@ -13,7 +13,7 @@ export function PriceChart({ observations, currency }: { observations: Observati
   const inspected = selected && geometry.points.find(p => p.time === selected.time) || geometry.points.at(-1);
   if (!geometry.points.length) return <Text style={styles.label}>No real price history is available for this range.</Text>;
   return <View style={{ gap: spacing.small }}>
-    <View><Text style={styles.text} accessibilityLiveRegion="polite">{money(inspected?.close, currency)}</Text>
+    <View style={local.inspection}><Text style={local.inspectionLabel}>INSPECTED CLOSE</Text><Text style={styles.text} accessibilityLiveRegion="polite">{money(inspected?.close, currency)}</Text>
       <Text style={styles.small}>{timestamp(inspected?.time, true)}</Text></View>
     <View onLayout={event => setWidth(event.nativeEvent.layout.width)} accessible accessibilityRole="adjustable"
       accessibilityLabel="Price history" accessibilityValue={{ text: `${money(inspected?.close, currency)}, ${timestamp(inspected?.time, true)}` }}
@@ -43,3 +43,8 @@ export function PriceChart({ observations, currency }: { observations: Observati
     <Text style={styles.small}>Touch the chart to inspect a price.</Text>
   </View>;
 }
+
+const local = StyleSheet.create({
+  inspection: { gap: 2, padding: spacing.section, borderRadius: 12, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  inspectionLabel: { ...styles.small, fontWeight: '600', letterSpacing: 1, color: colors.muted },
+});

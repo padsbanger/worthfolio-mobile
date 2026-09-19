@@ -36,14 +36,16 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
         <CompanyLogo symbol={symbol} logoUrl={data?.logoUrl ?? position?.logoUrl} logoFallbackUrl={data?.logoFallbackUrl ?? position?.logoFallbackUrl} size={40} />
         <View style={{ flex: 1 }}><Label>{symbol}</Label><Heading>{data?.name || position?.name || ticker(symbol)}</Heading></View>
       </View>
-      <View style={{ gap: spacing.tight }}>
+      <View style={local.priceSection}>
+      <Text style={local.sectionHeading}>Price</Text>
+      <View style={local.priceSummary}>
       <Text style={local.price}>{money(data?.lastPrice, data?.currency)}</Text>
       <Text style={[styles.label, { color: change == null ? colors.muted : change >= 0 ? colors.positive : colors.negative }]}>{percent(change)} daily change</Text>
       <Text style={styles.small}>{data?.currency === 'GBX' ? 'GBP · converted from GBX' : data?.currency || 'Currency unavailable'}</Text>
-      </View>
+      </View></View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={local.ranges}>
         {chartRanges.map(item => <Pressable key={item} accessibilityRole="button" accessibilityLabel={`${item} price history`} accessibilityState={{ selected: range === item }}
-          onPress={() => setRange(item)} style={[local.range, range === item && local.selectedRange]}>
+          onPress={() => setRange(item)} style={({ pressed }) => [local.range, range === item && local.selectedRange, pressed && local.pressed]}>
           <Text style={[local.rangeText, range === item && { color: colors.accent }]}>{item}</Text></Pressable>)}
       </ScrollView>
       <View>{data ? <PriceChart key={`${symbol}:${range}`} observations={data.candles} currency={data.currency} /> :
@@ -51,7 +53,8 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
           message={result.error?.message} retry={result.isError && (demo || (online && active)) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}</View>
       {range === 'ALL' && <Text style={styles.small}>Available provider history; the dates shown may not cover the instrument’s full lifetime.</Text>}
       {data && result.isError && <RefreshHint busy={result.isFetching} retry={demo || (online && active) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}
-      {data && <View style={local.metadata}>
+      {data && <View style={local.quoteDetails}>
+        <Text style={local.sectionHeading}>Quote details</Text>
         <View style={local.metadataHeader}>
           <View style={local.freshness}>
             <Text style={styles.small}>{timestamp(data.refreshedAt)}</Text>
@@ -60,8 +63,8 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
             </Text>}
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="Quote details" accessibilityState={{ expanded: showDetails }}
-            onPress={() => setShowDetails(value => !value)} style={local.detailsButton}>
-            <Text style={[styles.small, { color: colors.accent }]}>{showDetails ? 'Hide details' : 'Quote details'}</Text>
+            onPress={() => setShowDetails(value => !value)} style={({ pressed }) => [local.detailsButton, pressed && local.pressed]}>
+            <Text style={[styles.small, { color: colors.accent }]}>{showDetails ? 'Hide details' : 'Show details'}</Text>
           </Pressable>
         </View>
         {showDetails && <View style={{ gap: spacing.tight }}>
@@ -86,11 +89,15 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
 
 const local = StyleSheet.create({
   price: { ...typography.balance, color: colors.text },
-  ranges: { flexGrow: 1, justifyContent: 'space-between', gap: spacing.tight },
+  sectionHeading: { ...typography.section, color: colors.text },
+  priceSection: { gap: spacing.small },
+  priceSummary: { gap: spacing.tight, padding: spacing.section, borderRadius: 12, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  ranges: { flexGrow: 1, justifyContent: 'space-between', gap: spacing.tight, padding: spacing.tight, borderRadius: 14, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   range: { minWidth: sizing.touch, minHeight: sizing.touch, paddingHorizontal: spacing.small, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  selectedRange: { backgroundColor: colors.elevated },
+  selectedRange: { backgroundColor: `${colors.accent}1F`, borderWidth: StyleSheet.hairlineWidth, borderColor: `${colors.accent}66` },
   rangeText: { ...typography.label, fontWeight: '600', color: colors.muted },
-  metadata: { gap: spacing.tight },
+  pressed: { opacity: 0.72 },
+  quoteDetails: { gap: spacing.tight, paddingTop: spacing.section, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   metadataHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.small },
   freshness: { flex: 1, gap: spacing.tight },
   detailsButton: { minHeight: sizing.touch, minWidth: sizing.touch, justifyContent: 'center' },

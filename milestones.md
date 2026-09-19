@@ -445,13 +445,15 @@ Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. `ListCo
 
 ## M22: Instrument details and chart inspection
 
-- [ ] Organize instrument details into Price, Your position and Quote details with a clear visual hierarchy; keep technical metadata collapsed by default and retain visible stale/unavailable indicators.
-- [ ] Place the inspected chart date and price in a stable area above the chart so inspection does not obscure the price line or cause layout jumps.
-- [ ] Preserve chart ranges, actual observation dates, currency meaning, sparse/empty history handling and existing inspection controls.
-- [ ] Review held and unheld instruments, long names, large/small prices, normal/enlarged text and navigation back to the originating list.
-- [ ] Obtain user acceptance and commit.
+- [x] Organize instrument details into Price, Your position and Quote details with a clear visual hierarchy; keep technical metadata collapsed by default and retain visible stale/unavailable indicators.
+- [x] Place the inspected chart date and price in a stable area above the chart so inspection does not obscure the price line or cause layout jumps.
+- [x] Preserve chart ranges, actual observation dates, currency meaning, sparse/empty history handling and existing inspection controls.
+- [x] Review held and unheld instruments, long names, large/small prices, normal/enlarged text and navigation back to the originating list.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: price and position information is easy to distinguish, and chart inspection remains legible without obscuring data or changing financial calculations.
+
+Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. The screen now labels the Price, Quote details and Your position sections; quote provenance remains collapsed, while an `INSPECTED CLOSE` panel holds the chart's selected price and timestamp above the graph. Chart ranges, observation handling and existing touch/accessibility inspection are unchanged. Live checks covered a held BTC position plus an unheld iShares Physical Gold ETC instrument with its long name, loaded chart and delayed-quote status; an enlarged-text check kept the Price card, range controls and short/long position figures readable while loading or unavailable states retained their explicit meaning. Captures are ignored in `artifacts/m22-*.png`. The emulator's text scale was restored and read back as 1.0. No backend, native dependency, APK or cloud build change was made. Physical-phone review remains unverified; Android TalkBack is excluded at the user's request. The user accepted M22 with "looks good. commit and work on next milestone".
 
 ## M23: Status messages and empty states
 
