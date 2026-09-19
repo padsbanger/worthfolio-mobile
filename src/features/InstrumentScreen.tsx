@@ -26,6 +26,7 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
   const insets = useSafeAreaInsets();
   const data = result.data;
   const position = bootstrap.data?.positions.find(p => p.symbol === symbol);
+  const trades = bootstrap.data?.trades.filter(trade => trade.symbol === symbol) ?? [];
   const change = data?.lastPrice != null && data.previousClose != null && data.previousClose > 0 ? (data.lastPrice / data.previousClose - 1) * 100 : null;
   // A provider's currency change must not reinterpret the holding's cost basis/FX.
   const values = position ? positionValues(position, data?.currency === position.currency ? data.lastPrice ?? position.lastPrice : position.lastPrice, bootstrap.data?.account.baseCurrency) : null;
@@ -38,8 +39,8 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
         <View style={{ flex: 1 }}><Label>{symbol}</Label><Heading>{data?.name || position?.name || ticker(symbol)}</Heading></View>
       </View>
       <View style={local.priceSection}>
-      <Text style={local.sectionHeading}>Price</Text>
       <View style={local.priceSummary}>
+      <Text style={styles.small}>Price</Text>
       <Text style={local.price}>{money(data?.lastPrice, data?.currency)}</Text>
       <Text style={[styles.label, { color: change == null ? colors.muted : change >= 0 ? colors.positive : colors.negative }]}>{percent(change)} daily change</Text>
       <Text style={styles.small}>{data?.currency === 'GBX' ? 'GBP · converted from GBX' : data?.currency || 'Currency unavailable'}</Text>
@@ -49,7 +50,7 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
           onPress={() => setRange(item)} style={({ pressed }) => [local.range, range === item && local.selectedRange, pressed && local.pressed]}>
           <Text style={[local.rangeText, range === item && { color: colors.accent }]}>{item}</Text></Pressable>)}
       </ScrollView>
-      <View>{data ? <PriceChart key={`${symbol}:${range}`} observations={data.candles} currency={data.currency} /> :
+      <View>{data ? <PriceChart key={`${symbol}:${range}`} observations={data.candles} currency={data.currency} trades={trades} /> :
         <Status title={result.isFetching ? 'Loading price history' : 'Price history unavailable'} loading={result.isFetching}
           message={result.error?.message} retry={result.isError && (demo || (online && active)) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}</View>
       {range === 'ALL' && <Text style={styles.small}>Available provider history; the dates shown may not cover the instrument’s full lifetime.</Text>}
@@ -91,7 +92,7 @@ const local = StyleSheet.create({
   price: { ...typography.balance, color: colors.text },
   sectionHeading: { ...typography.section, color: colors.text },
   priceSection: { gap: spacing.small },
-  priceSummary: { gap: spacing.tight, padding: spacing.section, borderRadius: 12, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  priceSummary: { gap: 2 },
   ranges: { flexGrow: 1, justifyContent: 'space-between', gap: spacing.tight, padding: spacing.tight, borderRadius: 14, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   range: { minWidth: sizing.touch, minHeight: sizing.touch, paddingHorizontal: spacing.small, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
   selectedRange: { backgroundColor: `${colors.accent}1F`, borderWidth: StyleSheet.hairlineWidth, borderColor: `${colors.accent}66` },

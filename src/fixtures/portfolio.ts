@@ -10,6 +10,10 @@ export const sampleBootstrap: Bootstrap = {
     { symbol: 'NASDAQ:MSFT', name: 'Microsoft', quantity: 10, avgPrice: 390, lastPrice: 420, currency: 'USD', baseRate: 1, quoteSource: 'Development fixture', quoteRefreshedAt: at },
     { symbol: 'NYSE:VTI', name: 'Vanguard Total Stock Market ETF', quantity: 30, avgPrice: 260, lastPrice: 280, currency: 'USD', baseRate: 1, quoteSource: 'Development fixture', quoteRefreshedAt: at },
   ],
+  trades: [
+    { symbol: 'NASDAQ:AAPL', side: 'buy', time: '2026-09-05T16:00:00Z', price: 198 },
+    { symbol: 'NASDAQ:AAPL', side: 'sell', time: '2026-09-12T16:00:00Z', price: 205 },
+  ],
   portfolioSummary: { value: 16800, invested: 15300, openPnl: 1500, currency: 'USD', pricedPositions: 3, totalPositions: 3, coverage: 100, asOf: at },
   marketData: { selectedRefreshSeconds: 5 },
   watchlists: [

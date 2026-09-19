@@ -22,6 +22,14 @@ test('sparse series uses elapsed time and selects actual observations at the edg
   expect(nearestPoint(geometry.points, 500)?.close).toBe(246.70);
 });
 
+test('price scale aligns with observed extremes and uses one label for flat history', () => {
+  const geometry = chartGeometry(observations, 316, 200);
+  expect(geometry.ticks[0]).toEqual({ value: 271.01, y: geometry.points[0]!.y });
+  expect(geometry.ticks[2]).toEqual({ value: 246.70, y: geometry.points[2]!.y });
+  expect(geometry.ticks[1]!.y).toBeCloseTo(100);
+  expect(chartGeometry(observations.map(p => ({ ...p, close: 10 })), 316, 200).ticks).toEqual([{ value: 10, y: expect.closeTo(100) }]);
+});
+
 test('touch and accessible increment/decrement inspect observations and retain selection after live updates', () => {
   const view = render(<PriceChart observations={observations} currency="USD" />);
   const chart = () => screen.getByRole('adjustable');
@@ -50,4 +58,15 @@ test('absent/invalid history stays unavailable; single and flat history remains 
   const flat = chartGeometry(observations.map(p => ({ ...p, close: 10 })), 300, 200);
   flat.points.forEach(point => expect(point.y).toBeCloseTo(100));
   expect(flat.path).not.toMatch(/NaN|Infinity/);
+});
+
+test('draws buy and sell markers only for trades inside the displayed history', () => {
+  render(<PriceChart observations={observations} currency="USD" trades={[
+    { side: 'buy', time: '2026-01-02T16:00:00Z' },
+    { side: 'sell', time: '2026-01-20T16:00:00Z' },
+    { side: 'buy', time: '2025-12-31T16:00:00Z' },
+  ]} />);
+  expect(screen.getByLabelText('1 buy and 1 sell markers in this chart range')).toBeTruthy();
+  expect(screen.getByText('Buy')).toBeTruthy();
+  expect(screen.getByText('Sell')).toBeTruthy();
 });

@@ -2,8 +2,8 @@ import type { Market, Position } from '../api/contracts';
 
 export const sortOptions = [
   { id: 'default', label: 'Default order' },
-  { id: 'gains', label: 'Biggest gains' },
-  { id: 'losses', label: 'Lowest gains' },
+  { id: 'gains', label: 'Largest price rises' },
+  { id: 'losses', label: 'Largest price falls' },
   { id: 'alpha', label: 'Alphabetical' },
   { id: 'price-high', label: 'Highest price' },
   { id: 'price-low', label: 'Lowest price' },

@@ -491,3 +491,15 @@ Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. Account
 Acceptance: the mobile app has consistent visual hierarchy, controls and terminology, with readable edge-case layouts and documented Android review evidence.
 
 Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. The Watchlist picker now matches the sort sheet's border, selected row and press treatment; Watchlists and Instrument both use Show details / Hide details for quote disclosures. Existing M20-M24 checks cover large balances, tiny prices, unavailable quotes, held/unheld instruments, long names, normal/enlarged text, narrow toolbar wrapping, chart inspection, status transitions, sorting dialog and navigation. This final pass checked the Watchlists picker on Android; capture is ignored in `artifacts/m25-picker.png`. The emulator font scale remains 1.0. Android TalkBack and physical-phone checks remain excluded/unverified at the user's request. No backend, native dependency, APK or cloud build change was made. The user accepted M25 with "looks good. commit and work on next milestone".
+
+## Visual inspection follow-up (2026-09-19)
+
+User requested implementation of the inspection's visual improvements. Implementation is ready for review; acceptance and commit remain pending.
+
+- [x] Compact Instrument's price section and inspected-close panel while retaining financial labels, timestamps and touch inspection.
+- [x] Add native scalable price-axis labels aligned with chart grid lines; use one label for flat/single-point history and preserve GBX display conversion.
+- [x] Remove the duplicate Account heading and collapse the detailed session explanation behind Show details / Hide details.
+- [x] Tighten the shared list-control caption spacing, retain 48-point actions and allow sort labels to wrap; rename percentage sorting to Largest price rises / Largest price falls without changing stored IDs or sorting behavior.
+- [ ] User acceptance and commit.
+
+Verification: TypeScript and ESLint pass; 170 tests in 21 suites pass, including chart-scale alignment/flat-history coverage and updated sort interaction assertions. Existing development-client/Metro emulator checks cover Instrument at normal and 130% text, chart drag inspection, Account disclosure expansion, Portfolio/Watchlists at 130% text, and the renamed sorting dialog/selected label. Captures are ignored in `artifacts/visual-*.png`. Live Watchlists also displayed its existing Updates delayed notice while retaining loaded rows; this visual change does not resolve provider refresh failures. Original font scale 1.0 was restored and read back after app relaunch; display density 420 and size 1080x2424 remain unchanged. Physical-phone validation is unverified; TalkBack remains excluded. No native build, cloud build or backend change was made.

@@ -59,7 +59,7 @@ test('dropdown announces selection and closes after choosing; chips report the s
   const sort = jest.fn(), period = jest.fn();
   render(<ListControls sort="default" period="1D" currency="USD" onSort={sort} onPeriod={period} />);
   fireEvent.press(screen.getByLabelText('Sort assets. Default order'));
-  fireEvent.press(screen.getByLabelText('Biggest gains'));
+  fireEvent.press(screen.getByLabelText('Largest price rises'));
   expect(sort).toHaveBeenCalledWith('gains');
   expect(screen.queryByLabelText('Close sorting')).toBeNull();
   expect(screen.getByLabelText('1D price change')).toBeSelected();
@@ -73,17 +73,17 @@ test('selected controls identify the active view and expose reset only after a l
   expect(screen.getByText('1D price change · previous close')).toBeTruthy();
   expect(screen.queryByLabelText('Reset list view')).toBeNull();
   view.rerender(<ListControls sort="gains" period="1W" currency="USD" onSort={jest.fn()} onPeriod={jest.fn()} onReset={reset} />);
-  expect(screen.getByText('Sort: Biggest gains')).toBeTruthy();
+  expect(screen.getByText('Sort: Largest price rises')).toBeTruthy();
   expect(screen.getByText('1W price change · observed closes')).toBeTruthy();
   fireEvent.press(screen.getByLabelText('Reset list view'));
   expect(reset).toHaveBeenCalledTimes(1);
 });
 test('Android Back closes sorting without changing the local view', () => {
   render(<ListControls sort="gains" period="1D" currency="USD" onSort={jest.fn()} onPeriod={jest.fn()} />);
-  fireEvent.press(screen.getByLabelText('Sort assets. Biggest gains'));
+  fireEvent.press(screen.getByLabelText('Sort assets. Largest price rises'));
   act(() => screen.UNSAFE_getByType(Modal).props.onRequestClose());
   expect(screen.queryByLabelText('Close sorting')).toBeNull();
-  expect(screen.getByText('Sort: Biggest gains')).toBeTruthy();
+  expect(screen.getByText('Sort: Largest price rises')).toBeTruthy();
 });
 test('late preference restoration cannot override user choice or leak across owners', async () => {
   let finish!: (value: string) => void;

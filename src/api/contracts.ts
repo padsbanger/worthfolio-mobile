@@ -21,6 +21,15 @@ export const positionSchema = z.object({
   quoteRefreshedAt: z.string().optional(),
 }).passthrough();
 
+// The read-only bootstrap includes the account trade ledger. The detail chart
+// uses only these fields to annotate the user's own buys and sells.
+export const tradeSchema = z.object({
+  symbol: z.string().min(1),
+  side: z.enum(['buy', 'sell']),
+  time: z.string(),
+  price: optionalNumber,
+}).passthrough();
+
 export const watchlistSchema = z.object({
   id: z.string(), name: z.string(), symbols: z.array(z.string()),
 }).passthrough();
@@ -34,6 +43,7 @@ export const bootstrapSchema = watchlistsSchema.extend({
   generatedAt: z.string(),
   account: z.object({ name: z.string(), ownerId: z.string(), baseCurrency: z.string() }).passthrough(),
   positions: z.array(positionSchema),
+  trades: z.array(tradeSchema).optional().default([]),
   portfolioSummary: z.object({
     value: finite, invested: finite, openPnl: finite, currency: z.string(),
     pricedPositions: finite, totalPositions: finite, coverage: finite, asOf: z.string().nullable(),
@@ -73,6 +83,7 @@ export const credentialSchema = z.object({
 });
 export type Bootstrap = z.infer<typeof bootstrapSchema>;
 export type Position = z.infer<typeof positionSchema>;
+export type Trade = z.infer<typeof tradeSchema>;
 export type Market = z.infer<typeof marketSchema>;
 export type Watchlists = z.infer<typeof watchlistsSchema>;
 export type SearchResults = z.infer<typeof searchSchema>;

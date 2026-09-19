@@ -148,7 +148,7 @@ test('portfolio sorts locally by selected-period change and preserves authoritat
   }])) as unknown as ReturnType<typeof useListMarkets>);
   render(<PortfolioScreen />);
   fireEvent.press(screen.getByLabelText('Sort assets. Default order'));
-  fireEvent.press(screen.getByLabelText('Biggest gains'));
+  fireEvent.press(screen.getByLabelText('Largest price rises'));
   expect(screen.getAllByLabelText(/^Open /).map(n => n.props.accessibilityLabel)).toEqual(['Open Vanguard Total Stock Market ETF', 'Open Microsoft', 'Open Apple']);
   expect(screen.getByText('$16,800.00')).toBeTruthy();
   expect(screen.queryByText('Daily change')).toBeNull();

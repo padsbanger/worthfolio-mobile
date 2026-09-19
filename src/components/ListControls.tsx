@@ -15,7 +15,7 @@ export function ListControls({ sort, period, onSort, onPeriod, onReset, currency
     <View style={[local.toolbar, stacked && local.stackedToolbar]}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Sort assets. ${selected.label}`} accessibilityState={{ expanded: open }}
         onPress={() => setOpen(true)} style={({ pressed }) => [local.selector, pressed && local.pressed]}>
-        <Text numberOfLines={1} style={local.text}>Sort: {selected.label}</Text><Text accessible={false} style={local.text}>{'\u25be'}</Text>
+        <Text style={[local.text, { flex: 1 }]}>Sort: {selected.label}</Text><Text accessible={false} style={local.text}>{'\u25be'}</Text>
       </Pressable>
       <View accessibilityLabel="Price change period" style={[local.chips, stacked && local.stackedChips]}>
         {periods.map(item => <Pressable key={item} accessibilityRole="button" accessibilityLabel={`${item} price change`}
@@ -60,8 +60,8 @@ const local = StyleSheet.create({
   selectedOption: { backgroundColor: `${colors.accent}14` },
   pressed: { opacity: 0.72 },
   text: { ...typography.label, color: colors.muted, fontWeight: '600', flexShrink: 1 },
-  caption: { ...typography.caption, color: colors.muted },
-  summary: { minHeight: sizing.touch, flexDirection: 'row', alignItems: 'center', gap: spacing.small },
+  caption: { ...typography.caption, color: colors.muted, flex: 1 },
+  summary: { flexDirection: 'row', alignItems: 'center', gap: spacing.small },
   reset: { minHeight: sizing.touch, minWidth: sizing.touch, alignItems: 'flex-end', justifyContent: 'center' },
   resetText: { ...typography.label, color: colors.accent, fontWeight: '600' },
   title: { ...typography.body, color: colors.text },
