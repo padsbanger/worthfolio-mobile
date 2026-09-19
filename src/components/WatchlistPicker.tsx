@@ -11,7 +11,7 @@ export function WatchlistPicker({ lists, selectedId, onSelect }: {
   if (!lists.length) return null;
   return <>
     <Pressable accessibilityRole="button" accessibilityLabel={`Choose watchlist. ${current?.name || 'Select a list'}`}
-      accessibilityState={{ expanded: open }} onPress={() => setOpen(true)} style={local.selector}>
+      accessibilityState={{ expanded: open }} onPress={() => setOpen(true)} style={({ pressed }) => [local.selector, pressed && local.pressed]}>
       <Text style={[local.name, { flex: 1 }]}>{current?.name || 'Select a list'}</Text>
       <Text accessible={false} style={local.chevron}>⌄</Text>
     </Pressable>
@@ -21,14 +21,14 @@ export function WatchlistPicker({ lists, selectedId, onSelect }: {
         <View style={local.dialog} accessibilityViewIsModal>
           <View style={local.heading}>
             <Text accessibilityRole="header" style={[local.name, { flex: 1 }]}>Choose watchlist</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close watchlist selector" onPress={() => setOpen(false)} style={local.close}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Close watchlist selector" onPress={() => setOpen(false)} style={({ pressed }) => [local.close, pressed && local.pressed]}>
               <Text style={local.action}>Close</Text>
             </Pressable>
           </View>
           <FlatList data={lists} extraData={selectedId} keyExtractor={item => item.id} style={{ flexGrow: 0 }}
             renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityState={{ selected: item.id === selectedId }}
               accessibilityLabel={item.name} onPress={() => { onSelect(item.id); setOpen(false); }}
-              style={[local.option, item.id === selectedId && { backgroundColor: colors.elevated }]}>
+              style={({ pressed }) => [local.option, item.id === selectedId && local.selectedOption, pressed && local.pressed]}>
               <View style={{ flex: 1 }}><Text style={local.name}>{item.name}</Text>
                 <Text style={local.caption}>{item.symbols.length} instruments</Text></View>
               {item.id === selectedId && <Text accessible={false} style={local.action}>✓</Text>}
@@ -47,8 +47,10 @@ const local = StyleSheet.create({
   action: { ...typography.label, color: colors.accent },
   caption: { ...typography.caption, color: colors.muted },
   backdrop: { flex: 1, backgroundColor: '#00000099', justifyContent: 'center', paddingHorizontal: spacing.screen, paddingVertical: 48 },
-  dialog: { maxHeight: '85%', backgroundColor: colors.surface, borderRadius: shape.card, overflow: 'hidden' },
-  heading: { flexDirection: 'row', alignItems: 'center', gap: spacing.small, paddingLeft: spacing.screen, borderBottomWidth: 1, borderBottomColor: colors.border },
+  dialog: { maxHeight: '85%', backgroundColor: colors.surface, borderRadius: shape.card, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, overflow: 'hidden' },
+  heading: { flexDirection: 'row', alignItems: 'center', gap: spacing.small, paddingLeft: spacing.screen, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   close: { minHeight: sizing.touch, minWidth: sizing.touch, paddingHorizontal: spacing.screen, justifyContent: 'center' },
-  option: { minHeight: sizing.touch, padding: spacing.section, gap: spacing.small, flexDirection: 'row', alignItems: 'center' },
+  option: { minHeight: sizing.touch, padding: spacing.section, gap: spacing.small, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  selectedOption: { backgroundColor: `${colors.accent}14` },
+  pressed: { opacity: 0.72 },
 });

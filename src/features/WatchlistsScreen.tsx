@@ -91,7 +91,7 @@ export function WatchlistsScreen() {
           <Text style={styles.small}>{current?.symbols.length ?? 0} instruments</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Quote details" accessibilityState={{ expanded: showDetails }}
             onPress={() => setShowDetails(value => !value)} style={{ minHeight: sizing.touch, minWidth: sizing.touch, justifyContent: 'center' }}>
-            <Text style={[styles.small, { color: colors.accent }]}>{showDetails ? 'Hide details' : 'Quote details'}</Text>
+            <Text style={[styles.small, { color: colors.accent }]}>{showDetails ? 'Hide details' : 'Show details'}</Text>
           </Pressable>
         </View>
       </View>}

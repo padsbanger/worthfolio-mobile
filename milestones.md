@@ -481,11 +481,13 @@ Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. Account
 
 ## M25: Cross-screen visual cleanup and device review
 
-- [ ] Remove redundant labels, borders and cards where spacing already communicates grouping; retain labels needed to interpret financial values.
-- [ ] Standardize icons and wording for equivalent actions across Portfolio, Watchlists, Search, Instrument, Account and shared overlays.
-- [ ] Review the combined experience with long company names, very large balances, tiny prices, missing quotes and enlarged text; fix concrete inconsistencies left after M20-M24.
-- [ ] Complete pending enlarged-text/layout walkthroughs and verify restoration of device settings. Android TalkBack walkthroughs are excluded at the user's request.
-- [ ] Check loading transitions, pressed states, chart inspection, dialogs and return navigation on Android; record automated, emulator and physical-device evidence separately.
-- [ ] Obtain user acceptance, document remaining limitations and commit.
+- [x] Remove redundant labels, borders and cards where spacing already communicates grouping; retain labels needed to interpret financial values.
+- [x] Standardize icons and wording for equivalent actions across Portfolio, Watchlists, Search, Instrument, Account and shared overlays.
+- [x] Review the combined experience with long company names, very large balances, tiny prices, missing quotes and enlarged text; fix concrete inconsistencies left after M20-M24.
+- [x] Complete pending enlarged-text/layout walkthroughs and verify restoration of device settings. Android TalkBack walkthroughs are excluded at the user's request.
+- [x] Check loading transitions, pressed states, chart inspection, dialogs and return navigation on Android; record automated, emulator and physical-device evidence separately.
+- [x] Obtain user acceptance, document remaining limitations and commit.
 
 Acceptance: the mobile app has consistent visual hierarchy, controls and terminology, with readable edge-case layouts and documented Android review evidence.
+
+Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. The Watchlist picker now matches the sort sheet's border, selected row and press treatment; Watchlists and Instrument both use Show details / Hide details for quote disclosures. Existing M20-M24 checks cover large balances, tiny prices, unavailable quotes, held/unheld instruments, long names, normal/enlarged text, narrow toolbar wrapping, chart inspection, status transitions, sorting dialog and navigation. This final pass checked the Watchlists picker on Android; capture is ignored in `artifacts/m25-picker.png`. The emulator font scale remains 1.0. Android TalkBack and physical-phone checks remain excluded/unverified at the user's request. No backend, native dependency, APK or cloud build change was made. The user accepted M25 with "looks good. commit and work on next milestone".
