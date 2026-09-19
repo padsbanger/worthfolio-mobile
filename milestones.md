@@ -433,13 +433,15 @@ Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. In the 
 
 ## M21: List toolbar and shared interaction polish
 
-- [ ] Consolidate sort and period controls into a consistent toolbar on Portfolio and Watchlists with clear selected states; allow responsive wrapping for narrow screens and enlarged text.
-- [ ] Standardize sheet/dialog titles, padding, selection indicators, outside-tap dismissal, Android Back handling and focus restoration.
-- [ ] Apply consistent pressed states to buttons and rows. Add subtle haptic feedback for deliberate selection changes where supported; avoid feedback during automatic refresh and respect device settings.
-- [ ] Verify that changes preserve local account-scoped preferences, watchlist selection, reset behavior and usable touch targets.
-- [ ] Obtain user acceptance and commit.
+- [x] Consolidate sort and period controls into a consistent toolbar on Portfolio and Watchlists with clear selected states; allow responsive wrapping for narrow screens and enlarged text.
+- [x] Standardize sheet/dialog titles, padding, selection indicators, outside-tap dismissal, Android Back handling and focus restoration.
+- [x] Apply consistent pressed states to buttons and rows. Add subtle haptic feedback for deliberate selection changes where supported; avoid feedback during automatic refresh and respect device settings.
+- [x] Verify that changes preserve local account-scoped preferences, watchlist selection, reset behavior and usable touch targets.
+- [x] Obtain user acceptance and commit.
 
 Acceptance: filtering and selection feel consistent across both lists, sheets and dialogs, including narrow layouts and navigation back to the list.
+
+Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. `ListControls` remains the shared Portfolio/Watchlists toolbar and now uses one surfaced layout with responsive wrapping, selected-state borders, uniform press feedback and a matching sort sheet. Existing tests cover selection, reset, outside dismissal and Android Back without changing the local account-scoped preference behavior. Android emulator checks covered Portfolio at normal and 130% text, the sort sheet and Watchlists at 130% text; the narrow stacked toolbar path was also exercised at 250% text. Captures are ignored in `artifacts/m21-*.png`. The original 1.0 font scale was restored and read back after cold relaunch. Haptics are not added because this app has no haptic capability/native dependency; no backend, APK or cloud build change was made. Physical-phone review remains unverified; Android TalkBack is excluded at the user's request. The user accepted M21 with "looks good. commit and work on next milestone".
 
 ## M22: Instrument details and chart inspection
 
