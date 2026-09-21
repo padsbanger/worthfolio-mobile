@@ -7,6 +7,9 @@ import { colors } from '../theme/theme';
 function selectedExtendedQuote(market: Market | undefined) {
   const session = market?.session;
   if (!session) return undefined;
+  // `open` is the backend's regular-session state. Its pre/post observations
+  // are historical at that point and must not compete with the live price.
+  if (session.state === 'open') return undefined;
   const pre = session.preMarket && { ...session.preMarket, label: 'Pre-market' };
   const post = session.postMarket && { ...session.postMarket, label: 'After hours' };
   return session.state === 'pre' ? pre : session.state === 'post' ? post

@@ -30,6 +30,13 @@ test('post-market selects its own quote and closed markets show only the latest 
   expect(screen.queryByText(/After hours/)).toBeNull();
 });
 
+test('regular trading hides historical pre-market and after-hours values', () => {
+  const active = market('open');
+  const view = render(<ExtendedQuote market={active} />);
+  expect(view.toJSON()).toBeNull();
+  expect(extendedQuoteDescription(active)).toBeUndefined();
+});
+
 test('missing active quote never substitutes a previous session or adds a placeholder', () => {
   render(<ExtendedQuote market={marketSchema.parse({ ...market('pre'),
     session: { state: 'pre', postMarket: post } })} />);
