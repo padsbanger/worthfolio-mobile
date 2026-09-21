@@ -492,6 +492,18 @@ Acceptance: the mobile app has consistent visual hierarchy, controls and termino
 
 Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. The Watchlist picker now matches the sort sheet's border, selected row and press treatment; Watchlists and Instrument both use Show details / Hide details for quote disclosures. Existing M20-M24 checks cover large balances, tiny prices, unavailable quotes, held/unheld instruments, long names, normal/enlarged text, narrow toolbar wrapping, chart inspection, status transitions, sorting dialog and navigation. This final pass checked the Watchlists picker on Android; capture is ignored in `artifacts/m25-picker.png`. The emulator font scale remains 1.0. Android TalkBack and physical-phone checks remain excluded/unverified at the user's request. No backend, native dependency, APK or cloud build change was made. The user accepted M25 with "looks good. commit and work on next milestone".
 
+## Watchlist membership follow-up (2026-09-20)
+
+At the user's request, checked rows now remove the instrument; unchecked rows add it. The sheet labels both actions, retains progress and named confirmation, and updates membership only after server success. Removing the final instrument sends an empty symbols array and keeps the watchlist. Offline/demo and pending states disable both actions. Failed writes retain membership and support explicit retry, with automatic mutation retries disabled. The header action is labeled Manage watchlists and its star reflects remaining membership.
+
+Verification: TypeScript, lint and the full 174-test suite pass; all 17 discovery tests pass after adding failure/retry and empty-list removal coverage (175 total tests now). Device review and live authenticated writes remain unverified. User acceptance and commit remain pending.
+
+## Watchlist add-flow revision (2026-09-20)
+
+Ready for user review; acceptance and commit pending. The instrument header star now opens a safe-area-aware bottom sheet instead of expanding content below the chart. The sheet identifies the instrument, shows existing membership, displays progress on the chosen list, and retains a named success message with Done. Errors remain beside the list choices for retry; offline/demo states explain why additions are disabled. Close, outside tap and Android Back dismiss the sheet. The star fills when the instrument belongs to a watchlist. No removal action is implied or implemented.
+
+Verification: TypeScript and ESLint pass; the full 173-test suite passes, followed by all 16 discovery tests after adding an offline-sheet regression (174 total tests now). Automated checks cover adding, confirmed membership, dismissal and disabling additions after connection loss. Device layout review and live authenticated writes remain unverified. No APK/cloud build or backend change. This implements the user's explicit exception to the original read-only watchlist scope.
+
 ## Visual inspection follow-up (2026-09-19)
 
 User requested implementation of the inspection's visual improvements. Implementation is ready for review; acceptance and commit remain pending.

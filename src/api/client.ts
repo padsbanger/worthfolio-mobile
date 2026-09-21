@@ -24,7 +24,7 @@ export class ApiClient {
   }
 
   async request<T>(path: string, schema: z.ZodType<T>, options: {
-    signal?: AbortSignal; body?: Record<string, string>;
+    signal?: AbortSignal; method?: 'POST' | 'PUT' | 'DELETE'; body?: Record<string, unknown>;
   } = {}): Promise<T> {
     if (this.closed || options.signal?.aborted) throw new ApiError('Request cancelled.', 0);
     if (!path.startsWith('/') || path.startsWith('//')) throw new ApiError('Invalid API path.', 0);
@@ -35,7 +35,7 @@ export class ApiClient {
     const timer = setTimeout(cancel, 30_000);
     try {
       const response = await fetch(`${this.baseUrl}${path}`, {
-        method: options.body ? 'POST' : 'GET',
+        method: options.method ?? (options.body ? 'POST' : 'GET'),
         credentials: 'omit', redirect: 'error', signal: controller.signal,
         headers: {
           Accept: 'application/json',
@@ -49,12 +49,17 @@ export class ApiClient {
         this.onUnauthorized();
         throw new ApiError('Your session expired. Please sign in again.', 401);
       }
-      if (!response.ok) throw new ApiError(
+      if (!response.ok) {
+        const detail = typeof response.json === 'function'
+          ? await response.json().catch(() => null) as { error?: unknown } | null
+          : null;
+        const serverMessage = typeof detail?.error === 'string' ? detail.error : null;
+        throw new ApiError(serverMessage ??
         response.status === 403 ? (this.token ? 'This action is not allowed for your mobile session.' :
           'Worthfolio denied the connection. Check the server access settings and try again.') :
           response.status >= 500 ? 'Worthfolio is temporarily unavailable. Try again.' : 'The request could not be completed.',
-        response.status,
-      );
+          response.status);
+      }
       const parsed = schema.safeParse(await response.json());
       if (this.closed || controller.signal.aborted) throw new ApiError('Request cancelled.', 0);
       if (!parsed.success) throw new ApiError('The server returned an unsupported response. Check the backend version.', 422);

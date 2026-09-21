@@ -1,14 +1,14 @@
 import NetInfo from '@react-native-community/netinfo';
-import { QueryClient, QueryClientProvider, QueryObserver, focusManager, onlineManager, useQueries, useQuery } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryObserver, focusManager, onlineManager, useMutation, useQueries, useQuery } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
 import { useIsFocused } from 'expo-router';
 import { useSession } from '../auth/session';
 import { server } from '../lib/config';
 import { sampleBootstrap, sampleMarket, sampleSearch } from '../fixtures/portfolio';
-import { ApiClient, retryRead } from './client';
+import { ApiClient, ApiError, retryRead } from './client';
 import { MarketQueue } from './market-queue';
-import { searchSchema, type Bootstrap, type ChartRange } from './contracts';
+import { searchSchema, watchlistUpdateSchema, type Bootstrap, type ChartRange, type Watchlist, type Watchlists } from './contracts';
 import { createDataQueries } from './queries';
 import { PortfolioRefresh } from './portfolio-refresh';
 import { publishWidget } from '../widget/bridge';
@@ -99,6 +99,34 @@ export function useWatchlists() {
 }
 export function selectedRefreshMs(seconds?: number) {
   return Number.isFinite(seconds) && seconds! > 0 ? Math.max(1_000, seconds! * 1_000) : 5_000;
+}
+
+/** Sets membership using the existing named-watchlist update endpoint. */
+export function useUpdateWatchlistMembership() {
+  const { client, queryClient, demo, online, active } = useData();
+  return useMutation({
+    retry: false, networkMode: 'always',
+    mutationFn: async ({ watchlist, symbol, action }: { watchlist: Watchlist; symbol: string; action: 'add' | 'remove' }) => {
+      if (demo) throw new ApiError('Watchlist editing is unavailable in the demo.', 403);
+      if (!online || !active) throw new ApiError('Connect to edit watchlists.', 0);
+      const symbols = action === 'remove' ? watchlist.symbols.filter(item => item !== symbol)
+        : [...new Set([...watchlist.symbols, symbol])];
+      const response = await client.request(`/api/watchlists/${encodeURIComponent(watchlist.id)}`, watchlistUpdateSchema, {
+        method: 'PUT', body: { symbols },
+      });
+      return response.watchlist;
+    },
+    onSuccess: updated => {
+      const replaceWatchlists = (data: Watchlists | undefined) => data && {
+        ...data, watchlists: data.watchlists.map(item => item.id === updated.id ? updated : item),
+      };
+      const replaceBootstrap = (data: Bootstrap | undefined) => data && {
+        ...data, watchlists: data.watchlists.map(item => item.id === updated.id ? updated : item),
+      };
+      queryClient.setQueryData<Watchlists>(['watchlists'], replaceWatchlists);
+      queryClient.setQueryData<Bootstrap>(['bootstrap'], replaceBootstrap);
+    },
+  });
 }
 
 export function useMarket(symbol: string, range: ChartRange = '1M', refreshSeconds?: number | null) {

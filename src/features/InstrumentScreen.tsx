@@ -2,11 +2,13 @@ import { CompanyLogo } from '../components/CompanyLogo';
 import { useState } from 'react';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { chartRanges, type ChartRange } from '../api/contracts';
-import { useBootstrap, useData, useMarket } from '../api/data';
+import { useUpdateWatchlistMembership, useBootstrap, useData, useMarket } from '../api/data';
 import { DataNotice, Heading, Label, Status, styles } from '../components/ui';
 import { PriceChart } from '../components/PriceChart';
+import { AddToWatchlistSheet } from '../components/AddToWatchlistSheet';
 import { money, number, percent, positionValues, ticker, timestamp } from '../lib/format';
 import { Metric } from '../components/investment-ui';
 import { colors, sizing, spacing, typography } from '../theme/theme';
@@ -20,18 +22,27 @@ export function InstrumentScreen() {
 function InstrumentDetails({ symbol }: { symbol: string }) {
   const [range, setRange] = useState<ChartRange>('1M');
   const [showDetails, setShowDetails] = useState(false);
+  const [showWatchlists, setShowWatchlists] = useState(false);
   const bootstrap = useBootstrap();
   const result = useMarket(symbol, range, bootstrap.data?.marketData?.selectedRefreshSeconds ?? null);
   const { online, demo, active } = useData();
+  const addToWatchlist = useUpdateWatchlistMembership();
   const insets = useSafeAreaInsets();
   const data = result.data;
   const position = bootstrap.data?.positions.find(p => p.symbol === symbol);
   const trades = bootstrap.data?.trades.filter(trade => trade.symbol === symbol) ?? [];
+  const watchlists = bootstrap.data?.watchlists ?? [];
   const change = data?.lastPrice != null && data.previousClose != null && data.previousClose > 0 ? (data.lastPrice / data.previousClose - 1) * 100 : null;
   // A provider's currency change must not reinterpret the holding's cost basis/FX.
   const values = position ? positionValues(position, data?.currency === position.currency ? data.lastPrice ?? position.lastPrice : position.lastPrice, bootstrap.data?.account.baseCurrency) : null;
   if (!symbol) return <View style={styles.screen}><Status title="Instrument unavailable" message="Go back and select an instrument." /></View>;
-  return <View style={styles.screen}><Stack.Screen options={{ title: ticker(symbol) }} /><DataNotice refreshError={!!data && result.isError} busy={result.isFetching}
+  const isWatched = watchlists.some(list => list.symbols.includes(symbol));
+  const toggleWatchlists = () => { if (!addToWatchlist.isPending) addToWatchlist.reset(); setShowWatchlists(true); };
+  return <View style={styles.screen}><Stack.Screen options={{ title: ticker(symbol), headerRight: () => <Pressable accessibilityRole="button" accessibilityLabel="Manage watchlists"
+    accessibilityHint={isWatched ? 'Already in a watchlist. Opens the watchlist chooser.' : 'Opens the watchlist chooser.'}
+    accessibilityState={{ expanded: showWatchlists }} onPress={toggleWatchlists} style={({ pressed }) => [local.headerStar, pressed && local.pressed]}>
+    <Ionicons name={isWatched ? 'star' : 'star-outline'} size={24} color={isWatched ? colors.accent : colors.muted} accessible={false} />
+  </Pressable> }} /><DataNotice refreshError={!!data && result.isError} busy={result.isFetching}
     retry={demo || (online && active) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />
     <ScrollView contentContainerStyle={[styles.detailContent, { paddingBottom: spacing.bottom + insets.bottom }]}>
       <View style={styles.row}>
@@ -85,6 +96,12 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
         </View>
       </View>}
     </ScrollView>
+    <AddToWatchlistSheet visible={showWatchlists} symbol={symbol} lists={watchlists}
+      pendingId={addToWatchlist.isPending ? addToWatchlist.variables?.watchlist.id : undefined}
+      success={addToWatchlist.isSuccess ? `${addToWatchlist.variables.action === 'remove' ? 'Removed from' : 'Added to'} ${addToWatchlist.data.name}.` : undefined}
+      error={addToWatchlist.isError ? addToWatchlist.error.message : undefined}
+      unavailable={demo ? 'Watchlist editing is unavailable in the demo.' : !online || !active ? 'Connect to edit watchlists.' : undefined}
+      onClose={() => setShowWatchlists(false)} onToggle={watchlist => addToWatchlist.mutate({ watchlist, symbol, action: watchlist.symbols.includes(symbol) ? 'remove' : 'add' })} />
   </View>;
 }
 
@@ -99,6 +116,7 @@ const local = StyleSheet.create({
   rangeText: { ...typography.label, fontWeight: '600', color: colors.muted },
   pressed: { opacity: 0.72 },
   quoteDetails: { gap: spacing.tight, paddingTop: spacing.section, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  headerStar: { minWidth: sizing.touch, minHeight: sizing.touch, alignItems: 'center', justifyContent: 'center', marginRight: spacing.tight },
   metadataHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.small },
   freshness: { flex: 1, gap: spacing.tight },
   detailsButton: { minHeight: sizing.touch, minWidth: sizing.touch, justifyContent: 'center' },

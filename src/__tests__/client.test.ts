@@ -16,6 +16,14 @@ test('API requests omit cookies, use bearer auth, and reject malformed responses
   await expect(client.request('/api/bootstrap', schema)).rejects.toMatchObject({ status: 422 });
 });
 
+test('API writes send their explicit method and JSON payload', async () => {
+  const fetcher = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ ok: true }) });
+  global.fetch = fetcher;
+  const client = new ApiClient('https://example.com', 'secret');
+  await client.request('/api/watchlists/watchlist-123456789abc', schema, { method: 'PUT', body: { symbols: ['NASDAQ:AAPL'] } });
+  expect(fetcher.mock.calls[0]![1]).toMatchObject({ method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbols: ['NASDAQ:AAPL'] }) });
+});
+
 test('401 ends the session and does not retry', async () => {
   const expired = jest.fn();
   global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 401 });

@@ -1,5 +1,5 @@
 import { AppState, Keyboard, Text, type AppStateStatus } from 'react-native';
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { onlineManager } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -14,7 +14,7 @@ let appChange: (state: AppStateStatus) => void;
 let mockFocused = true;
 let mockSymbol = 'NASDAQ:AAPL';
 jest.mock('expo-router', () => ({ useIsFocused: () => mockFocused,
-  useLocalSearchParams: () => ({ symbol: mockSymbol }), Stack: { Screen: () => null }, router: { push: jest.fn() } }));
+  useLocalSearchParams: () => ({ symbol: mockSymbol }), Stack: { Screen: ({ options }: { options: { headerRight?: () => ReactNode } }) => options.headerRight?.() ?? null }, router: { push: jest.fn() } }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 24, left: 0, right: 0 }) }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Icon' }));
 jest.mock('../lib/config', () => ({ server: { url: 'https://worthfolio.test' } }));
@@ -210,6 +210,70 @@ test('instrument defaults/reset to 1M, renders holding and daily change, and rej
   expect(screen.getByLabelText('1M price history')).toBeSelected();
   expect(await screen.findByText('Price history unavailable')).toBeTruthy();
   expect(screen.queryByLabelText('Price history')).toBeNull();
+});
+
+test('instrument adds and removes membership while preserving other instruments', async () => {
+  const target = sampleBootstrap.watchlists[1]!;
+  fetcher.mockImplementation(async (url: string, options: RequestInit) => {
+    if (url.endsWith('/api/bootstrap')) return response(bootstrap);
+    if (url.includes(`/api/watchlists/${target.id}`)) return response({ watchlist: { ...target, ...JSON.parse(options.body as string) } });
+    return response(quote());
+  });
+  render(<DataProvider><InstrumentScreen /></DataProvider>);
+  expect(await screen.findByText('Apple')).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Manage watchlists'));
+  fireEvent.press(screen.getByLabelText('Add to On my radar'));
+  expect(await screen.findByText('Added to On my radar.')).toBeTruthy();
+  expect(screen.getByLabelText('Remove from On my radar')).toBeEnabled();
+  fireEvent.press(screen.getByLabelText('Remove from On my radar'));
+  expect(await screen.findByText('Removed from On my radar.')).toBeTruthy();
+  expect(screen.getByLabelText('Add to On my radar')).toBeEnabled();
+  const writes = fetcher.mock.calls.filter(([url]) => url.includes(`/api/watchlists/${target.id}`));
+  expect(writes).toHaveLength(2);
+  expect(writes[1]?.[1]).toMatchObject({ method: 'PUT', body: JSON.stringify({ symbols: target.symbols }) });
+  fireEvent.press(screen.getByLabelText('Close watchlist chooser'));
+  expect(screen.queryByLabelText('Add to On my radar')).toBeNull();
+  const update = fetcher.mock.calls.find(([url]) => url.includes(`/api/watchlists/${target.id}`));
+  expect(update?.[1]).toMatchObject({ method: 'PUT', body: JSON.stringify({ symbols: [...target.symbols, 'NASDAQ:AAPL'] }) });
+});
+
+test('watchlist sheet explains offline state and prevents adding after losing connection', async () => {
+  render(<DataProvider><InstrumentScreen /></DataProvider>);
+  expect(await screen.findByText('Apple')).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Manage watchlists'));
+  connect(false);
+  expect(screen.getByText('Connect to edit watchlists.')).toBeTruthy();
+  expect(screen.getByLabelText('Remove from Core holdings')).toBeDisabled();
+  expect(screen.getByLabelText('Add to On my radar')).toBeDisabled();
+  fireEvent.press(screen.getByLabelText('Add to On my radar'));
+  expect(fetcher.mock.calls.some(([, options]) => options.method === 'PUT')).toBe(false);
+  fireEvent.press(screen.getByLabelText('Close watchlist chooser'));
+  expect(screen.queryByText('Connect to edit watchlists.')).toBeNull();
+});
+
+test('failed removal keeps membership and allows an explicit retry, including an empty list', async () => {
+  const target = { ...sampleBootstrap.watchlists[0]!, symbols: ['NASDAQ:AAPL'] };
+  let fail = true;
+  fetcher.mockImplementation(async (url: string) => {
+    if (url.endsWith('/api/bootstrap')) return response({ ...bootstrap, watchlists: [target] });
+    if (url.includes(`/api/watchlists/${target.id}`)) return fail
+      ? { ok: false, status: 503 }
+      : response({ watchlist: { ...target, symbols: [] } });
+    return response(quote());
+  });
+  render(<DataProvider><InstrumentScreen /></DataProvider>);
+  expect(await screen.findByText('Apple')).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Manage watchlists'));
+  fireEvent.press(screen.getByLabelText('Remove from Core holdings'));
+  expect(await screen.findByText(/Tap a list to try again/)).toBeTruthy();
+  expect(screen.getByLabelText('Remove from Core holdings')).toBeEnabled();
+  expect(fetcher.mock.calls.filter(([, options]) => options.method === 'PUT')).toHaveLength(1);
+  fail = false;
+  fireEvent.press(screen.getByLabelText('Remove from Core holdings'));
+  expect(await screen.findByText('Removed from Core holdings.')).toBeTruthy();
+  expect(screen.getByLabelText('Add to Core holdings')).toBeEnabled();
+  const writes = fetcher.mock.calls.filter(([, options]) => options.method === 'PUT');
+  expect(writes[1]?.[1].body).toBe(JSON.stringify({ symbols: [] }));
 });
 
 test('cadence defaults safely when absent/invalid and cannot create a busy timer', () => {

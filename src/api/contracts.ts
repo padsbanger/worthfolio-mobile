@@ -39,6 +39,8 @@ export const watchlistsSchema = z.object({
   activeWatchlistId: z.string().nullable(),
 }).passthrough();
 
+export const watchlistUpdateSchema = z.object({ watchlist: watchlistSchema }).passthrough();
+
 export const bootstrapSchema = watchlistsSchema.extend({
   generatedAt: z.string(),
   account: z.object({ name: z.string(), ownerId: z.string(), baseCurrency: z.string() }).passthrough(),
@@ -84,6 +86,7 @@ export const credentialSchema = z.object({
 export type Bootstrap = z.infer<typeof bootstrapSchema>;
 export type Position = z.infer<typeof positionSchema>;
 export type Trade = z.infer<typeof tradeSchema>;
+export type Watchlist = z.infer<typeof watchlistSchema>;
 export type Market = z.infer<typeof marketSchema>;
 export type Watchlists = z.infer<typeof watchlistsSchema>;
 export type SearchResults = z.infer<typeof searchSchema>;
