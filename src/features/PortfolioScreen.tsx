@@ -3,7 +3,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useBootstrap, useData, useListMarkets, usePortfolioRefresh } from '../api/data';
 import type { Market, Position } from '../api/contracts';
-import { DataNotice, Label, ListSkeleton, Status, styles } from '../components/ui';
+import { DataNotice, ListSkeleton, Status, styles } from '../components/ui';
 import { money, number, percent, positionValues, ticker } from '../lib/format';
 import { usePullRefresh } from '../components/use-pull-refresh';
 import { ExtendedQuote, extendedQuoteDescription } from '../components/ExtendedQuote';
@@ -23,6 +23,11 @@ export function HoldingRow({ position, currency, period, market, quoteMarket = m
     subtitle={`${number(position.quantity)} units \u00b7 ${position.quantity < 0 ? 'Short' : 'Long'} \u00b7 ${money(position.lastPrice, position.currency)} / unit`}
     secondaryPrice={<ExtendedQuote market={quoteMarket} />}
     secondaryDescription={extendedQuoteDescription(quoteMarket)}
+    metadataDescription={[
+      period && `Open P&L ${money(values.pnl, currency, true)}.`,
+      sortPrice !== undefined && `Sort price ${money(sortPrice, currency)}.`,
+      values.value == null && 'Valuation unavailable.', position.stale === true && 'Stale.',
+    ].filter(Boolean).join(' ')}
     metadata={<>
       {period && <Text style={styles.small}>Open P&amp;L {money(values.pnl, currency, true)}</Text>}
       {sortPrice !== undefined && <Text style={styles.small}>Sort price: {money(sortPrice, currency)}</Text>}
@@ -61,8 +66,10 @@ export function PortfolioScreen() {
             pnl={summary!.openPnl} invested={summary!.invested}
             direction={summary!.openPnl >= 0 ? 'positive' : 'negative'} />
           <View style={{ gap: spacing.tight }}>
-            <Text accessibilityRole="header" style={styles.sectionHeading}>Your holdings</Text>
-            <Label>Value in {data.account.baseCurrency} / Price change %</Label>
+            <View style={local.holdingsHeading}>
+              <Text accessibilityRole="header" style={styles.sectionHeading}>Your holdings</Text>
+              <Text style={styles.small}>Value in {data.account.baseCurrency}</Text>
+            </View>
             <ListControls sort={view.sort} period={view.period} currency={currency} loading={[...markets.values()].some(m => m.isFetching && !m.data)} onSort={sort => view.update({ sort })} onPeriod={period => view.update({ period })} onReset={view.reset} />
           </View>
         </View>}
@@ -73,4 +80,5 @@ export function PortfolioScreen() {
 }
 const local = StyleSheet.create({
   header: { gap: spacing.small, marginBottom: spacing.tight },
+  holdingsHeading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: spacing.tight },
 });

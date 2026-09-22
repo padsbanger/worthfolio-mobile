@@ -28,7 +28,7 @@ export function SignInScreen() {
     </View>
     {(server.error || error) && <Text accessibilityRole="alert" style={local.error}>{server.error || error}</Text>}
     <Button title={busy ? 'Connecting…' : 'Sign in with Authentik'} disabled={busy || !!server.error} onPress={() => void signIn()} />
-    <Text style={styles.small}>Secure sign-in opens in your browser. Mobile access is read-only.</Text>
+    <Text style={styles.small}>Secure sign-in opens in your browser. View your portfolio and add or remove instruments from existing watchlists.</Text>
     {demoEnabled && <Button title="Explore sample portfolio" secondary disabled={busy} onPress={explore} />}
   </ScrollView></SafeAreaView>;
 }

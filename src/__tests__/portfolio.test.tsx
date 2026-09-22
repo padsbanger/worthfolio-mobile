@@ -1,4 +1,4 @@
-import { act, render, screen, fireEvent } from '@testing-library/react-native';
+import { act, render, screen, fireEvent, within } from '@testing-library/react-native';
 import { FlatList, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { HoldingRow, PortfolioScreen } from '../features/PortfolioScreen';
@@ -69,6 +69,9 @@ test('portfolio renders authoritative totals, labels sample data, and opens a ho
   expect(screen.queryByText('Daily change')).toBeNull();
   expect(screen.getByText('SAMPLE DATA · Development preview')).toBeTruthy();
   fireEvent.press(screen.getByLabelText('Open Apple'));
+  expect(router.push).toHaveBeenCalledWith({ pathname: '/instrument', params: { symbol: 'NASDAQ:AAPL' } });
+  jest.mocked(router.push).mockClear();
+  fireEvent.press(within(screen.getByLabelText('Open Apple')).getByText('Open P&L +$600.00'));
   expect(router.push).toHaveBeenCalledWith({ pathname: '/instrument', params: { symbol: 'NASDAQ:AAPL' } });
 });
 

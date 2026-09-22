@@ -30,6 +30,13 @@ function WatchRow({ symbol, showDetails, data, changeData, isError, loading, per
     subtitle={[data?.currency || 'Currency unavailable', timestamp(data?.refreshedAt)].join(' \u00b7 ')}
     secondaryPrice={<ExtendedQuote market={data} />}
     secondaryDescription={extendedQuoteDescription(data)}
+    metadataDescription={[
+      sortPrice !== undefined && `Sort price ${money(sortPrice, currency)}.`,
+      showDetails ? [quoteStatus, `Source: ${data?.source || 'Unavailable'}.`, `Quote time: ${data?.refreshedAt || 'Time unavailable'}.`,
+        period !== '1D' && `Change source: ${changeData?.source || 'Unavailable'} / ${timestamp(changeData?.refreshedAt)}.`,
+        period !== '1D' && (observation.from ? `Observed: ${timestamp(observation.from, true)} to ${timestamp(observation.to, true)}.` : 'Insufficient observations for this period.'),
+        `Previous close: ${money(data?.previousClose, data?.currency)}.`].filter(Boolean).join(' ') : data?.stale ? 'Stale.' : null,
+    ].filter(Boolean).join(' ')}
     metadata={<>
       {sortPrice !== undefined && <Text style={styles.small}>Sort price: {money(sortPrice, currency)}</Text>}
       {!showDetails && data?.stale && <Text style={[styles.small, { color: colors.warning }]}>Stale</Text>}
@@ -80,21 +87,18 @@ export function WatchlistsScreen() {
     retry={online || demo ? () => void reload() : undefined} />
     {initialLoading ? <ListSkeleton label="Loading watchlists" rows={3} /> : <>
     <View style={{ paddingHorizontal: spacing.screen, paddingTop: spacing.section, gap: spacing.small }}>
-      <WatchlistPicker lists={lists} selectedId={current?.id} onSelect={select} />
+      <View style={[styles.row, { flexWrap: 'wrap', gap: spacing.small }]}>
+        <View style={{ flexGrow: 1, flexBasis: 200 }}><WatchlistPicker lists={lists} selectedId={current?.id} onSelect={select} /></View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Quote details" accessibilityState={{ expanded: showDetails }}
+          onPress={() => setShowDetails(value => !value)} style={({ pressed }) => [{ minHeight: sizing.touch, minWidth: sizing.touch, justifyContent: 'center' }, pressed && { opacity: 0.72 }]}>
+          <Text style={[styles.small, { color: colors.accent }]}>{showDetails ? 'Hide details' : 'Show details'}</Text>
+        </Pressable>
+      </View>
       <ListControls sort={view.sort} period={view.period} currency={currency} loading={[...markets.values()].some(m => m.isFetching && !m.data)} onSort={sort => view.update({ sort })} onPeriod={period => view.update({ period })} onReset={view.reset} />
     </View>
     <FlatList key={`${current?.id}:${view.sort}:${view.period}`} extraData={showDetails} data={symbols} keyExtractor={symbol => symbol} contentContainerStyle={styles.listContent}
       maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
       refreshControl={<RefreshControl refreshing={pullRefresh.refreshing} enabled={online || demo} onRefresh={() => void pullRefresh.onRefresh()} tintColor={colors.accent} />}
-      ListHeaderComponent={<View style={{ gap: spacing.small, marginBottom: spacing.small }}>
-        <View style={[styles.row, { justifyContent: 'space-between', flexWrap: 'wrap' }]}>
-          <Text style={styles.small}>{current?.symbols.length ?? 0} instruments</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Quote details" accessibilityState={{ expanded: showDetails }}
-            onPress={() => setShowDetails(value => !value)} style={{ minHeight: sizing.touch, minWidth: sizing.touch, justifyContent: 'center' }}>
-            <Text style={[styles.small, { color: colors.accent }]}>{showDetails ? 'Hide details' : 'Show details'}</Text>
-          </Pressable>
-        </View>
-      </View>}
       ListEmptyComponent={result.isError && !data ? <Status title="Watchlists unavailable" message={result.error?.message}
         retry={online || demo ? () => void reload() : undefined} /> : <Status title={!online && !demo && !data ? 'Connect to load watchlists' : result.isPending && !data ? 'Loading watchlists' : current ? 'This list is empty' : 'No watchlists yet'}
         message={current ? 'Choose another watchlist or add instruments in Worthfolio.' : 'Create watchlists in Worthfolio to follow instruments here.'}

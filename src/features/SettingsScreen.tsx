@@ -21,7 +21,7 @@ export function SettingsScreen() {
       {!!data?.authUser.email && <Text style={styles.label}>{data.authUser.email}</Text>}
     </Card>
     <Card style={styles.compactCard}><Label>WORTHFOLIO SERVER</Label><Text style={styles.text}>{server.url || 'Not configured'}</Text>
-      <Label>Read-only mobile access</Label>
+      <Label>View your portfolio and add or remove instruments from existing watchlists.</Label>
     </Card>
     {!session?.demo && <View style={local.section}><Text style={styles.sectionHeading}>Home screen</Text><WidgetSettings /></View>}
     <Text style={styles.sectionHeading}>Session</Text>

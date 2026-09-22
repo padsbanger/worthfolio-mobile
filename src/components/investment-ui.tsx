@@ -54,31 +54,29 @@ export function PortfolioOverview({ balance, currency, pnl, invested, direction 
   </View>;
 }
 
-export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change, changeLabel, hideChangeLabel = false, direction, subtitle, secondaryPrice, secondaryDescription, metadata, onPress }: {
+export function AssetRow({ symbol, name, logoUrl, logoFallbackUrl, value, change, changeLabel, hideChangeLabel = false, direction, subtitle, secondaryPrice, secondaryDescription, metadata, metadataDescription, onPress }: {
   symbol: string; name: string; logoUrl?: string | null; logoFallbackUrl?: string | null;
-  value: string; change: string; changeLabel: string; hideChangeLabel?: boolean; direction?: 'positive' | 'negative'; subtitle: string; secondaryPrice?: ReactNode; secondaryDescription?: string; metadata?: ReactNode; onPress?: () => void;
+  value: string; change: string; changeLabel: string; hideChangeLabel?: boolean; direction?: 'positive' | 'negative'; subtitle: string; secondaryPrice?: ReactNode; secondaryDescription?: string; metadata?: ReactNode; metadataDescription?: string; onPress?: () => void;
 }) {
   const { width, fontScale } = useWindowDimensions();
   const stacked = width / fontScale < 300 || value.length > 16 || change.length > 16;
   const content = <>
     <View style={[local.assetTop, stacked && { flexWrap: 'wrap' }]}>
       <CompanyLogo symbol={symbol} logoUrl={logoUrl} logoFallbackUrl={logoFallbackUrl} size={sizing.logo} />
-      <View style={local.identity}><Text numberOfLines={1} ellipsizeMode="tail" style={local.name}>{name}</Text><Text numberOfLines={1} style={local.label}>{symbol}</Text></View>
+      <View style={local.identity}><Text style={local.name}>{name}</Text><Text style={local.label}>{symbol}</Text></View>
       <View style={[local.amount, stacked && local.stackedAmount]}><Text style={local.value}>{value}</Text>
         <Text style={[local.change, direction && { color: colors[direction] }]}>{change}</Text>
         {secondaryPrice}
         {!hideChangeLabel && <Text style={local.caption}>{changeLabel}</Text>}
       </View>
     </View>
-    <Text numberOfLines={1} ellipsizeMode="tail" style={local.caption}>{subtitle}</Text>
-  </>;
-  return <View style={local.asset}>
-    {onPress ? <Pressable accessibilityRole="button" accessibilityLabel={`Open ${name}`}
-      accessibilityHint={[`${symbol}.`, `Value ${value}.`, `${changeLabel} ${change}.`, secondaryDescription, `${subtitle}.`, 'Opens instrument details.'].filter(Boolean).join(' ')}
-      onPress={onPress} style={({ pressed }) => [local.assetAction, pressed && { backgroundColor: colors.surface }]}>{content}</Pressable>
-      : content}
+    <Text style={local.caption}>{subtitle}</Text>
     {metadata}
-  </View>;
+  </>;
+  return onPress ? <Pressable accessibilityRole="button" accessibilityLabel={`Open ${name}`}
+    accessibilityHint={[`${symbol}.`, `Value ${value}.`, `${changeLabel} ${change}.`, secondaryDescription, `${subtitle}.`, metadataDescription, 'Opens instrument details.'].filter(Boolean).join(' ')}
+    onPress={onPress} style={({ pressed }) => [local.asset, pressed && { backgroundColor: colors.surface }]}>{content}</Pressable>
+    : <View style={local.asset}>{content}</View>;
 }
 
 const local = StyleSheet.create({
@@ -99,8 +97,7 @@ const local = StyleSheet.create({
   caption: { ...typography.caption, color: colors.muted },
   value: { ...typography.metric, color: colors.text, textAlign: 'right' },
   change: { ...typography.label, fontVariant: ['tabular-nums'], color: colors.muted, textAlign: 'right' },
-  asset: { minHeight: sizing.touch, paddingVertical: 10, gap: 2, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
-  assetAction: { minHeight: sizing.touch, gap: spacing.tight },
+  asset: { minHeight: sizing.touch, paddingVertical: 10, gap: spacing.tight, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   assetTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.small },
   identity: { flexGrow: 1, flexShrink: 1, flexBasis: 0, gap: 2, paddingTop: 1 },
   name: { ...typography.body, fontWeight: '600', color: colors.text },

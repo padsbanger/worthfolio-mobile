@@ -26,7 +26,7 @@ export function extendedQuoteDescription(market: Market | undefined) {
 }
 
 /** One compact session quote; never substitute it for regular price/valuation. */
-export function ExtendedQuote({ market, details = false }: { market?: Market; details?: boolean }) {
+export function ExtendedQuote({ market, details = false, align = 'right' }: { market?: Market; details?: boolean; align?: 'left' | 'right' }) {
   const quote = selectedExtendedQuote(market);
   if (!quote) return null;
   if (details) return <Text style={styles.small}>{quote.label} quote: {timestamp(quote.time, true)}</Text>;
@@ -35,7 +35,7 @@ export function ExtendedQuote({ market, details = false }: { market?: Market; de
   const color = quote.changePct == null || quote.changePct === 0 ? colors.muted
     : quote.changePct > 0 ? colors.positive : colors.negative;
   return <Text accessibilityLabel={`${quote.label} ${price}${change}. Quote time: ${timestamp(quote.time, true)}`}
-    numberOfLines={1} style={[styles.small, { color, textAlign: 'right', fontVariant: ['tabular-nums'] }]}>
+    style={[styles.small, { color, textAlign: align, fontVariant: ['tabular-nums'] }]}>
     {quote.label === 'Pre-market' ? 'Pre' : 'After'} {price}{change}
   </Text>;
 }

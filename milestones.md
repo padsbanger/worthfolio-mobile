@@ -492,6 +492,19 @@ Acceptance: the mobile app has consistent visual hierarchy, controls and termino
 
 Implementation evidence: TypeScript, ESLint and all 169 Jest tests pass. The Watchlist picker now matches the sort sheet's border, selected row and press treatment; Watchlists and Instrument both use Show details / Hide details for quote disclosures. Existing M20-M24 checks cover large balances, tiny prices, unavailable quotes, held/unheld instruments, long names, normal/enlarged text, narrow toolbar wrapping, chart inspection, status transitions, sorting dialog and navigation. This final pass checked the Watchlists picker on Android; capture is ignored in `artifacts/m25-picker.png`. The emulator font scale remains 1.0. Android TalkBack and physical-phone checks remain excluded/unverified at the user's request. No backend, native dependency, APK or cloud build change was made. The user accepted M25 with "looks good. commit and work on next milestone".
 
+## Inspection layout follow-up (2026-09-22)
+
+User requested the toolbar, wrapping, row interaction, instrument section order, and mobile-access wording improvements from the inspection. Implementation is ready for review; user acceptance and commit remain pending.
+
+- [x] Tighten Portfolio and Watchlists controls while retaining 48-point actions. Put the Portfolio currency label beside Your holdings, move Reset sort and period into the sorting dialog, and combine the watchlist selector/count with the quote-details action.
+- [x] Allow full company names, symbols, quantity/currency subtitles, and extended-session prices to wrap. Preserve signed values and financial labels.
+- [x] Make the whole asset row tappable, including holding P&L, warnings, and supporting metadata; retain that metadata in the accessible action description.
+- [x] Move Your position before Quote details without changing financial calculations, history, or quote disclosures.
+- [x] Update Sign-in and Account wording to explain portfolio viewing and adding/removing instruments from existing watchlists.
+- [ ] User acceptance and commit.
+
+Verification: TypeScript, ESLint, and all 177 tests in 21 suites pass. Existing interaction coverage now verifies resetting through the sort dialog and opening a holding by tapping its P&L text. Normal-text Android review confirmed wrapped long watchlist names, the more compact toolbars, P&L navigation, the reordered position/provenance sections, updated Account wording, and sort/picker dismissal with Android Back. A 130% font-scale walkthrough covered Portfolio figures and toolbar wrapping plus the Watchlists toolbar, loading layout, and loaded long company names. Captures are ignored under `artifacts/layout-2026-09-22/`. Font scale was restored to 1.0 and read back after app relaunch; density 420 and resolution 1080x2424 were unchanged. The existing live Updates delayed/provider availability states remain; this presentation change does not fix quote-provider failures. Physical-phone review remains unverified, and TalkBack remains excluded. Existing uncommitted quote changes were preserved. No backend, native dependency, APK, or cloud build change was made.
+
 ## Watchlist membership follow-up (2026-09-20)
 
 At the user's request, checked rows now remove the instrument; unchecked rows add it. The sheet labels both actions, retains progress and named confirmation, and updates membership only after server success. Removing the final instrument sends an empty symbols array and keeps the watchlist. Offline/demo and pending states disable both actions. Failed writes retain membership and support explicit retry, with automatic mutation retries disabled. The header action is labeled Manage watchlists and its star reflects remaining membership.

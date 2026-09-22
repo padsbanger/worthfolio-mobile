@@ -66,7 +66,7 @@ test('dropdown announces selection and closes after choosing; chips report the s
   fireEvent.press(screen.getByLabelText('1H price change'));
   expect(period).toHaveBeenCalledWith('1H');
 });
-test('selected controls identify the active view and expose reset only after a local change', () => {
+test('selected controls identify the active view and reset sort and period through the sorting dialog', () => {
   const reset = jest.fn();
   const view = render(<ListControls sort="default" period="1D" currency="USD" onSort={jest.fn()} onPeriod={jest.fn()} onReset={reset} />);
   expect(screen.getByText('Sort: Default order')).toBeTruthy();
@@ -75,8 +75,11 @@ test('selected controls identify the active view and expose reset only after a l
   view.rerender(<ListControls sort="gains" period="1W" currency="USD" onSort={jest.fn()} onPeriod={jest.fn()} onReset={reset} />);
   expect(screen.getByText('Sort: Largest price rises')).toBeTruthy();
   expect(screen.getByText('1W price change · observed closes')).toBeTruthy();
+  expect(screen.queryByLabelText('Reset list view')).toBeNull();
+  fireEvent.press(screen.getByLabelText('Sort assets. Largest price rises'));
   fireEvent.press(screen.getByLabelText('Reset list view'));
   expect(reset).toHaveBeenCalledTimes(1);
+  expect(screen.queryByLabelText('Close sorting')).toBeNull();
 });
 test('Android Back closes sorting without changing the local view', () => {
   render(<ListControls sort="gains" period="1D" currency="USD" onSort={jest.fn()} onPeriod={jest.fn()} />);

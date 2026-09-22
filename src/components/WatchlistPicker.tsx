@@ -12,7 +12,10 @@ export function WatchlistPicker({ lists, selectedId, onSelect }: {
   return <>
     <Pressable accessibilityRole="button" accessibilityLabel={`Choose watchlist. ${current?.name || 'Select a list'}`}
       accessibilityState={{ expanded: open }} onPress={() => setOpen(true)} style={({ pressed }) => [local.selector, pressed && local.pressed]}>
-      <Text style={[local.name, { flex: 1 }]}>{current?.name || 'Select a list'}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={local.name}>{current?.name || 'Select a list'}</Text>
+        {current && <Text style={local.caption}>{current.symbols.length} instruments</Text>}
+      </View>
       <Text accessible={false} style={local.chevron}>⌄</Text>
     </Pressable>
     <Modal visible={open} transparent animationType="none" onRequestClose={() => setOpen(false)}>
@@ -41,7 +44,7 @@ export function WatchlistPicker({ lists, selectedId, onSelect }: {
 
 const local = StyleSheet.create({
   selector: { minHeight: sizing.touch, flexDirection: 'row', alignItems: 'center', gap: spacing.small,
-    paddingHorizontal: spacing.section, paddingVertical: spacing.small, backgroundColor: colors.surface, borderRadius: shape.control },
+    paddingHorizontal: spacing.section, paddingVertical: spacing.tight, backgroundColor: colors.surface, borderRadius: shape.control },
   name: { ...typography.body, color: colors.text, fontWeight: '600' },
   chevron: { ...typography.section, color: colors.muted },
   action: { ...typography.label, color: colors.accent },

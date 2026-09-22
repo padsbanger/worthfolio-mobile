@@ -34,7 +34,7 @@ export function createDataQueries(client: ApiClient, queue: MarketQueue, cache: 
         const query = new URLSearchParams({ symbol, range, refresh: '1' });
         // The existing API includes session quotes when events are requested.
         // Keep regular-session candles/prices unchanged (no extended=1).
-        if (range === '1D') query.set('events', '1');
+        query.set('events', '1');
         const market = await client.request(`/api/market?${query}`, marketSchema, { signal: sharedSignal });
         const previous = cache.getQueryData<Market>(['market', symbol, range]);
         const older = !!previous?.refreshedAt && !!market.refreshedAt && Date.parse(market.refreshedAt) < Date.parse(previous.refreshedAt);

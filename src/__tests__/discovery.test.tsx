@@ -212,6 +212,31 @@ test('instrument defaults/reset to 1M, renders holding and daily change, and rej
   expect(screen.queryByLabelText('Price history')).toBeNull();
 });
 
+test('instrument shows extended quotes across chart ranges and hides them when regular trading opens', async () => {
+  let state = 'pre';
+  fetcher.mockImplementation(async (url: string) => {
+    if (url.endsWith('/api/bootstrap')) return response(bootstrap);
+    const includeSession = new URL(url).searchParams.get('events') === '1';
+    return response({ ...quote(), session: includeSession ? { state,
+      preMarket: { price: 101, changePct: 1, time: '2026-09-18T12:00:00Z' },
+      postMarket: { price: 102, changePct: -2, time: '2026-09-18T21:00:00Z' },
+    } : undefined });
+  });
+  render(<DataProvider><InstrumentScreen /></DataProvider>);
+  expect(await screen.findByText('Pre $101.00 +1.00%')).toBeTruthy();
+  fireEvent.press(screen.getByLabelText('Quote details'));
+  expect(screen.getByText(/Pre-market quote:/)).toBeTruthy();
+  state = 'open';
+  await tick(7_000);
+  await waitFor(() => expect(screen.queryByText(/Pre \$101/)).toBeNull());
+  expect(screen.queryByText(/Pre-market quote:/)).toBeNull();
+  expect(screen.queryByText(/After \$102/)).toBeNull();
+  expect(screen.getByText('+1.20% daily change')).toBeTruthy();
+  state = 'post';
+  fireEvent.press(screen.getByLabelText('1Y price history'));
+  expect(await screen.findByText('After $102.00 -2.00%')).toBeTruthy();
+});
+
 test('instrument adds and removes membership while preserving other instruments', async () => {
   const target = sampleBootstrap.watchlists[1]!;
   fetcher.mockImplementation(async (url: string, options: RequestInit) => {

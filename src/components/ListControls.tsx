@@ -24,12 +24,7 @@ export function ListControls({ sort, period, onSort, onPeriod, onReset, currency
         </Pressable>)}
       </View>
     </View>
-    <View style={local.summary}>
-      <Text style={local.caption}>{loading ? `Loading ${period} changes\u2026` : sort.startsWith('price') ? `Unit price in ${currency} \u00b7 missing FX last` : `${period} price change \u00b7 ${period === '1D' ? 'previous close' : 'observed closes'}`}</Text>
-      {changed && onReset && <Pressable accessibilityRole="button" accessibilityLabel="Reset list view" onPress={onReset} style={({ pressed }) => [local.reset, pressed && local.pressed]}>
-        <Text style={local.resetText}>Reset</Text>
-      </Pressable>}
-    </View>
+    <Text style={local.caption}>{loading ? `Loading ${period} changes\u2026` : sort.startsWith('price') ? `Unit price in ${currency} \u00b7 missing FX last` : `${period} price change \u00b7 ${period === '1D' ? 'previous close' : 'observed closes'}`}</Text>
     <Modal visible={open} transparent animationType="none" onRequestClose={() => setOpen(false)}>
       <View style={local.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} accessible={false} onPress={() => setOpen(false)} />
@@ -42,6 +37,10 @@ export function ListControls({ sort, period, onSort, onPeriod, onReset, currency
               onPress={() => { onSort(item.id); setOpen(false); }} style={({ pressed }) => [local.option, item.id === sort && local.selectedOption, pressed && local.pressed]}>
               <Text style={[local.title, { flex: 1 }]}>{item.label}</Text>{item.id === sort && <Text accessible={false} style={local.text}>{'\u2713'}</Text>}
             </Pressable>} />
+          {changed && onReset && <Pressable accessibilityRole="button" accessibilityLabel="Reset list view"
+            onPress={() => { onReset(); setOpen(false); }} style={({ pressed }) => [local.option, pressed && local.pressed]}>
+            <Text style={local.resetText}>Reset sort and period</Text>
+          </Pressable>}
         </View>
       </View>
     </Modal>
@@ -50,7 +49,7 @@ export function ListControls({ sort, period, onSort, onPeriod, onReset, currency
 
 const local = StyleSheet.create({
   container: { gap: spacing.tight },
-  toolbar: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.tight, padding: spacing.tight, borderRadius: shape.control + 2, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
+  toolbar: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.tight, padding: spacing.tight / 2, borderRadius: shape.control + 2, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   stackedToolbar: { alignItems: 'stretch' },
   selector: { minHeight: sizing.touch, flexGrow: 1, flexBasis: 168, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.small, paddingHorizontal: spacing.section, borderRadius: shape.control, backgroundColor: colors.elevated },
   chips: { flexGrow: 1, flexBasis: 160, flexDirection: 'row', justifyContent: 'space-between', gap: spacing.tight },
@@ -60,9 +59,7 @@ const local = StyleSheet.create({
   selectedOption: { backgroundColor: `${colors.accent}14` },
   pressed: { opacity: 0.72 },
   text: { ...typography.label, color: colors.muted, fontWeight: '600', flexShrink: 1 },
-  caption: { ...typography.caption, color: colors.muted, flex: 1 },
-  summary: { flexDirection: 'row', alignItems: 'center', gap: spacing.small },
-  reset: { minHeight: sizing.touch, minWidth: sizing.touch, alignItems: 'flex-end', justifyContent: 'center' },
+  caption: { ...typography.caption, color: colors.muted },
   resetText: { ...typography.label, color: colors.accent, fontWeight: '600' },
   title: { ...typography.body, color: colors.text },
   backdrop: { flex: 1, backgroundColor: '#00000099', justifyContent: 'center', paddingHorizontal: spacing.screen, paddingVertical: 48 },

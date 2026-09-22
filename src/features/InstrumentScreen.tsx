@@ -8,6 +8,7 @@ import { chartRanges, type ChartRange } from '../api/contracts';
 import { useUpdateWatchlistMembership, useBootstrap, useData, useMarket } from '../api/data';
 import { DataNotice, Heading, Label, Status, styles } from '../components/ui';
 import { PriceChart } from '../components/PriceChart';
+import { ExtendedQuote } from '../components/ExtendedQuote';
 import { AddToWatchlistSheet } from '../components/AddToWatchlistSheet';
 import { money, number, percent, positionValues, ticker, timestamp } from '../lib/format';
 import { Metric } from '../components/investment-ui';
@@ -54,6 +55,7 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
       <Text style={styles.small}>Price</Text>
       <Text style={local.price}>{money(data?.lastPrice, data?.currency)}</Text>
       <Text style={[styles.label, { color: change == null ? colors.muted : change >= 0 ? colors.positive : colors.negative }]}>{percent(change)} daily change</Text>
+      <ExtendedQuote market={data} align="left" />
       <Text style={styles.small}>{data?.currency === 'GBX' ? 'GBP · converted from GBX' : data?.currency || 'Currency unavailable'}</Text>
       </View></View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={local.ranges}>
@@ -65,6 +67,16 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
         <Status title={result.isFetching ? 'Loading price history' : 'Price history unavailable'} loading={result.isFetching}
           message={result.error?.message} retry={result.isError && (demo || (online && active)) ? () => void result.refetch({ cancelRefetch: false }) : undefined} />}</View>
       {range === 'ALL' && <Text style={styles.small}>Available provider history; the dates shown may not cover the instrument’s full lifetime.</Text>}
+      {position && <View style={local.position}>
+        <Text style={styles.sectionHeading}>Your position</Text>
+        <Label>{number(position.quantity)} units · {position.quantity < 0 ? 'Short' : 'Long'}</Label>
+        <View style={local.metrics}>
+          <Metric label={`Value · ${bootstrap.data?.account.baseCurrency}`} value={money(values?.value, bootstrap.data?.account.baseCurrency)} />
+          <Metric label="Open P&L" value={money(values?.pnl, bootstrap.data?.account.baseCurrency, true)}
+            direction={values?.pnl == null ? undefined : values.pnl >= 0 ? 'positive' : 'negative'} />
+          <Metric label="Average entry" value={money(position.avgPrice, position.currency)} />
+        </View>
+      </View>}
       {data && <View style={local.quoteDetails}>
         <Text style={local.sectionHeading}>Quote details</Text>
         <View style={local.metadataHeader}>
@@ -83,17 +95,8 @@ function InstrumentDetails({ symbol }: { symbol: string }) {
           <Text style={styles.small}>Source: {data.source || 'Unavailable'}</Text>
           <Text style={styles.small}>Fetched: {data.refreshedAt || 'Time unavailable'}</Text>
           <Text style={styles.small}>Previous close: {money(data.previousClose, data.currency)}</Text>
+          <ExtendedQuote market={data} details />
         </View>}
-      </View>}
-      {position && <View style={local.position}>
-        <Text style={styles.sectionHeading}>Your position</Text>
-        <Label>{number(position.quantity)} units · {position.quantity < 0 ? 'Short' : 'Long'}</Label>
-        <View style={local.metrics}>
-          <Metric label={`Value · ${bootstrap.data?.account.baseCurrency}`} value={money(values?.value, bootstrap.data?.account.baseCurrency)} />
-          <Metric label="Open P&L" value={money(values?.pnl, bootstrap.data?.account.baseCurrency, true)}
-            direction={values?.pnl == null ? undefined : values.pnl >= 0 ? 'positive' : 'negative'} />
-          <Metric label="Average entry" value={money(position.avgPrice, position.currency)} />
-        </View>
       </View>}
     </ScrollView>
     <AddToWatchlistSheet visible={showWatchlists} symbol={symbol} lists={watchlists}
