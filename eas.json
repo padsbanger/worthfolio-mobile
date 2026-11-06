@@ -5,13 +5,13 @@
       "developmentClient": true,
       "distribution": "internal",
       "environment": "development",
-      "env": { "EXPO_PUBLIC_DEMO_MODE": "true", "EXPO_PUBLIC_API_URL": "https://worthfolio.pripyat.cloud" },
+      "env": { "EXPO_PUBLIC_DEMO_MODE": "true", "EXPO_PUBLIC_API_URL": "https://worthfolio.zaton.net" },
       "android": { "buildType": "apk" }
     },
     "preview": {
       "distribution": "internal",
       "environment": "preview",
-      "env": { "EXPO_PUBLIC_DEMO_MODE": "false", "EXPO_PUBLIC_API_URL": "https://worthfolio.pripyat.cloud" },
+      "env": { "EXPO_PUBLIC_DEMO_MODE": "false", "EXPO_PUBLIC_API_URL": "https://worthfolio.zaton.net" },
       "android": { "buildType": "apk" }
     }
   }

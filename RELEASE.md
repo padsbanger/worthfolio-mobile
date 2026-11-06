@@ -1,5 +1,11 @@
 # Personal Android release
 
+## API migration release: 0.3.1 / Android code 7
+
+Requested 2026-11-06: the API origin is now `https://worthfolio.zaton.net`. Both EAS profiles, the local environment and configuration examples use the new origin; the Authentik issuer/client remain unchanged. The user explicitly authorized an Expo cloud release using the existing preview APK profile and signing identity. The new origin returned HTTP 200 from `/api/health` with OIDC authentication advertised; authenticated login and physical-phone behavior remain unverified for this release. The server binding invalidates sessions saved for the old origin, so users must sign in again.
+
+Cloud build result and validation are recorded below when available. Historical release records retain their original API origin.
+
 M1-M5 are complete: the signed APK and isolated emulator startup checks pass, and the user confirmed release acceptance after receiving the standalone APK and physical-phone checklist; phone/backend checks are user-reported where identified in `milestones.md`. A development-client check does not establish standalone APK acceptance.
 
 ## M19 widget design update: build 6 (accepted)
@@ -107,7 +113,7 @@ set "JAVA_HOME=%LOCALAPPDATA%\Worthfolio\jdk17\jdk-17.0.20.1+1"
 set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
 set "PATH=%JAVA_HOME%\bin;%ANDROID_HOME%\platform-tools;%PATH%"
 set "NODE_ENV=production"
-set "EXPO_PUBLIC_API_URL=https://worthfolio.pripyat.cloud"
+set "EXPO_PUBLIC_API_URL=https://worthfolio.zaton.net"
 set "EXPO_PUBLIC_DEMO_MODE=false"
 set "CMAKE_BUILD_PARALLEL_LEVEL=2"
 npx expo prebuild --platform android --no-install

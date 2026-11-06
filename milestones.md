@@ -1,5 +1,9 @@
 # Worthfolio Mobile milestones
 
+## API migration release (2026-11-06)
+
+User authorized changing the API to `https://worthfolio.zaton.net` and publishing a new Expo cloud build. Release identity: 0.3.1 / Android code 7. This is a release follow-up, not authorization to begin another feature milestone. Configuration and current setup instructions updated; historical deployment evidence retained. Health endpoint returns HTTP 200 and advertises OIDC. Build/validation results pending; authenticated and physical-phone checks remain unverified.
+
 Status: M1-M5 complete. The user confirmed M5 completion after receiving the standalone APK and phone checklist, then requested a commit and pause. Phone/backend test results remain user-reported. The exact hosted backend revision remains a documented traceability limitation.
 
 Work through these milestones in order. Mark a checkbox complete only after its deliverable or check is demonstrated. Record validation evidence and unresolved issues with each completed milestone. [design.md](design.md) defines the agreed scope and behavior.

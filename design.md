@@ -1,5 +1,7 @@
 # Worthfolio Mobile design
 
+Current API origin (updated at user request 2026-11-06): `https://worthfolio.zaton.net`. Earlier deployment references below are historical; the Authentik issuer and public client configuration are unchanged.
+
 Status: agreed v1 design; M1 foundation, M2 authentication, and M3 portfolio/watchlists are complete. Hosted login/bootstrap/logout were verified on the emulator; the user confirmed physical-phone testing and hosted authorization tests. M4 search/chart checks pass, including user-confirmed physical-phone acceptance. M5 is complete: the locally built standalone APK uses the existing EAS signing key and the user confirmed release acceptance after the phone checklist. The exact hosted backend revision remains unverified. See `milestones.md` for evidence and remaining work.
 
 ## Goal and scope

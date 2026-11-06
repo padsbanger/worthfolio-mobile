@@ -3,14 +3,14 @@ import type { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
   name: 'Worthfolio',
   slug: 'worthfolio-mobile',
-  version: '0.3.0',
+  version: '0.3.1',
   scheme: 'worthfolio',
   orientation: 'portrait',
   userInterfaceStyle: 'dark',
   icon: './assets/icon.png',
   android: {
     package: 'com.worthfolio.mobile',
-    versionCode: 6,
+    versionCode: 7,
     allowBackup: false,
     adaptiveIcon: {
       foregroundImage: './assets/android-icon-foreground.png',

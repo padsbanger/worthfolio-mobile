@@ -22,7 +22,7 @@ if not exist .env.local copy .env.example .env.local
 npm start
 ```
 
-The example API origin is `https://worthfolio.pripyat.cloud`. Set `EXPO_PUBLIC_DEMO_MODE=true` in `.env.local` to enable **Explore sample portfolio** in development builds. All sample screens carry a visible label, use only synthetic fixture data, and do not call the backend. The preview release profile disables sample access, and the app additionally requires `__DEV__` before allowing it.
+The example API origin is `https://worthfolio.zaton.net`. Set `EXPO_PUBLIC_DEMO_MODE=true` in `.env.local` to enable **Explore sample portfolio** in development builds. All sample screens carry a visible label, use only synthetic fixture data, and do not call the backend. The preview release profile disables sample access, and the app additionally requires `__DEV__` before allowing it.
 
 The app requires an installed Expo **development build**, not Expo Go. Metro alone does not create an APK. Missing or invalid server configuration is explained on the sign-in screen; configuration must be an HTTPS origin without credentials, a path, query parameters, or a fragment.
 
@@ -106,7 +106,7 @@ The app uses the separate **public** Authentik mobile client:
 - Client ID: `9k33r6Ly7z3MYeKYP8JWqjAQKUbxWFoti107Q7Yx`
 - In the Authentik provider, register **Strict** redirect URI `worthfolio://auth/callback` and enable the `openid`, `profile`, and `email` scope mappings.
 
-No client secret is required or stored. Keep the existing web client unchanged. These public defaults are in `src/lib/config.ts`; `.env.example` documents optional `EXPO_PUBLIC_OIDC_ISSUER` and `EXPO_PUBLIC_OIDC_CLIENT_ID` overrides. The API origin remains `https://worthfolio.pripyat.cloud`.
+No client secret is required or stored. Keep the existing web client unchanged. These public defaults are in `src/lib/config.ts`; `.env.example` documents optional `EXPO_PUBLIC_OIDC_ISSUER` and `EXPO_PUBLIC_OIDC_CLIENT_ID` overrides. The API origin remains `https://worthfolio.zaton.net`.
 
 Sign-in opens the system browser with Authorization Code + S256 PKCE, exchanges the returned code at Authentik, then reads Worthfolio bootstrap using the access token. The app saves a session only after that read succeeds. There is no `/auth/mobile/*` dependency or `mobileAuth` health gate in this flow. A 401/403 after Authentik login means API access was denied: the backend needs mobile-token validation, or server access rules may be blocking the request.
 
