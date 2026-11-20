@@ -4,6 +4,10 @@
 
 Updated the mobile issuer to `https://auth.zaton.net/application/o/worthfolio-mobile/` on 2026-11-20. The previous issuer returned HTTP 525. Discovery on the new issuer advertises Authorization Code and S256 PKCE. The configured public client and Android callback reach the Authentik sign-in page. The app's issuer binding requires a fresh sign-in after the update.
 
+Signed APK: `artifacts/releases/worthfolio-0.3.2-8.apk`. SHA-256: `6ff7f63e9349e1482f41c64fb9389ff64ae34b5533b25172ee553e6a24eafec6`. The existing EAS certificate matches. The APK includes arm64-v8a and x86_64 and was built from the app source and installed dependencies used for `b56f77c`, before the dependency merge in `4d77c39`.
+
+TypeScript, ESLint, all 177 Jest tests and the local Gradle release build pass. A separate Android emulator accepted an in-place update from build 6, opened the new Authentik login form from Worthfolio, and returned to the app with Android Back. Authenticated bootstrap and physical-phone sign-in remain unverified. The hosted API health check returned HTTP 200.
+
 ## API migration release: 0.3.1 / Android code 7
 
 Requested 2026-11-06: the API origin is now `https://worthfolio.zaton.net`. Both EAS profiles, the local environment and configuration examples use the new origin; the Authentik issuer/client remain unchanged. The user explicitly authorized an Expo cloud release using the existing preview APK profile and signing identity. The new origin returned HTTP 200 from `/api/health` with OIDC authentication advertised; authenticated login and physical-phone behavior remain unverified for this release. The server binding invalidates sessions saved for the old origin, so users must sign in again.
