@@ -16,6 +16,6 @@ export const callbackUri = 'worthfolio://auth/callback';
 
 // Public native client configuration; never add a client secret here.
 export const oidc = {
-  issuer: process.env.EXPO_PUBLIC_OIDC_ISSUER || 'https://auth.pripyat.cloud/application/o/worthfolio-mobile/',
+  issuer: process.env.EXPO_PUBLIC_OIDC_ISSUER || 'https://auth.zaton.net/application/o/worthfolio-mobile/',
   clientId: process.env.EXPO_PUBLIC_OIDC_CLIENT_ID || '9k33r6Ly7z3MYeKYP8JWqjAQKUbxWFoti107Q7Yx',
 };

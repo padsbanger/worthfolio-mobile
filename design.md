@@ -1,6 +1,6 @@
 # Worthfolio Mobile design
 
-Current API origin (updated at user request 2026-11-06): `https://worthfolio.zaton.net`. Earlier deployment references below are historical; the Authentik issuer and public client configuration are unchanged.
+Current API origin: `https://worthfolio.zaton.net` (2026-11-06). Current Authentik issuer: `https://auth.zaton.net/application/o/worthfolio-mobile/` (2026-11-20).
 
 Status: agreed v1 design; M1 foundation, M2 authentication, and M3 portfolio/watchlists are complete. Hosted login/bootstrap/logout were verified on the emulator; the user confirmed physical-phone testing and hosted authorization tests. M4 search/chart checks pass, including user-confirmed physical-phone acceptance. M5 is complete: the locally built standalone APK uses the existing EAS signing key and the user confirmed release acceptance after the phone checklist. The exact hosted backend revision remains unverified. See `milestones.md` for evidence and remaining work.
 
@@ -108,7 +108,7 @@ Decision updated 2026-09-17: the user created a separate public Authentik mobile
 
 ### Configuration
 
-- Issuer: `https://auth.pripyat.cloud/application/o/worthfolio-mobile/`
+- Issuer: `https://auth.zaton.net/application/o/worthfolio-mobile/`
 - Discovery: issuer plus `.well-known/openid-configuration`.
 - Public client ID: `9k33r6Ly7z3MYeKYP8JWqjAQKUbxWFoti107Q7Yx`.
 - Authentik redirect URI: exactly `worthfolio://auth/callback`, using Strict matching.

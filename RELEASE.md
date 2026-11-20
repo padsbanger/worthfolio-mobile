@@ -1,10 +1,14 @@
 # Personal Android release
 
+## Authentik migration: 0.3.2 / Android code 8
+
+Updated the mobile issuer to `https://auth.zaton.net/application/o/worthfolio-mobile/` on 2026-11-20. The previous issuer returned HTTP 525. Discovery on the new issuer advertises Authorization Code and S256 PKCE. The configured public client and Android callback reach the Authentik sign-in page. The app's issuer binding requires a fresh sign-in after the update.
+
 ## API migration release: 0.3.1 / Android code 7
 
 Requested 2026-11-06: the API origin is now `https://worthfolio.zaton.net`. Both EAS profiles, the local environment and configuration examples use the new origin; the Authentik issuer/client remain unchanged. The user explicitly authorized an Expo cloud release using the existing preview APK profile and signing identity. The new origin returned HTTP 200 from `/api/health` with OIDC authentication advertised; authenticated login and physical-phone behavior remain unverified for this release. The server binding invalidates sessions saved for the old origin, so users must sign in again.
 
-Cloud build result and validation are recorded below when available. Historical release records retain their original API origin.
+Validation: TypeScript, ESLint and all 177 Jest tests (21 suites) pass. Expo Doctor passes 20/21 checks; its dependency check recommends newer patches for seven pinned Expo packages. Dependencies were not upgraded for this URL-only release. EAS preview build: https://expo.dev/accounts/padsbanger/projects/worthfolio-mobile/builds/bd554c75-1f1f-4ac0-b2f8-e35b3aa05526 (finished successfully). APK: https://expo.dev/artifacts/eas/wKBizfp4Xl3wDFfBuxxMj_bwh36zq8kFTeqC3hwBw6A.apk . Historical release records retain their original API origin.
 
 M1-M5 are complete: the signed APK and isolated emulator startup checks pass, and the user confirmed release acceptance after receiving the standalone APK and physical-phone checklist; phone/backend checks are user-reported where identified in `milestones.md`. A development-client check does not establish standalone APK acceptance.
 

@@ -101,8 +101,8 @@ The preview profile bundles JavaScript into an installable APK and does not requ
 
 The app uses the separate **public** Authentik mobile client:
 
-- Issuer: `https://auth.pripyat.cloud/application/o/worthfolio-mobile/`
-- Discovery: `https://auth.pripyat.cloud/application/o/worthfolio-mobile/.well-known/openid-configuration`
+- Issuer: `https://auth.zaton.net/application/o/worthfolio-mobile/`
+- Discovery: `https://auth.zaton.net/application/o/worthfolio-mobile/.well-known/openid-configuration`
 - Client ID: `9k33r6Ly7z3MYeKYP8JWqjAQKUbxWFoti107Q7Yx`
 - In the Authentik provider, register **Strict** redirect URI `worthfolio://auth/callback` and enable the `openid`, `profile`, and `email` scope mappings.
 

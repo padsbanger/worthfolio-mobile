@@ -2,7 +2,7 @@
 
 ## API migration release (2026-11-06)
 
-User authorized changing the API to `https://worthfolio.zaton.net` and publishing a new Expo cloud build. Release identity: 0.3.1 / Android code 7. This is a release follow-up, not authorization to begin another feature milestone. Configuration and current setup instructions updated; historical deployment evidence retained. Health endpoint returns HTTP 200 and advertises OIDC. Build/validation results pending; authenticated and physical-phone checks remain unverified.
+User authorized changing the API to `https://worthfolio.zaton.net` and publishing a new Expo cloud build. Release identity: 0.3.1 / Android code 7. This is a release follow-up, not authorization to begin another feature milestone. Configuration and current setup instructions updated; historical deployment evidence retained. Health endpoint returns HTTP 200 and advertises OIDC. TypeScript, ESLint and 177 tests pass. Expo Doctor: 20/21, with seven recommended Expo patch updates left outside this release. EAS preview build `bd554c75-1f1f-4ac0-b2f8-e35b3aa05526` finished successfully; the APK is linked in RELEASE.md. Authenticated and physical-phone checks remain unverified.
 
 Status: M1-M5 complete. The user confirmed M5 completion after receiving the standalone APK and phone checklist, then requested a commit and pause. Phone/backend test results remain user-reported. The exact hosted backend revision remains a documented traceability limitation.
 
